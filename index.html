@@ -228,6 +228,15 @@
                 <button onclick="closeReviewModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
 
+            <!-- Official Store Product Badge -->
+            <div id="officialBadge" class="hidden p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                <i class="ph-fill ph-seal-check text-base text-emerald-400"></i>
+                <div>
+                    <span id="sourceText">ข้อมูลทางการ (7-Eleven / ฉลากสินค้า)</span>
+                    <span class="block text-[10px] text-emerald-500/80 font-normal">ดึงตัวเลขแคลอรี่และสารอาหารตามฉลากจริง</span>
+                </div>
+            </div>
+
             <div class="space-y-3">
                 <div>
                     <label class="text-xs text-slate-400">ชื่ออาหาร (แก้ไขได้)</label>
@@ -276,6 +285,7 @@
 
         let config = { apiKey: '', model: 'gemini-3.8-flash', goal: 2000 };
         let meals = [];
+        let currentScanMeta = { is_official: false, source: '' };
 
         function initApp() {
             const savedConfig = localStorage.getItem(STORAGE_CONFIG);
@@ -339,7 +349,10 @@
                             ${getMealEmoji(m.meal_type)}
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-white">${m.name}</div>
+                            <div class="font-bold text-sm text-white flex items-center flex-wrap gap-1.5">
+                            ${m.name}
+                            ${m.is_official ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold inline-flex items-center gap-1"><i class="ph-bold ph-seal-check"></i> ทางการ</span>' : ''}
+                        </div>
                             <div class="text-[11px] text-slate-400">${m.time} • P:${m.protein_g}g C:${m.carbs_g}g F:${m.fat_g}g</div>
                         </div>
                     </div>
@@ -462,6 +475,19 @@
                     result = data;
                 }
 
+                // Track Official Data Status
+                currentScanMeta.is_official = !!result.is_official;
+                currentScanMeta.source = result.source || '';
+
+                const officialBadge = document.getElementById('officialBadge');
+                const sourceText = document.getElementById('sourceText');
+                if (result.is_official) {
+                    sourceText.innerText = result.source || 'ข้อมูลทางการ (7-Eleven / ฉลากสินค้า)';
+                    officialBadge.classList.remove('hidden');
+                } else {
+                    officialBadge.classList.add('hidden');
+                }
+
                 // Populate into Review Modal
                 document.getElementById('editName').value = result.name || 'อาหารจานนี้';
                 document.getElementById('editMealType').value = result.meal_type || 'lunch';
@@ -495,7 +521,9 @@
                 calories: Number(document.getElementById('editCal').value) || 0,
                 protein_g: Number(document.getElementById('editP').value) || 0,
                 carbs_g: Number(document.getElementById('editC').value) || 0,
-                fat_g: Number(document.getElementById('editF').value) || 0
+                fat_g: Number(document.getElementById('editF').value) || 0,
+                is_official: currentScanMeta.is_official,
+                source: currentScanMeta.source
             };
 
             meals.unshift(newMeal);
