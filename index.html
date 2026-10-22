@@ -76,8 +76,8 @@
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-base"></i></button>
             </div>
             <div>
-                <label class="text-xs text-slate-400 font-medium">Gemini API Key (Google AI Studio)</label>
-                <input id="apiKeyInput" type="password" placeholder="AIzaSy..." class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
+                <label class="text-xs text-slate-400 font-medium">Gemini API Key (เชื่อมต่อกับ Cloud แล้ว)</label>
+                <input id="apiKeyInput" type="password" placeholder="พร้อมใช้งานอัตโนมัติ (Server Configured)" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
             </div>
             <div>
                 <label class="text-xs text-slate-400 font-medium">AI Model Name</label>
@@ -407,11 +407,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (!config.apiKey) {
-                alert('กรุณาตั้งค่า Gemini API Key ก่อนใช้งาน (กดปุ่ม ⚙️)');
-                toggleSettings();
-                return;
-            }
+            // เรียกผ่าน Server API /api/analyze อัตโนมัติ
 
             const loadingModal = document.getElementById('loadingModal');
             loadingModal.classList.remove('hidden');
@@ -432,30 +428,39 @@
   "fat_g": 18.0
 }`;
 
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${config.apiKey}`;
-                
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }
-                            ]
-                        }],
-                        generationConfig: {
-                            response_mime_type: 'application/json'
-                        }
-                    })
-                });
-
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.error?.message || 'เชื่อมต่อ Gemini API ล้มเหลว');
+                let result;
+                if (config.apiKey) {
+                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${config.apiKey}`;
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: prompt },
+                                    { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }
+                                ]
+                            }],
+                            generationConfig: { response_mime_type: 'application/json' }
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error?.message || 'เชื่อมต่อ Gemini API ล้มเหลว');
+                    result = JSON.parse(data.candidates[0].content.parts[0].text);
+                } else {
+                    const res = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            image: base64Data,
+                            mimeType: file.type || 'image/jpeg',
+                            model: activeModel
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'เชื่อมต่อ Serverless API ล้มเหลว');
+                    result = data;
                 }
-
-                const result = JSON.parse(data.candidates[0].content.parts[0].text);
 
                 // Populate into Review Modal
                 document.getElementById('editName').value = result.name || 'อาหารจานนี้';

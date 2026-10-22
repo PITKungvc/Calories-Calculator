@@ -12,9 +12,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792693412.1223066,
-    "seen": 1792695048.369058,
-    "ast_hash": "d917cee9ec8a33b92455752699960eaf",
+    "mtime": 1792695514.4868486,
+    "seen": 1792695525.518104,
+    "ast_hash": "e997bd2165a96989072284eded7faf61",
+    "semantic_hash": ""
+  },
+  "api/analyze.js": {
+    "mtime": 1792695418.1018853,
+    "seen": 1792695525.518104,
+    "ast_hash": "7ae5b34ed9f5aa8783404c220a59f012",
     "semantic_hash": ""
   }
 }

@@ -1,4 +1,5 @@
 {
   "0": "manifest.json",
-  "1": "vercel.json"
+  "1": "vercel.json",
+  "2": "analyze.js"
 }
