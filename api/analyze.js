@@ -1,3 +1,33 @@
+// ฐานข้อมูลสินค้าทางการที่พบได้บ่อยในร้านสะดวกซื้อ (7-Eleven, Lawson, Supermarket)
+const OFFICIAL_STORE_PRODUCTS = [
+  { keywords: ['อกไก่นุ่ม', 'กระเทียมพริกไทย', 'cp'], name: 'อกไก่นุ่มกระเทียมพริกไทย ตรา ซีพี', calories: 90, protein_g: 18, carbs_g: 2, fat_g: 1, sugar_g: 1, sodium_mg: 390, portion: '1 ซอง (90g)', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
+  { keywords: ['อกไก่นุ่ม', 'พริกไทยดำ', 'cp'], name: 'อกไก่นุ่มพริกไทยดำ ตรา ซีพี', calories: 90, protein_g: 19, carbs_g: 2, fat_g: 1, sugar_g: 1, sodium_mg: 380, portion: '1 ซอง (90g)', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
+  { keywords: ['อกไก่นุ่ม', 'cp'], name: 'อกไก่นุ่ม ตรา ซีพี', calories: 90, protein_g: 19, carbs_g: 2, fat_g: 1, sugar_g: 1, sodium_mg: 380, portion: '1 ซอง (90g)', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
+  { keywords: ['แซนวิชแฮมชีส'], name: 'แซนวิชแฮมชีส 7-Eleven', calories: 290, protein_g: 9, carbs_g: 31, fat_g: 14, sugar_g: 4, sodium_mg: 580, portion: '1 ชิ้น', source: 'ฐานข้อมูลทางการ 7-Eleven' },
+  { keywords: ['ครัวซองต์', 'แฮมชีส'], name: 'แซนวิชครัวซองต์แฮมชีส 7-Eleven', calories: 340, protein_g: 8, carbs_g: 32, fat_g: 20, sugar_g: 5, sodium_mg: 620, portion: '1 ชิ้น', source: 'ฐานข้อมูลทางการ 7-Eleven' },
+  { keywords: ['เมจิ', 'ไฮโปรตีน', 'ช็อกโกแลต'], name: 'นมเมจิ ไฮโปรตีน รสช็อกโกแลต', calories: 170, protein_g: 28, carbs_g: 10, fat_g: 2, sugar_g: 4, sodium_mg: 160, portion: '1 ขวด (350ml)', source: 'ฐานข้อมูลทางการ Meiji' },
+  { keywords: ['เมจิ', 'ไฮโปรตีน', 'กล้วย'], name: 'นมเมจิ ไฮโปรตีน กลิ่นกล้วย', calories: 160, protein_g: 28, carbs_g: 9, fat_g: 1.5, sugar_g: 4, sodium_mg: 150, portion: '1 ขวด (350ml)', source: 'ฐานข้อมูลทางการ Meiji' },
+  { keywords: ['เมจิ', 'ไฮโปรตีน'], name: 'นมเมจิ ไฮโปรตีน', calories: 170, protein_g: 28, carbs_g: 10, fat_g: 2, sugar_g: 4, sodium_mg: 160, portion: '1 ขวด (350ml)', source: 'ฐานข้อมูลทางการ Meiji' },
+  { keywords: ['ไข่ต้ม', 'cp'], name: 'ไข่ต้มสุก ตรา ซีพี', calories: 140, protein_g: 12, carbs_g: 0, fat_g: 10, sugar_g: 0, sodium_mg: 120, portion: '2 ฟอง', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
+  { keywords: ['ไข่ออนเซ็น', 'cp'], name: 'ไข่ออนเซ็น ตรา ซีพี', calories: 70, protein_g: 6, carbs_g: 0, fat_g: 5, sugar_g: 0, sodium_mg: 60, portion: '1 ฟอง', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
+  { keywords: ['กะเพราไก่', '7-eleven'], name: 'ข้าวกะเพราไก่ 7-Eleven (Ezy Choice)', calories: 420, protein_g: 18, carbs_g: 65, fat_g: 10, sugar_g: 4, sodium_mg: 980, portion: '1 กล่อง', source: 'ฐานข้อมูลทางการ 7-Eleven' },
+  { keywords: ['มาม่า', 'ต้มยำกุ้ง'], name: 'มาม่า รสต้มยำกุ้ง', calories: 260, protein_g: 5, carbs_g: 36, fat_g: 11, sugar_g: 3, sodium_mg: 1280, portion: '1 ซอง (55g)', source: 'ฐานข้อมูลทางการ มาม่า' },
+  { keywords: ['เลย์', 'คลาสสิค'], name: 'เลย์ รสคลาสสิค', calories: 230, protein_g: 3, carbs_g: 23, fat_g: 14, sugar_g: 1, sodium_mg: 170, portion: '1 ซอง (42g)', source: 'ฐานข้อมูลทางการ Lay\'s' },
+  { keywords: ['c-vitt', 'เลมอน'], name: 'ซี-วิต รสเลมอน', calories: 30, protein_g: 0, carbs_g: 7, fat_g: 0, sugar_g: 6, sodium_mg: 75, portion: '1 ขวด (140ml)', source: 'ฐานข้อมูลทางการ C-vitt' },
+  { keywords: ['โค้ก', 'ไม่มีน้ำตาล'], name: 'โค้ก ไม่มีน้ำตาล (Coke Zero)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ Coca-Cola' },
+  { keywords: ['โทฟุซัง'], name: 'นมถั่วเหลือง โทฟุซัง หวานน้อย', calories: 100, protein_g: 9, carbs_g: 9, fat_g: 3, sugar_g: 4, sodium_mg: 45, portion: '1 ขวด (225ml)', source: 'ฐานข้อมูลทางการ Tofusan' }
+];
+
+function matchOfficialProduct(detectedName) {
+  if (!detectedName) return null;
+  const lower = detectedName.toLowerCase();
+  for (const item of OFFICIAL_STORE_PRODUCTS) {
+    const isMatch = item.keywords.every(kw => lower.includes(kw.toLowerCase()));
+    if (isMatch) return item;
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -18,12 +48,12 @@ export default async function handler(req, res) {
 วิเคราะห์ภาพอาหารหรือสินค้าในภาพนี้อย่างละเอียด:
 
 กฎสำคัญในการประมวลผล:
-1. หากเป็น "สินค้าสำเร็จรูป / ขนม / เครื่องดื่ม / อาหารกล่องที่มีขายในร้านสะดวกซื้อ" (เช่น 7-Eleven, Lawson, Big C mini, Lotus's go fresh, ตรา CP, Betagro, Meiji, ดัชมิลล์, เลย์, มาม่า, อิชิตัน ฯลฯ):
-   - หากเห็น "ตารางโภชนาการ (Nutrition Facts)" หรือ "ฉลากหวานมันเค็ม (GDA)" ให้ดึงตัวเลขแคลอรี่และ Macro สารอาหารตามฉลากทางการของสินค้านั้นแบบ 100% ตรงตามจริง
-   - หากเห็นหน้าซอง/แพ็กเกจชัดเจนแต่ไม่เห็นตารางด้านหลัง ให้ระบุชื่อสินค้าพร้อมแบรนด์อย่างเป็นทางการ (เช่น "อกไก่นุ่มกระเทียมพริกไทย ตรา ซีพี", "แซนวิชครัวซองต์แฮมชีส 7-Eleven", "นมเมจิไฮโปรตีน กลิ่นกล้วย") และดึงตัวเลขโภชนาการตามฐานข้อมูลทางการของผู้ผลิต
-   - กำหนดค่า is_official: true และระบุ source: เช่น "ข้อมูลทางการ 7-Eleven / CP" หรือ "ฉลากโภชนาการทางการ"
+1. หากเป็น "สินค้าสำเร็จรูป / ขนม / เครื่องดื่ม / อาหารกล่องในร้านสะดวกซื้อ" (เช่น 7-Eleven, Lawson, Big C, Lotus's, CP, Betagro, Meiji, ดัชมิลล์, เลย์, มาม่า, อิชิตัน ฯลฯ):
+   - หากเห็น "ตารางโภชนาการ (Nutrition Facts)" หรือ "ฉลากหวานมันเค็ม (GDA)" ให้ดึงตัวเลข แคลอรี่, โปรตีน, คาร์บ, ไขมัน, น้ำตาล (sugar_g), โซเดียม (sodium_mg) ตามฉลากทางการ 100%
+   - หากเห็นเฉพาะหน้าซอง/แพ็กเกจ ให้ระบุชื่อสินค้าพร้อมแบรนด์ทางการ และดึงตัวเลขโภชนาการตามฐานข้อมูลทางการของผู้ผลิต
+   - กำหนดค่า is_official: true และระบุ source เช่น "ฐานข้อมูลทางการ 7-Eleven / CP"
 2. หากเป็น "อาหารปรุงสด / อาหารตามสั่ง / สตรีทฟู้ด":
-   - ประเมินปริมาณและคำนวณแคลอรี่ตามสูตรอาหารไทยมาตรฐาน
+   - ประเมินปริมาณ แคลอรี่ Macro พร้อมประเมิน น้ำตาล (sugar_g) และ โซเดียม (sodium_mg) ตามสูตรมาตรฐาน
    - กำหนดค่า is_official: false และระบุ source: "ประมาณการโดย AI"
 
 ตอบกลับเป็นรูปแบบ JSON เดียวนี้เท่านั้น:
@@ -35,11 +65,12 @@ export default async function handler(req, res) {
   "protein_g": 25.0,
   "carbs_g": 60.0,
   "fat_g": 18.0,
+  "sugar_g": 4.0,
+  "sodium_mg": 580,
   "is_official": true,
   "source": "ข้อมูลทางการ 7-Eleven / CP"
 }`;
 
-    // ลำดับโมเดล: เริ่มจากโมเดลที่เร็วและเสถียรที่สุดก่อน (3.5-flash 2-3s)
     const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
     const modelsToTry = [...new Set(candidateModels)];
 
@@ -48,7 +79,6 @@ export default async function handler(req, res) {
     for (const currentModel of modelsToTry) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
-      // ตั้ง Timeout 3.8 วินาทีต่อโมเดล หากโมเดลไหนค้าง ให้ตัดไปโมเดลถัดไปทันที
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3800);
 
@@ -85,7 +115,27 @@ export default async function handler(req, res) {
 
         const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (textContent) {
-          const parsed = JSON.parse(textContent);
+          let parsed = JSON.parse(textContent);
+
+          // ตรวจสอบกับฐานข้อมูลสินค้าทางการในระบบเพื่อความแม่นยำ 100%
+          const matchedOfficial = matchOfficialProduct(parsed.name);
+          if (matchedOfficial) {
+            parsed.name = matchedOfficial.name;
+            parsed.calories = matchedOfficial.calories;
+            parsed.protein_g = matchedOfficial.protein_g;
+            parsed.carbs_g = matchedOfficial.carbs_g;
+            parsed.fat_g = matchedOfficial.fat_g;
+            parsed.sugar_g = matchedOfficial.sugar_g;
+            parsed.sodium_mg = matchedOfficial.sodium_mg;
+            parsed.portion = matchedOfficial.portion;
+            parsed.is_official = true;
+            parsed.source = matchedOfficial.source;
+          }
+
+          // ตรวจสอบค่าเริ่มต้นให้เป็นตัวเลขเสมอ
+          parsed.sugar_g = Number(parsed.sugar_g) || 0;
+          parsed.sodium_mg = Number(parsed.sodium_mg) || 0;
+
           return res.status(200).json(parsed);
         }
       } catch (err) {
