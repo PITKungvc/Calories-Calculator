@@ -26,38 +26,55 @@ export default async function handler(req, res) {
   "fat_g": 18.0
 }`;
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    // รายการโมเดลสำรองอัตโนมัติหากโมเดลหลักติด 503 High Demand
+    const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3-flash-preview'];
+    const modelsToTry = [...new Set(candidateModels)];
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              { inline_data: { mime_type: mimeType, data: image } }
-            ]
+    let lastError = null;
+
+    for (const currentModel of modelsToTry) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  { inline_data: { mime_type: mimeType, data: image } }
+                ]
+              }
+            ],
+            generationConfig: {
+              response_mime_type: 'application/json'
+            }
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          lastError = data.error?.message || `HTTP ${response.status}`;
+          // หากติด 503 High Demand หรือ 429 Quota ให้สลับไปลองโมเดลตัวถัดไปทันที
+          if (response.status === 503 || response.status === 429) {
+            continue;
           }
-        ],
-        generationConfig: {
-          response_mime_type: 'application/json'
+          return res.status(response.status).json({ error: lastError });
         }
-      })
-    });
 
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Gemini API call failed' });
+        const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (textContent) {
+          const parsed = JSON.parse(textContent);
+          return res.status(200).json(parsed);
+        }
+      } catch (err) {
+        lastError = err.message;
+      }
     }
 
-    const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!textContent) {
-      return res.status(500).json({ error: 'No response content from Gemini' });
-    }
-
-    const parsed = JSON.parse(textContent);
-    return res.status(200).json(parsed);
+    return res.status(503).json({ error: lastError || 'Server busy, please retry in a moment.' });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
