@@ -1,5 +1,22 @@
 // ฐานข้อมูลสินค้าทางการที่พบได้บ่อยในร้านสะดวกซื้อ (7-Eleven, Lawson, Supermarket)
 const OFFICIAL_STORE_PRODUCTS = [
+  // Cielo 0 Calorie Drinks (เครื่องดื่มวิตามินสปาร์คกลิ้ง 0% น้ำตาล 0 แคล ตราเซียโล่)
+  { keywords: ['cielo'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['เซียโล่'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['ซีเอโล่'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['เซียโล'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+
+  // เครื่องดื่ม 0 Cal / 0% น้ำตาล ยอดนิยมใน 7-Eleven
+  { keywords: ['สิงห์', 'เลมอน', 'โซดา'], name: 'สิงห์ เลมอน โซดา 0 แคลอรี', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 กระป๋อง (330ml)', source: 'ฐานข้อมูลทางการ Singha' },
+  { keywords: ['สิงห์', 'ยูสุ'], name: 'สิงห์ ยูสุ เลมอน โซดา 0 แคลอรี', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 กระป๋อง (330ml)', source: 'ฐานข้อมูลทางการ Singha' },
+  { keywords: ['เป๊ปซี่', 'ไม่มีน้ำตาล'], name: 'เป๊ปซี่ ไม่มีน้ำตาล (Pepsi No Sugar)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ PepsiCo' },
+  { keywords: ['pepsi', 'zero'], name: 'เป๊ปซี่ ไม่มีน้ำตาล (Pepsi No Sugar)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ PepsiCo' },
+  { keywords: ['pepsi', 'max'], name: 'เป๊ปซี่ แมกซ์ ไม่มีน้ำตาล (Pepsi Max)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ PepsiCo' },
+  { keywords: ['coke', 'zero'], name: 'โค้ก ไม่มีน้ำตาล (Coke Zero)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ Coca-Cola' },
+  { keywords: ['โค้ก', 'ไม่มีน้ำตาล'], name: 'โค้ก ไม่มีน้ำตาล (Coke Zero)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ Coca-Cola' },
+  { keywords: ['แมนซั่ม', 'ไม่มีน้ำตาล'], name: 'แมนซั่ม วิตามิน วอเตอร์ 0% น้ำตาล', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 20, portion: '1 ขวด (460ml)', source: 'ฐานข้อมูลทางการ Mansome' },
+
+  // อาหารและของว่าง 7-Eleven ยอดนิยม
   { keywords: ['อกไก่นุ่ม', 'กระเทียมพริกไทย', 'cp'], name: 'อกไก่นุ่มกระเทียมพริกไทย ตรา ซีพี', calories: 90, protein_g: 18, carbs_g: 2, fat_g: 1, sugar_g: 1, sodium_mg: 390, portion: '1 ซอง (90g)', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
   { keywords: ['อกไก่นุ่ม', 'พริกไทยดำ', 'cp'], name: 'อกไก่นุ่มพริกไทยดำ ตรา ซีพี', calories: 90, protein_g: 19, carbs_g: 2, fat_g: 1, sugar_g: 1, sodium_mg: 380, portion: '1 ซอง (90g)', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
   { keywords: ['อกไก่นุ่ม', 'cp'], name: 'อกไก่นุ่ม ตรา ซีพี', calories: 90, protein_g: 19, carbs_g: 2, fat_g: 1, sugar_g: 1, sodium_mg: 380, portion: '1 ซอง (90g)', source: 'ฐานข้อมูลทางการ CP / 7-Eleven' },
@@ -14,7 +31,6 @@ const OFFICIAL_STORE_PRODUCTS = [
   { keywords: ['มาม่า', 'ต้มยำกุ้ง'], name: 'มาม่า รสต้มยำกุ้ง', calories: 260, protein_g: 5, carbs_g: 36, fat_g: 11, sugar_g: 3, sodium_mg: 1280, portion: '1 ซอง (55g)', source: 'ฐานข้อมูลทางการ มาม่า' },
   { keywords: ['เลย์', 'คลาสสิค'], name: 'เลย์ รสคลาสสิค', calories: 230, protein_g: 3, carbs_g: 23, fat_g: 14, sugar_g: 1, sodium_mg: 170, portion: '1 ซอง (42g)', source: 'ฐานข้อมูลทางการ Lay\'s' },
   { keywords: ['c-vitt', 'เลมอน'], name: 'ซี-วิต รสเลมอน', calories: 30, protein_g: 0, carbs_g: 7, fat_g: 0, sugar_g: 6, sodium_mg: 75, portion: '1 ขวด (140ml)', source: 'ฐานข้อมูลทางการ C-vitt' },
-  { keywords: ['โค้ก', 'ไม่มีน้ำตาล'], name: 'โค้ก ไม่มีน้ำตาล (Coke Zero)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 30, portion: '1 กระป๋อง (325ml)', source: 'ฐานข้อมูลทางการ Coca-Cola' },
   { keywords: ['โทฟุซัง'], name: 'นมถั่วเหลือง โทฟุซัง หวานน้อย', calories: 100, protein_g: 9, carbs_g: 9, fat_g: 3, sugar_g: 4, sodium_mg: 45, portion: '1 ขวด (225ml)', source: 'ฐานข้อมูลทางการ Tofusan' }
 ];
 
@@ -52,7 +68,10 @@ export default async function handler(req, res) {
    - หากเห็น "ตารางโภชนาการ (Nutrition Facts)" หรือ "ฉลากหวานมันเค็ม (GDA)" ให้ดึงตัวเลข แคลอรี่, โปรตีน, คาร์บ, ไขมัน, น้ำตาล (sugar_g), โซเดียม (sodium_mg) ตามฉลากทางการ 100%
    - หากเห็นเฉพาะหน้าซอง/แพ็กเกจ ให้ระบุชื่อสินค้าพร้อมแบรนด์ทางการ และดึงตัวเลขโภชนาการตามฐานข้อมูลทางการของผู้ผลิต
    - กำหนดค่า is_official: true และระบุ source เช่น "ฐานข้อมูลทางการ 7-Eleven / CP"
-2. หากเป็น "อาหารปรุงสด / อาหารตามสั่ง / สตรีทฟู้ด":
+2. ระวังเป็นพิเศษกับกลุ่ม "เครื่องดื่ม 0 แคลอรี / 0% น้ำตาล / ไม่มีน้ำตาล (Zero Sugar / 0 Calorie)" เช่น Cielo (เซียโล่ สปาร์คกลิ้งโซดา 0 แคล), Singha Lemon Soda 0 Cal, Coke Zero, Pepsi No Sugar, Mansome 0% Sugar:
+   - เครื่องดื่มกลุ่มนี้ แคลอรี่ต้องเป็น 0, โปรตีน 0, ไขมัน 0, คาร์บ 0, น้ำตาล (sugar_g) 0 (โซเดียมประมาณ 15-35 mg ตามฉลาก)
+   - ห้ามประเมินเป็นเครื่องดื่มหวานหรือน้ำอัดลมปกติเด็ดขาด ให้ใช้ตัวเลขทางการ 0 แคล และ 0 น้ำตาล
+3. หากเป็น "อาหารปรุงสด / อาหารตามสั่ง / สตรีทฟู้ด":
    - ประเมินปริมาณ แคลอรี่ Macro พร้อมประเมิน น้ำตาล (sugar_g) และ โซเดียม (sodium_mg) ตามสูตรมาตรฐาน
    - กำหนดค่า is_official: false และระบุ source: "ประมาณการโดย AI"
 
@@ -60,15 +79,15 @@ export default async function handler(req, res) {
 {
   "name": "ชื่ออาหารหรือชื่อสินค้าทางการพร้อมแบรนด์",
   "meal_type": "lunch",
-  "portion": "1 ซอง (90g) หรือ 1 จาน",
-  "calories": 550,
-  "protein_g": 25.0,
-  "carbs_g": 60.0,
-  "fat_g": 18.0,
-  "sugar_g": 4.0,
-  "sodium_mg": 580,
+  "portion": "1 ซอง (90g) หรือ 1 จาน หรือ 1 ขวด (600ml)",
+  "calories": 0,
+  "protein_g": 0.0,
+  "carbs_g": 0.0,
+  "fat_g": 0.0,
+  "sugar_g": 0.0,
+  "sodium_mg": 25,
   "is_official": true,
-  "source": "ข้อมูลทางการ 7-Eleven / CP"
+  "source": "ฐานข้อมูลทางการ 7-Eleven / AJE Thai"
 }`;
 
     const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
