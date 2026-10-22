@@ -11,11 +11,12 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921822.png">
     <link rel="manifest" href="/manifest.json">
 
-    <title>Kalguroo - AI Calorie Tracker (Gemini 3.8 Flash)</title>
+    <title>Kalguroo - AI Nutrition & Calorie Tracker</title>
     
-    <!-- Tailwind CSS & Phosphor Icons -->
+    <!-- Tailwind CSS & Phosphor Icons & SheetJS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -43,16 +44,16 @@
         .glow-card {
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
-        .glow-button {
-            box-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.45);
+        .glow-center-btn {
+            box-shadow: 0 8px 24px -2px rgba(249, 115, 22, 0.55);
         }
     </style>
 </head>
-<body class="bg-[#0b0c10] text-slate-100 min-h-screen pb-32 antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-[#0b0c10] text-slate-100 min-h-screen pb-24 antialiased selection:bg-brand-500 selection:text-white">
 
     <div class="max-w-md mx-auto px-5 pt-3 space-y-4">
         
-        <!-- Header -->
+        <!-- Top App Header -->
         <header class="flex justify-between items-center py-2">
             <div>
                 <div class="flex items-center gap-1.5">
@@ -60,154 +61,381 @@
                     <span id="modelBadge" class="text-[11px] font-bold uppercase tracking-wider text-brand-400">Gemini 3.8 Flash</span>
                 </div>
                 <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                    Kalguroo <span class="text-xs bg-brand-500/20 text-brand-400 border border-brand-500/30 px-2 py-0.5 rounded-full font-semibold">Mobile</span>
+                    Kalguroo <span class="text-xs bg-brand-500/20 text-brand-400 border border-brand-500/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
                 </h1>
             </div>
 
-            <button onclick="toggleSettings()" class="p-2.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-slate-300 hover:text-white active:scale-95 transition">
-                <i class="ph-bold ph-gear-six text-lg"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="switchTab('profile')" class="p-2.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-slate-300 hover:text-white active:scale-95 transition" title="โปรไฟล์ & ตั้งค่า">
+                    <i class="ph-bold ph-gear-six text-lg"></i>
+                </button>
+            </div>
         </header>
 
-        <!-- Settings Modal -->
-        <div id="settingsBox" class="hidden bg-zinc-900 p-5 rounded-3xl border border-zinc-800 space-y-3.5 shadow-2xl">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-sm text-white">⚙️ ตั้งค่าระบบ</h3>
-                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-base"></i></button>
+        <!-- ========================================== -->
+        <!-- TAB 1: HOME VIEW (หน้าหลัก)                -->
+        <!-- ========================================== -->
+        <div id="viewHome" class="tab-view space-y-4">
+            <!-- Calorie Ring Hero Card -->
+            <div class="relative overflow-hidden bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 border border-zinc-800/80 rounded-[32px] p-6 glow-card">
+                <div class="absolute -top-16 -right-16 w-44 h-44 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">แคลอรี่วันนี้</span>
+                        <div class="flex items-baseline gap-1.5 mt-1">
+                            <span id="totalCalDisplay" class="text-4xl font-black text-white tracking-tight">0</span>
+                            <span class="text-sm font-semibold text-slate-500">/ <span id="goalDisplay">2000</span> kcal</span>
+                        </div>
+                        <div id="remainingBadge" class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold">
+                            <i class="ph-bold ph-fire"></i> เหลืออีก 2,000 kcal
+                        </div>
+                    </div>
+
+                    <!-- Circular Progress Ring (SVG) -->
+                    <div class="relative w-24 h-24 flex items-center justify-center">
+                        <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" class="text-zinc-800/70" fill="none" />
+                            <circle id="progressCircle" cx="50" cy="50" r="40" stroke="url(#orangeGrad)" stroke-width="8" stroke-linecap="round" fill="none"
+                                stroke-dasharray="251.2" stroke-dashoffset="251.2" class="transition-all duration-500" />
+                            <defs>
+                                <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fdba74" />
+                                    <stop offset="100%" stop-color="#ea580c" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="absolute text-center">
+                            <span id="percentDisplay" class="text-base font-black text-white">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Macro Progress Bars -->
+                <div class="grid grid-cols-3 gap-3 pt-5 mt-5 border-t border-zinc-800/80 text-xs">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">โปรตีน</span>
+                            <span id="proteinDisplay" class="font-bold text-white">0g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="pBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">คาร์บ</span>
+                            <span id="carbsDisplay" class="font-bold text-amber-400">0g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="cBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-400">ไขมัน</span>
+                            <span id="fatDisplay" class="font-bold text-rose-400">0g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="fBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="text-xs text-slate-400 font-medium">Gemini API Key (เชื่อมต่อกับ Cloud แล้ว)</label>
-                <input id="apiKeyInput" type="password" placeholder="พร้อมใช้งานอัตโนมัติ (Server Configured)" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
+
+            <!-- Quick Meals Summary Row -->
+            <div class="grid grid-cols-4 gap-2">
+                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
+                    <span class="text-base">🍳</span>
+                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">เช้า</div>
+                    <div id="breakfastCal" class="text-xs font-bold text-white mt-0.5">0</div>
+                </div>
+                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
+                    <span class="text-base">🍛</span>
+                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">กลางวัน</div>
+                    <div id="lunchCal" class="text-xs font-bold text-white mt-0.5">0</div>
+                </div>
+                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
+                    <span class="text-base">🥗</span>
+                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">เย็น</div>
+                    <div id="dinnerCal" class="text-xs font-bold text-white mt-0.5">0</div>
+                </div>
+                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
+                    <span class="text-base">☕</span>
+                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">ของว่าง</div>
+                    <div id="snackCal" class="text-xs font-bold text-white mt-0.5">0</div>
+                </div>
             </div>
-            <div>
-                <label class="text-xs text-slate-400 font-medium">AI Model Name</label>
-                <input id="modelNameInput" type="text" value="gemini-3.8-flash" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
+
+            <!-- Today Food Items List -->
+            <div class="space-y-3 pt-1">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="font-extrabold text-sm tracking-wide text-white uppercase flex items-center gap-1.5">
+                        <i class="ph-bold ph-fork-knife text-brand-500"></i> มื้ออาหารวันนี้
+                    </h3>
+                    <span id="itemCountDisplay" class="text-xs text-slate-400 font-medium">0 รายการ</span>
+                </div>
+                <div id="mealList" class="space-y-2"></div>
             </div>
-            <div>
-                <label class="text-xs text-slate-400 font-medium">เป้าหมายแคลอรี่ประจำวัน (kcal)</label>
-                <input id="calorieGoalInput" type="number" value="2000" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
-            </div>
-            <button onclick="saveSettings()" class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-xs text-zinc-950 active:scale-95 transition shadow-lg">
-                บันทึกการตั้งค่า
-            </button>
         </div>
 
-        <!-- HERO: Main Calorie Progress Ring -->
-        <div class="relative overflow-hidden bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 border border-zinc-800/80 rounded-[32px] p-6 glow-card">
-            <!-- Orange Ambient Light -->
-            <div class="absolute -top-16 -right-16 w-44 h-44 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <!-- ========================================== -->
+        <!-- TAB 2: HISTORY VIEW (แถบประวัติย้อนหลัง)  -->
+        <!-- ========================================== -->
+        <div id="viewHistory" class="tab-view hidden space-y-4">
+            <!-- Date Navigator -->
+            <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-3 flex items-center justify-between">
+                <button onclick="navigateHistoryDate(-1)" class="p-2 rounded-xl bg-zinc-800/80 text-slate-300 hover:text-white active:scale-90 transition">
+                    <i class="ph-bold ph-caret-left text-lg"></i>
+                </button>
+                <div class="text-center">
+                    <input id="historyDateInput" type="date" onchange="renderHistoryView()" class="bg-transparent text-sm font-bold text-brand-400 text-center outline-none cursor-pointer">
+                    <span id="historyDayLabel" class="block text-[11px] text-slate-400">วันนี้</span>
+                </div>
+                <button onclick="navigateHistoryDate(1)" class="p-2 rounded-xl bg-zinc-800/80 text-slate-300 hover:text-white active:scale-90 transition">
+                    <i class="ph-bold ph-caret-right text-lg"></i>
+                </button>
+            </div>
 
-            <div class="flex items-center justify-between">
+            <!-- Selected Day Summary Card -->
+            <div class="bg-zinc-900/70 border border-zinc-800/80 rounded-3xl p-5 space-y-3 glow-card">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">สรุปสารอาหารของวัน</span>
+                    <span id="historyTotalCal" class="text-2xl font-black text-brand-400">0 kcal</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-zinc-800/80">
+                    <div class="bg-zinc-950/60 p-2 rounded-xl">
+                        <span class="text-slate-400 text-[10px]">โปรตีน</span>
+                        <div id="historyProtein" class="font-bold text-white text-sm mt-0.5">0g</div>
+                    </div>
+                    <div class="bg-zinc-950/60 p-2 rounded-xl">
+                        <span class="text-slate-400 text-[10px]">คาร์บ</span>
+                        <div id="historyCarbs" class="font-bold text-amber-400 text-sm mt-0.5">0g</div>
+                    </div>
+                    <div class="bg-zinc-950/60 p-2 rounded-xl">
+                        <span class="text-slate-400 text-[10px]">ไขมัน</span>
+                        <div id="historyFat" class="font-bold text-rose-400 text-sm mt-0.5">0g</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List of Meals for Selected Day -->
+            <div class="space-y-2">
+                <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400 px-1">รายการอาหารในวันที่เลือก</h4>
+                <div id="historyMealList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: INSIGHTS VIEW (วิเคราะห์เชิงลึก)    -->
+        <!-- ========================================== -->
+        <div id="viewInsights" class="tab-view hidden space-y-4">
+            <!-- 7-Day Calorie Average -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3 glow-card">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">ค่าเฉลี่ยแคลอรี่ 7 วันล่าสุด</span>
+                        <div class="text-3xl font-black text-white mt-0.5" id="avg7Cal">0 <span class="text-sm font-normal text-slate-500">kcal/วัน</span></div>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 text-2xl">
+                        <i class="ph-bold ph-trend-up"></i>
+                    </div>
+                </div>
+                <div id="insightCalVerdict" class="text-xs text-brand-400 font-semibold pt-2 border-t border-zinc-800/80">
+                    กำลังคำนวณข้อมูลย้อนหลัง...
+                </div>
+            </div>
+
+            <!-- Macro Distribution Ratio -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">สัดส่วนสารอาหารที่ได้รับ (Macro Ratio)</span>
+                
+                <div class="h-3 w-full rounded-full bg-zinc-800 overflow-hidden flex">
+                    <div id="ratioP" class="bg-brand-500 h-full transition-all duration-500" style="width: 33%"></div>
+                    <div id="ratioC" class="bg-amber-400 h-full transition-all duration-500" style="width: 33%"></div>
+                    <div id="ratioF" class="bg-rose-400 h-full transition-all duration-500" style="width: 34%"></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-xs pt-1">
+                    <div class="flex items-center gap-1.5 text-slate-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
+                        <span>โปรตีน: <b id="ratioPText" class="text-white">0%</b></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-slate-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                        <span>คาร์บ: <b id="ratioCText" class="text-white">0%</b></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-slate-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                        <span>ไขมัน: <b id="ratioFText" class="text-white">0%</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats & AI Nutritionist Advice -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-zinc-900/70 border border-zinc-800/80 p-4 rounded-2xl">
+                    <span class="text-xs text-slate-400">บันทึกสะสม</span>
+                    <div id="totalLogsRecorded" class="text-2xl font-black text-white mt-1">0 มื้อ</div>
+                    <span class="text-[10px] text-brand-400 font-medium">บันทึกสม่ำเสมอ</span>
+                </div>
+                <div class="bg-zinc-900/70 border border-zinc-800/80 p-4 rounded-2xl">
+                    <span class="text-xs text-slate-400">สินค้าทางการ</span>
+                    <div id="officialCountText" class="text-2xl font-black text-emerald-400 mt-1">0 รายการ</div>
+                    <span class="text-[10px] text-slate-500 font-medium">7-Eleven & ฉลากจริง</span>
+                </div>
+            </div>
+
+            <!-- Health Advice Card -->
+            <div class="bg-gradient-to-br from-brand-500/10 to-amber-500/5 border border-brand-500/20 p-4 rounded-3xl space-y-2">
+                <div class="flex items-center gap-2 text-xs font-bold text-brand-400 uppercase tracking-wider">
+                    <i class="ph-bold ph-lightbulb-filament text-base"></i> คำแนะนำจาก AI Nutritionist
+                </div>
+                <p id="aiAdviceSummary" class="text-xs text-slate-300 leading-relaxed">
+                    บันทึกมื้ออาหารอย่างต่อเนื่องเพื่อรับคำแนะนำที่ตรงกับพฤติกรรมของคุณมากยิ่งขึ้น
+                </p>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 5: PROFILE & HEALTH GOALS (โปรไฟล์ & สุขภาพ & ตั้งค่า)     -->
+        <!-- ============================================================== -->
+        <div id="viewProfile" class="tab-view hidden space-y-4">
+            <!-- Health Calculator & BMR / TDEE Card -->
+            <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 space-y-4 glow-card">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">คำนวณ BMR & TDEE (Mifflin-St Jeor)</span>
+                    <span class="text-xs text-brand-400 font-semibold">สูตรมาตรฐาน</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="text-slate-400">เพศ</label>
+                        <select id="userGender" onchange="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white outline-none">
+                            <option value="male">ชาย</option>
+                            <option value="female">หญิง</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400">อายุ (ปี)</label>
+                        <input id="userAge" type="number" value="25" oninput="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">ส่วนสูง (cm)</label>
+                        <input id="userHeight" type="number" value="175" oninput="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">น้ำหนักปัจจุบัน (kg)</label>
+                        <input id="userWeight" type="number" value="70" oninput="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white outline-none">
+                    </div>
+                </div>
+
                 <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">แคลอรี่วันนี้</span>
-                    <div class="flex items-baseline gap-1.5 mt-1">
-                        <span id="totalCalDisplay" class="text-4xl font-black text-white tracking-tight">0</span>
-                        <span class="text-sm font-semibold text-slate-500">/ <span id="goalDisplay">2000</span> kcal</span>
+                    <label class="text-xs text-slate-400">ระดับกิจกรรม</label>
+                    <select id="userActivity" onchange="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs outline-none">
+                        <option value="1.2">นั่งทำงานอยู่กับที่ (ไม่ออกกำลังกาย)</option>
+                        <option value="1.375" selected>ออกกำลังกายเบาๆ 1-3 วัน/สัปดาห์</option>
+                        <option value="1.55">ออกกำลังกายปานกลาง 3-5 วัน/สัปดาห์</option>
+                        <option value="1.725">ออกกำลังกายหนัก 6-7 วัน/สัปดาห์</option>
+                    </select>
+                </div>
+
+                <!-- Calculated Metrics Display -->
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800/80 text-center">
+                    <div class="bg-zinc-950/70 p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 uppercase">BMR (เผาผลาญพื้นฐาน)</span>
+                        <div id="displayBmr" class="text-lg font-black text-white mt-0.5">1,650 kcal</div>
                     </div>
-                    <div id="remainingBadge" class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold">
-                        <i class="ph-bold ph-fire"></i> เหลืออีก 2,000 kcal
+                    <div class="bg-zinc-950/70 p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 uppercase">TDEE (ใช้พลังงานจริง)</span>
+                        <div id="displayTdee" class="text-lg font-black text-brand-400 mt-0.5">2,260 kcal</div>
                     </div>
                 </div>
 
-                <!-- Circular Progress Ring (SVG) -->
-                <div class="relative w-24 h-24 flex items-center justify-center">
-                    <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" class="text-zinc-800/70" fill="none" />
-                        <circle id="progressCircle" cx="50" cy="50" r="40" stroke="url(#orangeGrad)" stroke-width="8" stroke-linecap="round" fill="none"
-                            stroke-dasharray="251.2" stroke-dashoffset="251.2" class="transition-all duration-500" />
-                        <defs>
-                            <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#fdba74" />
-                                <stop offset="100%" stop-color="#ea580c" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <div class="absolute text-center">
-                        <span id="percentDisplay" class="text-base font-black text-white">0%</span>
-                    </div>
+                <button onclick="applyTdeeToGoal()" class="w-full py-3 bg-brand-500/20 border border-brand-500/40 text-brand-400 font-bold rounded-2xl text-xs hover:bg-brand-500/30 transition">
+                    🎯 นำค่า TDEE ไปตั้งเป็นเป้าหมายแคลอรี่ประจำวัน
+                </button>
+            </div>
+
+            <!-- Data & Export Tools -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">การจัดการข้อมูล (Data & Backup)</span>
+                
+                <button onclick="exportToExcel()" class="w-full py-3.5 px-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-slate-200 text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition">
+                    <i class="ph-bold ph-microsoft-excel-logo text-emerald-500 text-base"></i>
+                    <span>ส่งออกประวัติอาหารเป็นไฟล์ Excel (.xlsx)</span>
+                </button>
+
+                <div class="flex gap-2">
+                    <button onclick="backupJsonData()" class="flex-1 py-3 px-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                        <i class="ph-bold ph-download-simple"></i> สำรอง JSON
+                    </button>
+                    <label class="flex-1 py-3 px-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition">
+                        <i class="ph-bold ph-upload-simple"></i> กู้คืนข้อมูล
+                        <input type="file" accept=".json" class="hidden" onchange="restoreJsonData(event)">
+                    </label>
                 </div>
             </div>
 
-            <!-- Macros Bar -->
-            <div class="grid grid-cols-3 gap-3 pt-5 mt-5 border-t border-zinc-800/80 text-xs">
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">โปรตีน</span>
-                        <span id="proteinDisplay" class="font-bold text-white">0g</span>
-                    </div>
-                    <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                        <div id="pBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
+            <!-- Settings & Model Config -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">การตั้งค่า AI & เป้าหมาย</span>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">เป้าหมายแคลอรี่ประจำวัน (kcal)</label>
+                    <input id="calorieGoalInput" type="number" value="2000" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
                 </div>
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">คาร์บ</span>
-                        <span id="carbsDisplay" class="font-bold text-amber-400">0g</span>
-                    </div>
-                    <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                        <div id="cBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">AI Model Name</label>
+                    <input id="modelNameInput" type="text" value="gemini-3.8-flash" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
                 </div>
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-400">ไขมัน</span>
-                        <span id="fatDisplay" class="font-bold text-rose-400">0g</span>
-                    </div>
-                    <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                        <div id="fBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Meal Category Quick View -->
-        <div class="grid grid-cols-4 gap-2">
-            <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                <span class="text-base">🍳</span>
-                <div class="text-[10px] text-slate-400 font-medium mt-0.5">เช้า</div>
-                <div id="breakfastCal" class="text-xs font-bold text-white mt-0.5">0</div>
-            </div>
-            <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                <span class="text-base">🍛</span>
-                <div class="text-[10px] text-slate-400 font-medium mt-0.5">กลางวัน</div>
-                <div id="lunchCal" class="text-xs font-bold text-white mt-0.5">0</div>
-            </div>
-            <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                <span class="text-base">🥗</span>
-                <div class="text-[10px] text-slate-400 font-medium mt-0.5">เย็น</div>
-                <div id="dinnerCal" class="text-xs font-bold text-white mt-0.5">0</div>
-            </div>
-            <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                <span class="text-base">☕</span>
-                <div class="text-[10px] text-slate-400 font-medium mt-0.5">ของว่าง</div>
-                <div id="snackCal" class="text-xs font-bold text-white mt-0.5">0</div>
-            </div>
-        </div>
-
-        <!-- Meals Section -->
-        <div class="space-y-3 pt-1">
-            <div class="flex justify-between items-center px-1">
-                <h3 class="font-extrabold text-sm tracking-wide text-white uppercase flex items-center gap-1.5">
-                    <i class="ph-bold ph-fork-knife text-brand-500"></i> ประวัติมื้ออาหารวันนี้
-                </h3>
-                <span id="itemCountDisplay" class="text-xs text-slate-400 font-medium">0 รายการ</span>
-            </div>
-
-            <div id="mealList" class="space-y-2">
-                <!-- Meals injected dynamically -->
+                <button onclick="saveAppSettings()" class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-xs text-zinc-950 active:scale-95 transition">
+                    บันทึกการตั้งค่า
+                </button>
             </div>
         </div>
 
     </div>
 
-    <!-- FLOATING CAMERA BUTTON (AI SNAP) -->
-    <div class="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-5 pointer-events-none">
-        <label class="pointer-events-auto flex items-center justify-center gap-2.5 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-zinc-950 font-black py-4 px-6 rounded-3xl glow-button cursor-pointer active:scale-95 transition">
-            <i class="ph-bold ph-camera text-xl"></i>
-            <span class="tracking-tight text-sm uppercase">สแกนอาหารด้วย AI</span>
-            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleFoodScan(event)">
-        </label>
-    </div>
+    <!-- ============================================================== -->
+    <!-- 5-TAB BOTTOM NAVIGATION BAR (แถบเมนูล่าง 5 ปุ่ม สไตล์โมบายล์แอปแท้)-->
+    <!-- ============================================================== -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-2xl border-t border-zinc-800/80 px-2 pt-2 pb-[max(env(safe-area-inset-bottom),10px)]">
+        <div class="max-w-md mx-auto flex items-center justify-around relative">
+            
+            <!-- Tab 1: Home -->
+            <button onclick="switchTab('home')" id="tabBtn-home" class="flex flex-col items-center gap-1 py-1 px-3 text-brand-500 transition active:scale-90">
+                <i class="ph-fill ph-house text-2xl"></i>
+                <span class="text-[10px] font-bold">หน้าหลัก</span>
+            </button>
+
+            <!-- Tab 2: History -->
+            <button onclick="switchTab('history')" id="tabBtn-history" class="flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90">
+                <i class="ph-bold ph-calendar text-2xl"></i>
+                <span class="text-[10px] font-medium">ประวัติ</span>
+            </button>
+
+            <!-- Tab 3 (Center): Raised Circular Snap / Plus Button -->
+            <div class="relative -top-5">
+                <label class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-400 text-zinc-950 flex items-center justify-center glow-center-btn border-4 border-[#0b0c10] cursor-pointer active:scale-90 transition">
+                    <i class="ph-bold ph-plus text-2xl text-zinc-950"></i>
+                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleFoodScan(event)">
+                </label>
+            </div>
+
+            <!-- Tab 4: Insights -->
+            <button onclick="switchTab('insights')" id="tabBtn-insights" class="flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90">
+                <i class="ph-bold ph-chart-pie-slice text-2xl"></i>
+                <span class="text-[10px] font-medium">อินไซต์</span>
+            </button>
+
+            <!-- Tab 5: Profile & Health -->
+            <button onclick="switchTab('profile')" id="tabBtn-profile" class="flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90">
+                <i class="ph-bold ph-user-circle text-2xl"></i>
+                <span class="text-[10px] font-medium">โปรไฟล์</span>
+            </button>
+
+        </div>
+    </nav>
 
     <!-- Loading Modal -->
     <div id="loadingModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 space-y-4">
@@ -279,19 +507,21 @@
         </div>
     </div>
 
+    <!-- Script Application Logic -->
     <script>
         const STORAGE_CONFIG = 'kalguroo_v3_config';
         const STORAGE_MEALS = 'kalguroo_v3_meals';
+        const STORAGE_PROFILE = 'kalguroo_user_profile';
 
         let config = { apiKey: '', model: 'gemini-3.8-flash', goal: 2000 };
         let meals = [];
         let currentScanMeta = { is_official: false, source: '' };
+        let selectedHistoryDate = new Date().toISOString().split('T')[0];
 
         function initApp() {
             const savedConfig = localStorage.getItem(STORAGE_CONFIG);
             if (savedConfig) config = JSON.parse(savedConfig);
 
-            document.getElementById('apiKeyInput').value = config.apiKey || '';
             document.getElementById('modelNameInput').value = config.model || 'gemini-3.8-flash';
             document.getElementById('calorieGoalInput').value = config.goal || 2000;
             document.getElementById('goalDisplay').innerText = config.goal || 2000;
@@ -300,27 +530,69 @@
             const savedMeals = localStorage.getItem(STORAGE_MEALS);
             if (savedMeals) meals = JSON.parse(savedMeals);
 
-            renderDashboard();
+            // Init Profile
+            loadUserProfile();
+
+            // Init History date to today
+            document.getElementById('historyDateInput').value = selectedHistoryDate;
+
+            renderHomeDashboard();
+            calculateBmrTdee();
         }
 
-        function toggleSettings() {
-            document.getElementById('settingsBox').classList.toggle('hidden');
+        // ==========================================
+        // TAB SWITCHING NAVIGATION
+        // ==========================================
+        function switchTab(tabName) {
+            // Hide all tab views
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+            
+            // Reset nav buttons styling
+            const tabs = ['home', 'history', 'insights', 'profile'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if (btn) {
+                    btn.className = 'flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90';
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.className = icon.className.replace('ph-fill', 'ph-bold');
+                    }
+                }
+            });
+
+            // Activate chosen tab
+            if (tabName === 'home') {
+                document.getElementById('viewHome').classList.remove('hidden');
+                activateTabBtn('home', 'ph-house');
+                renderHomeDashboard();
+            } else if (tabName === 'history') {
+                document.getElementById('viewHistory').classList.remove('hidden');
+                activateTabBtn('history', 'ph-calendar');
+                renderHistoryView();
+            } else if (tabName === 'insights') {
+                document.getElementById('viewInsights').classList.remove('hidden');
+                activateTabBtn('insights', 'ph-chart-pie-slice');
+                renderInsightsView();
+            } else if (tabName === 'profile') {
+                document.getElementById('viewProfile').classList.remove('hidden');
+                activateTabBtn('profile', 'ph-user-circle');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function saveSettings() {
-            config.apiKey = document.getElementById('apiKeyInput').value.trim();
-            config.model = document.getElementById('modelNameInput').value.trim() || 'gemini-3.8-flash';
-            config.goal = parseInt(document.getElementById('calorieGoalInput').value) || 2000;
-
-            localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
-            document.getElementById('goalDisplay').innerText = config.goal;
-            document.getElementById('modelBadge').innerText = config.model;
-            toggleSettings();
-            renderDashboard();
-            alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+        function activateTabBtn(t, iconName) {
+            const btn = document.getElementById(`tabBtn-${t}`);
+            if (btn) {
+                btn.className = 'flex flex-col items-center gap-1 py-1 px-3 text-brand-500 transition active:scale-90';
+                const icon = btn.querySelector('i');
+                if (icon) icon.className = `ph-fill ${iconName} text-2xl`;
+            }
         }
 
-        function renderDashboard() {
+        // ==========================================
+        // HOME DASHBOARD RENDER
+        // ==========================================
+        function renderHomeDashboard() {
             const today = new Date().toISOString().split('T')[0];
             const todayMeals = meals.filter(m => m.date === today);
 
@@ -350,9 +622,9 @@
                         </div>
                         <div>
                             <div class="font-bold text-sm text-white flex items-center flex-wrap gap-1.5">
-                            ${m.name}
-                            ${m.is_official ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold inline-flex items-center gap-1"><i class="ph-bold ph-seal-check"></i> ทางการ</span>' : ''}
-                        </div>
+                                ${m.name}
+                                ${m.is_official ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold inline-flex items-center gap-1"><i class="ph-bold ph-seal-check"></i> ทางการ</span>' : ''}
+                            </div>
                             <div class="text-[11px] text-slate-400">${m.time} • P:${m.protein_g}g C:${m.carbs_g}g F:${m.fat_g}g</div>
                         </div>
                     </div>
@@ -369,20 +641,17 @@
                 listEl.appendChild(card);
             });
 
-            // Update Calories & Numbers
             document.getElementById('totalCalDisplay').innerText = totalCal.toLocaleString();
             document.getElementById('proteinDisplay').innerText = `${Math.round(totalP)}g`;
             document.getElementById('carbsDisplay').innerText = `${Math.round(totalC)}g`;
             document.getElementById('fatDisplay').innerText = `${Math.round(totalF)}g`;
             document.getElementById('itemCountDisplay').innerText = `${todayMeals.length} รายการ`;
 
-            // Breakdown
             document.getElementById('breakfastCal').innerText = mealBreakdown.breakfast;
             document.getElementById('lunchCal').innerText = mealBreakdown.lunch;
             document.getElementById('dinnerCal').innerText = mealBreakdown.dinner;
             document.getElementById('snackCal').innerText = mealBreakdown.snack;
 
-            // Remaining badge
             const remaining = config.goal - totalCal;
             const remainingBadge = document.getElementById('remainingBadge');
             if (remaining >= 0) {
@@ -393,12 +662,10 @@
                 remainingBadge.className = "mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold";
             }
 
-            // Macro bars (Max estimated base: 140g P, 250g C, 70g F)
             document.getElementById('pBar').style.width = `${Math.min((totalP / 140) * 100, 100)}%`;
             document.getElementById('cBar').style.width = `${Math.min((totalC / 250) * 100, 100)}%`;
             document.getElementById('fBar').style.width = `${Math.min((totalF / 70) * 100, 100)}%`;
 
-            // Progress Ring
             const percent = Math.min(Math.round((totalCal / config.goal) * 100), 100);
             document.getElementById('percentDisplay').innerText = `${percent}%`;
             const circumference = 251.2;
@@ -406,21 +673,272 @@
             document.getElementById('progressCircle').style.strokeDashoffset = offset;
         }
 
-        function getMealEmoji(type) {
-            switch(type) {
-                case 'breakfast': return '🍳';
-                case 'lunch': return '🍛';
-                case 'dinner': return '🥗';
-                default: return '☕';
+        // ==========================================
+        // TAB 2: HISTORY VIEW LOGIC
+        // ==========================================
+        function navigateHistoryDate(offsetDays) {
+            const date = new Date(selectedHistoryDate);
+            date.setDate(date.getDate() + offsetDays);
+            selectedHistoryDate = date.toISOString().split('T')[0];
+            document.getElementById('historyDateInput').value = selectedHistoryDate;
+            renderHistoryView();
+        }
+
+        function renderHistoryView() {
+            selectedHistoryDate = document.getElementById('historyDateInput').value;
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            const labelEl = document.getElementById('historyDayLabel');
+            if (selectedHistoryDate === todayStr) {
+                labelEl.innerText = 'วันนี้';
+            } else {
+                const dateObj = new Date(selectedHistoryDate);
+                labelEl.innerText = dateObj.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+            }
+
+            const targetMeals = meals.filter(m => m.date === selectedHistoryDate);
+
+            let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+            const listEl = document.getElementById('historyMealList');
+            listEl.innerHTML = '';
+
+            if (targetMeals.length === 0) {
+                listEl.innerHTML = `<div class="bg-zinc-900/40 border border-dashed border-zinc-800 p-6 rounded-2xl text-center text-xs text-slate-500">ไม่มีข้อมูลมื้ออาหารในวันนี้</div>`;
+            } else {
+                targetMeals.forEach(m => {
+                    const cal = Number(m.calories) || 0;
+                    totalCal += cal;
+                    totalP += Number(m.protein_g) || 0;
+                    totalC += Number(m.carbs_g) || 0;
+                    totalF += Number(m.fat_g) || 0;
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-zinc-900/80 border border-zinc-800/80 p-3.5 rounded-2xl flex justify-between items-center';
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-base">
+                                ${getMealEmoji(m.meal_type)}
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white flex items-center flex-wrap gap-1">
+                                    ${m.name}
+                                    ${m.is_official ? '<span class="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">ทางการ</span>' : ''}
+                                </div>
+                                <div class="text-[11px] text-slate-400">${m.time} • P:${m.protein_g}g C:${m.carbs_g}g F:${m.fat_g}g</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-right">
+                                <span class="font-extrabold text-sm text-brand-400">${cal}</span>
+                                <span class="text-[10px] text-slate-500 block">kcal</span>
+                            </div>
+                            <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition">
+                                <i class="ph-bold ph-trash text-base"></i>
+                            </button>
+                        </div>
+                    `;
+                    listEl.appendChild(card);
+                });
+            }
+
+            document.getElementById('historyTotalCal').innerText = `${totalCal.toLocaleString()} kcal`;
+            document.getElementById('historyProtein').innerText = `${Math.round(totalP)}g`;
+            document.getElementById('historyCarbs').innerText = `${Math.round(totalC)}g`;
+            document.getElementById('historyFat').innerText = `${Math.round(totalF)}g`;
+        }
+
+        // ==========================================
+        // TAB 4: INSIGHTS LOGIC
+        // ==========================================
+        function renderInsightsView() {
+            // 7 Days Rolling Average
+            const datesLast7 = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                datesLast7.push(d.toISOString().split('T')[0]);
+            }
+
+            let last7TotalCal = 0;
+            let daysWithLogs = 0;
+            let totalProtein = 0, totalCarbs = 0, totalFat = 0;
+            let officialCount = 0;
+
+            datesLast7.forEach(dateStr => {
+                const dayMeals = meals.filter(m => m.date === dateStr);
+                if (dayMeals.length > 0) {
+                    daysWithLogs++;
+                    dayMeals.forEach(m => {
+                        last7TotalCal += Number(m.calories) || 0;
+                        totalProtein += Number(m.protein_g) || 0;
+                        totalCarbs += Number(m.carbs_g) || 0;
+                        totalFat += Number(m.fat_g) || 0;
+                        if (m.is_official) officialCount++;
+                    });
+                }
+            });
+
+            const avg7 = daysWithLogs > 0 ? Math.round(last7TotalCal / daysWithLogs) : 0;
+            document.getElementById('avg7Cal').innerHTML = `${avg7.toLocaleString()} <span class="text-sm font-normal text-slate-500">kcal/วัน</span>`;
+
+            const verdictEl = document.getElementById('insightCalVerdict');
+            if (avg7 === 0) {
+                verdictEl.innerText = "ยังไม่มีบันทึกอาหารในรอบ 7 วันที่ผ่านมา";
+            } else if (avg7 <= config.goal) {
+                verdictEl.innerText = `✅ คุณควบคุมพลังงานได้ดี อยู่ในเกณฑ์เป้าหมาย (${config.goal} kcal)`;
+            } else {
+                verdictEl.innerText = `⚠️ แคลอรี่เฉลี่ยเกินเป้าหมายประมาณ ${avg7 - config.goal} kcal/วัน`;
+            }
+
+            // Ratio of P, C, F
+            const totalMacroGram = totalProtein + totalCarbs + totalFat;
+            if (totalMacroGram > 0) {
+                const pPct = Math.round((totalProtein / totalMacroGram) * 100);
+                const cPct = Math.round((totalCarbs / totalMacroGram) * 100);
+                const fPct = 100 - pPct - cPct;
+
+                document.getElementById('ratioP').style.width = `${pPct}%`;
+                document.getElementById('ratioC').style.width = `${cPct}%`;
+                document.getElementById('ratioF').style.width = `${fPct}%`;
+
+                document.getElementById('ratioPText').innerText = `${pPct}%`;
+                document.getElementById('ratioCText').innerText = `${cPct}%`;
+                document.getElementById('ratioFText').innerText = `${fPct}%`;
+            }
+
+            document.getElementById('totalLogsRecorded').innerText = `${meals.length} มื้อ`;
+            document.getElementById('officialCountText').innerText = `${officialCount} รายการ`;
+
+            // Health Advice Generator
+            const adviceEl = document.getElementById('aiAdviceSummary');
+            if (meals.length === 0) {
+                adviceEl.innerText = "เริ่มถ่ายรูปบันทึกมื้ออาหารมื้อแรก เพื่อให้ระบบสร้างบทวิเคราะห์เชิงลึกให้คุณ";
+            } else {
+                adviceEl.innerText = `จากการวิเคราะห์มื้ออาหารที่บันทึกไว้ คุณมีค่าเฉลี่ยพลังงาน ${avg7} kcal/วัน สัดส่วนโปรตีน ${totalProtein > 0 ? 'อยู่ในเกณฑ์ดี' : 'ควรเสริมเพิ่ม'} แนะนำดื่มน้ำเปล่าอย่างน้อย 2-2.5 ลิตรต่อวันเพื่อช่วยระบบเผาผลาญ`;
             }
         }
 
-        // AI SCAN FOOD WITH GEMINI 3.8 FLASH
+        // ==========================================
+        // TAB 5: PROFILE & HEALTH TOOLS
+        // ==========================================
+        function calculateBmrTdee() {
+            const gender = document.getElementById('userGender').value;
+            const age = parseFloat(document.getElementById('userAge').value) || 25;
+            const height = parseFloat(document.getElementById('userHeight').value) || 170;
+            const weight = parseFloat(document.getElementById('userWeight').value) || 65;
+            const activity = parseFloat(document.getElementById('userActivity').value) || 1.375;
+
+            // Mifflin-St Jeor Equation
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            if (gender === 'male') {
+                bmr += 5;
+            } else {
+                bmr -= 161;
+            }
+
+            const tdee = Math.round(bmr * activity);
+            const bmrRounded = Math.round(bmr);
+
+            document.getElementById('displayBmr').innerText = `${bmrRounded.toLocaleString()} kcal`;
+            document.getElementById('displayTdee').innerText = `${tdee.toLocaleString()} kcal`;
+
+            // Save Profile
+            const profile = { gender, age, height, weight, activity, bmr: bmrRounded, tdee };
+            localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile));
+        }
+
+        function loadUserProfile() {
+            const saved = localStorage.getItem(STORAGE_PROFILE);
+            if (saved) {
+                const p = JSON.parse(saved);
+                if (p.gender) document.getElementById('userGender').value = p.gender;
+                if (p.age) document.getElementById('userAge').value = p.age;
+                if (p.height) document.getElementById('userHeight').value = p.height;
+                if (p.weight) document.getElementById('userWeight').value = p.weight;
+                if (p.activity) document.getElementById('userActivity').value = p.activity;
+            }
+        }
+
+        function applyTdeeToGoal() {
+            const tdeeText = document.getElementById('displayTdee').innerText.replace(/[^0-9]/g, '');
+            const tdee = parseInt(tdeeText) || 2000;
+            config.goal = tdee;
+            document.getElementById('calorieGoalInput').value = tdee;
+            document.getElementById('goalDisplay').innerText = tdee;
+            localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+            alert(`ตั้งเป้าหมายประจำวันตาม TDEE เป็น ${tdee} kcal เรียบร้อยแล้ว!`);
+        }
+
+        function saveAppSettings() {
+            config.model = document.getElementById('modelNameInput').value.trim() || 'gemini-3.8-flash';
+            config.goal = parseInt(document.getElementById('calorieGoalInput').value) || 2000;
+            localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+            document.getElementById('goalDisplay').innerText = config.goal;
+            document.getElementById('modelBadge').innerText = config.model;
+            alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+        }
+
+        function exportToExcel() {
+            if (meals.length === 0) {
+                alert('ยังไม่มีข้อมูลมื้ออาหารสำหรับบันทึกลง Excel');
+                return;
+            }
+
+            const rows = meals.map(m => ({
+                'วันที่': m.date,
+                'เวลา': m.time || '',
+                'มื้อ': m.meal_type || '',
+                'ชื่ออาหาร': m.name,
+                'แคลอรี่ (kcal)': m.calories,
+                'โปรตีน (g)': m.protein_g,
+                'คาร์บ (g)': m.carbs_g,
+                'ไขมัน (g)': m.fat_g,
+                'ข้อมูลทางการ': m.is_official ? 'ใช่ (ฉลาก/ร้านสะดวกซื้อ)' : 'ประมาณการ',
+                'แหล่งที่มา': m.source || ''
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "FoodLogs");
+            XLSX.writeFile(wb, "kalguroo_nutrition_log.xlsx");
+        }
+
+        function backupJsonData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(meals, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `kalguroo_backup_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchor.click();
+        }
+
+        function restoreJsonData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        meals = imported;
+                        localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
+                        alert(`กู้คืนข้อมูลสำเร็จทั้งหมด ${meals.length} รายการ!`);
+                        renderHomeDashboard();
+                    } else {
+                        alert('โครงสร้างไฟล์ JSON ไม่ถูกต้อง');
+                    }
+                } catch (err) {
+                    alert('เกิดข้อผิดพลาดในการอ่านไฟล์: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==========================================
+        // AI SCAN FOOD WITH 1600px & FALLBACK
+        // ==========================================
         async function handleFoodScan(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            // เรียกผ่าน Server API /api/analyze อัตโนมัติ
 
             const loadingModal = document.getElementById('loadingModal');
             loadingModal.classList.remove('hidden');
@@ -429,53 +947,20 @@
                 const { data: base64Data, mimeType } = await compressImage(file, 1600, 0.82);
                 const activeModel = config.model || 'gemini-3.8-flash';
                 
-                const prompt = `คุณคือ AI ผู้เชี่ยวชาญด้านโภชนาการ วิเคราะห์อาหารในภาพนี้อย่างแม่นยำ (เน้นอาหารไทย/เอเชีย)
-ระบุชื่ออาหาร, ปริมาณ, ประเภทมื้อที่น่าจะเป็น (breakfast, lunch, dinner, snack), แคลอรี่ และ Macro
-ตอบกลับเป็นรูปแบบ JSON เดียวนี้เท่านั้น:
-{
-  "name": "ชื่ออาหาร",
-  "meal_type": "lunch",
-  "calories": 550,
-  "protein_g": 25.0,
-  "carbs_g": 60.0,
-  "fat_g": 18.0
-}`;
+                const res = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        image: base64Data,
+                        mimeType: mimeType,
+                        model: activeModel
+                    })
+                });
 
-                let result;
-                if (config.apiKey) {
-                    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${config.apiKey}`;
-                    const res = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { text: prompt },
-                                    { inline_data: { mime_type: mimeType, data: base64Data } }
-                                ]
-                            }],
-                            generationConfig: { response_mime_type: 'application/json' }
-                        })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error?.message || 'เชื่อมต่อ Gemini API ล้มเหลว');
-                    result = JSON.parse(data.candidates[0].content.parts[0].text);
-                } else {
-                    const res = await fetch('/api/analyze', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            image: base64Data,
-                            mimeType: mimeType,
-                            model: activeModel
-                        })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'เชื่อมต่อ Serverless API ล้มเหลว');
-                    result = data;
-                }
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'เชื่อมต่อ Serverless API ล้มเหลว');
+                const result = data;
 
-                // Track Official Data Status
                 currentScanMeta.is_official = !!result.is_official;
                 currentScanMeta.source = result.source || '';
 
@@ -488,7 +973,6 @@
                     officialBadge.classList.add('hidden');
                 }
 
-                // Populate into Review Modal
                 document.getElementById('editName').value = result.name || 'อาหารจานนี้';
                 document.getElementById('editMealType').value = result.meal_type || 'lunch';
                 document.getElementById('editCal').value = result.calories || 0;
@@ -528,7 +1012,7 @@
 
             meals.unshift(newMeal);
             localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
-            renderDashboard();
+            renderHomeDashboard();
             closeReviewModal();
         }
 
@@ -536,10 +1020,12 @@
             if (!confirm('ต้องการลบมื้อนี้ใช่หรือไม่?')) return;
             meals = meals.filter(m => m.id !== id);
             localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
-            renderDashboard();
+            renderHomeDashboard();
+            if (!document.getElementById('viewHistory').classList.contains('hidden')) {
+                renderHistoryView();
+            }
         }
 
-        // บีบอัดและปรับสเกลภาพเป็นขนาด 1600px ด้วย WebP (คมชัดสูง อ่านฉลากตัวหนังสือชัดเจน และไฟล์ไม่เกินโควตา)
         function compressImage(file, maxDimension = 1600, quality = 0.82) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -552,7 +1038,6 @@
                         let width = img.width;
                         let height = img.height;
 
-                        // ปรับขนาดทั้งแนวตั้งและแนวนอนให้อยู่ในกรอบ 1600px โดยคงอัตราส่วนเดิม
                         if (width > height && width > maxDimension) {
                             height = Math.round((height * maxDimension) / width);
                             width = maxDimension;
@@ -566,7 +1051,6 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // ใช้ WebP เพื่อรักษาความคมชัดระดับสูงโดยที่ไฟล์ยังเบามาก (~200-400KB)
                         let mimeType = 'image/webp';
                         let dataUrl = canvas.toDataURL(mimeType, quality);
                         if (!dataUrl.startsWith('data:image/webp')) {
@@ -588,6 +1072,15 @@
                 };
                 reader.onerror = reject;
             });
+        }
+
+        function getMealEmoji(type) {
+            switch(type) {
+                case 'breakfast': return '🍳';
+                case 'lunch': return '🍛';
+                case 'dinner': return '🥗';
+                default: return '☕';
+            }
         }
 
         window.onload = initApp;
