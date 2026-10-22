@@ -352,9 +352,10 @@
                     </div>
                 </div>
 
-                <button onclick="applyTdeeToGoal()" class="w-full py-3 bg-brand-500/20 border border-brand-500/40 text-brand-400 font-bold rounded-2xl text-xs hover:bg-brand-500/30 transition">
-                    🎯 นำค่า TDEE ไปตั้งเป็นเป้าหมายแคลอรี่ประจำวัน
-                </button>
+                <div class="py-2.5 px-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
+                    <i class="ph-bold ph-check-circle text-base"></i>
+                    <span>ตั้งเป็นแคลอรี่เป้าหมายประจำวันอัตโนมัติ (<span id="autoGoalText">2,260</span> kcal)</span>
+                </div>
             </div>
 
             <!-- Data & Export Tools -->
@@ -842,9 +843,22 @@
             document.getElementById('displayBmr').innerText = `${bmrRounded.toLocaleString()} kcal`;
             document.getElementById('displayTdee').innerText = `${tdee.toLocaleString()} kcal`;
 
+            // อัปเดตตั้งเป็นเป้าหมายแคลอรี่ประจำวันอัตโนมัติทันที
+            config.goal = tdee;
+            const calorieGoalInput = document.getElementById('calorieGoalInput');
+            if (calorieGoalInput) calorieGoalInput.value = tdee;
+            const goalDisplay = document.getElementById('goalDisplay');
+            if (goalDisplay) goalDisplay.innerText = tdee;
+            const autoGoalEl = document.getElementById('autoGoalText');
+            if (autoGoalEl) autoGoalEl.innerText = tdee.toLocaleString();
+
+            localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+
             // Save Profile
             const profile = { gender, age, height, weight, activity, bmr: bmrRounded, tdee };
             localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile));
+
+            renderHomeDashboard();
         }
 
         function loadUserProfile() {
