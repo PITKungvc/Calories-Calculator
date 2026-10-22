@@ -1,0 +1,20 @@
+{
+  "manifest.json": {
+    "mtime": 1792693400.8684626,
+    "seen": 1792695048.369058,
+    "ast_hash": "77f5c013e811583a964da261b7327785",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1792693461.6794198,
+    "seen": 1792695048.369058,
+    "ast_hash": "f56f69b2c981d3c9e31d73214b50ce1d",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1792693412.1223066,
+    "seen": 1792695048.369058,
+    "ast_hash": "d917cee9ec8a33b92455752699960eaf",
+    "semantic_hash": ""
+  }
+}
