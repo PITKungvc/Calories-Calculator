@@ -958,7 +958,7 @@
             loadingModal.classList.remove('hidden');
 
             try {
-                const { data: base64Data, mimeType } = await compressImage(file, 1600, 0.82);
+                const { data: base64Data, mimeType } = await compressImage(file, 1280, 0.80);
                 const activeModel = config.model || 'gemini-3.8-flash';
                 
                 const res = await fetch('/api/analyze', {
@@ -1040,7 +1040,7 @@
             }
         }
 
-        function compressImage(file, maxDimension = 1600, quality = 0.82) {
+        function compressImage(file, maxDimension = 1280, quality = 0.80) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);

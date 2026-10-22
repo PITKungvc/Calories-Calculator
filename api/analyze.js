@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, mimeType = 'image/jpeg', model = 'gemini-3.8-flash' } = req.body;
+    const { image, mimeType = 'image/jpeg', model = 'gemini-3.5-flash' } = req.body;
     if (!image) {
       return res.status(400).json({ error: 'Image data is required' });
     }
@@ -39,8 +39,8 @@ export default async function handler(req, res) {
   "source": "ข้อมูลทางการ 7-Eleven / CP"
 }`;
 
-    // รายการโมเดลสำรองอัตโนมัติหากโมเดลหลักติด 503 High Demand
-    const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3-flash-preview'];
+    // ลำดับโมเดล: เริ่มจากโมเดลที่เร็วและเสถียรที่สุดก่อน (3.5-flash 2-3s)
+    const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
@@ -48,9 +48,14 @@ export default async function handler(req, res) {
     for (const currentModel of modelsToTry) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
+      // ตั้ง Timeout 3.8 วินาทีต่อโมเดล หากโมเดลไหนค้าง ให้ตัดไปโมเดลถัดไปทันที
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3800);
+
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
+          signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [
@@ -67,10 +72,11 @@ export default async function handler(req, res) {
           })
         });
 
+        clearTimeout(timeoutId);
+
         const data = await response.json();
         if (!response.ok) {
           lastError = data.error?.message || `HTTP ${response.status}`;
-          // หากติด 503 High Demand หรือ 429 Quota ให้สลับไปลองโมเดลตัวถัดไปทันที
           if (response.status === 503 || response.status === 429) {
             continue;
           }
@@ -83,7 +89,8 @@ export default async function handler(req, res) {
           return res.status(200).json(parsed);
         }
       } catch (err) {
-        lastError = err.message;
+        clearTimeout(timeoutId);
+        lastError = err.name === 'AbortError' ? `${currentModel} timed out after 3.8s` : err.message;
       }
     }
 

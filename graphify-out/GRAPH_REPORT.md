@@ -1,17 +1,17 @@
 # Graph Report - kalguroo-app  (2026-10-23)
 
 ## Corpus Check
-- 3 files · ~2,100 words
+- 3 files · ~4,407 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
 ## Summary
-- 12 nodes · 9 edges · 3 communities (1 shown, 2 thin omitted)
+- 13 nodes · 10 edges · 3 communities (1 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `290d3b5d`
+- Built from commit: `93dd79a2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,6 +27,7 @@
 5. `theme_color` - 1 edges
 6. `icons` - 1 edges
 7. `cleanUrls` - 1 edges
+8. `regions` - 1 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
