@@ -728,6 +728,28 @@
                     </div>
                 </div>
 
+                <!-- Extra Detail / Note Field (รายละเอียดเพิ่มเติม) -->
+                <div class="space-y-1.5 p-3 rounded-2xl bg-zinc-950 border border-zinc-800/80">
+                    <div class="flex justify-between items-center">
+                        <label for="normalExtraNote" class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                            <i class="ph-bold ph-pencil-simple-line text-brand-400"></i>
+                            <span>รายละเอียดเพิ่มเติม (ไม่บังคับ)</span>
+                        </label>
+                        <span class="text-[9px] text-slate-500">ช่วย AI ปรับแคลอรี่ตรงจริง</span>
+                    </div>
+                    <div class="relative">
+                        <input id="normalExtraNote" type="text" placeholder="เช่น พิเศษไข่ดาว 2 ฟอง, ข้าวครึ่งจาน, ไม่หนัง, หวานน้อย" 
+                               class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition">
+                    </div>
+                    <!-- Quick Tag Chips for Instant Tapping -->
+                    <div class="flex flex-wrap gap-1.5 pt-0.5">
+                        <button type="button" onclick="appendNormalNote('เพิ่มไข่ดาว')" class="px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] text-slate-400 hover:text-brand-400 hover:border-brand-500/40 transition">+ เพิ่มไข่ดาว</button>
+                        <button type="button" onclick="appendNormalNote('ข้าวครึ่งจาน')" class="px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] text-slate-400 hover:text-brand-400 hover:border-brand-500/40 transition">+ ข้าวครึ่งจาน</button>
+                        <button type="button" onclick="appendNormalNote('ไม่หนัง/ไม่มัน')" class="px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] text-slate-400 hover:text-brand-400 hover:border-brand-500/40 transition">+ ไม่หนัง/ไม่มัน</button>
+                        <button type="button" onclick="appendNormalNote('หวานน้อย')" class="px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] text-slate-400 hover:text-brand-400 hover:border-brand-500/40 transition">+ หวานน้อย</button>
+                    </div>
+                </div>
+
                 <!-- Analyze Action Button for Normal Mode -->
                 <div class="pt-1">
                     <button id="btnAnalyzeNormal" type="button" onclick="startNormalAnalysis()" disabled class="w-full py-3.5 rounded-2xl bg-zinc-800 text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-none cursor-not-allowed active:scale-98 transition">
@@ -2172,17 +2194,35 @@
             }
         }
 
+        function appendNormalNote(tag) {
+            const input = document.getElementById('normalExtraNote');
+            if (!input) return;
+            if (input.value.trim().length > 0) {
+                if (!input.value.includes(tag)) {
+                    input.value += ', ' + tag;
+                }
+            } else {
+                input.value = tag;
+            }
+            input.focus();
+        }
+
         async function startNormalAnalysis() {
             if (!currentNormalPhoto) return;
+
+            const extraNote = document.getElementById('normalExtraNote')?.value.trim() || '';
 
             closeMealBuilderModal();
             const loadingModal = document.getElementById('loadingModal');
             loadingModal.classList.remove('hidden');
-            loadingModal.querySelector('.font-bold').innerText = 'AI กำลังวิเคราะห์รูปอาหาร...';
+            loadingModal.querySelector('.font-bold').innerText = extraNote
+                ? `AI กำลังวิเคราะห์รูปภาพ (${extraNote})...`
+                : 'AI กำลังวิเคราะห์รูปอาหาร...';
 
             try {
                 const payload = {
                     images: [{ data: currentNormalPhoto.data, mimeType: currentNormalPhoto.mimeType }],
+                    text: extraNote,
                     model: config.model || 'gemini-3-flash-preview',
                     meal_type: builderMealType
                 };
@@ -2199,7 +2239,7 @@
                 loadingModal.classList.add('hidden');
                 loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
 
-                document.getElementById('editName').value = data.name || 'อาหารจานนี้';
+                document.getElementById('editName').value = data.name || (extraNote ? extraNote : 'อาหารจานนี้');
                 document.getElementById('editMealType').value = data.meal_type || builderMealType;
                 document.getElementById('editCal').value = Number(data.calories) || 0;
                 document.getElementById('editP').value = Number(data.protein_g) || 0;
@@ -2210,7 +2250,7 @@
 
                 currentScanMeta = {
                     is_official: !!data.is_official,
-                    source: data.source || 'วิเคราะห์โดย AI จากรูปถ่ายปกติ'
+                    source: data.source || (extraNote ? `วิเคราะห์จากรูปภาพร่วมกับ: ${extraNote}` : 'วิเคราะห์โดย AI จากรูปถ่ายปกติ')
                 };
 
                 const officialBadge = document.getElementById('officialBadge');
@@ -2224,6 +2264,8 @@
 
                 document.getElementById('reviewModal').classList.remove('hidden');
                 resetNormalPhoto();
+                const noteInput = document.getElementById('normalExtraNote');
+                if (noteInput) noteInput.value = '';
             } catch (err) {
                 loadingModal.classList.add('hidden');
                 loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
