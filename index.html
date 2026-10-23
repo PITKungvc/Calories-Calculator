@@ -1125,6 +1125,21 @@
                     <label class="text-xs text-slate-400">ชื่ออาหาร (แก้ไขได้)</label>
                     <input id="editName" type="text" class="w-full mt-1 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-white font-bold text-sm">
                 </div>
+                <!-- Date & Time Row -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-slate-400 flex items-center gap-1">
+                            <i class="ph-bold ph-calendar"></i> วันที่ทาน
+                        </label>
+                        <input id="editMealDate" type="date" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs font-semibold outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 flex items-center gap-1">
+                            <i class="ph-bold ph-clock"></i> เวลาที่ทาน
+                        </label>
+                        <input id="editMealTime" type="time" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs font-semibold outline-none focus:border-brand-500">
+                    </div>
+                </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-slate-400">มื้ออาหาร</label>
@@ -1241,6 +1256,13 @@
             const month = String(target.getMonth() + 1).padStart(2, '0');
             const day = String(target.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
+        }
+
+        function getLocalTimeString(d = new Date()) {
+            const target = d instanceof Date ? d : new Date(d);
+            const hours = String(target.getHours()).padStart(2, '0');
+            const minutes = String(target.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
         }
 
         let config = { apiKey: '', model: 'gemini-3-flash-preview', goal: 2000 };
@@ -2530,6 +2552,8 @@
                     officialBadge.classList.add('hidden');
                 }
 
+                document.getElementById('editMealDate').value = getLocalDateString();
+                document.getElementById('editMealTime').value = getLocalTimeString();
                 document.getElementById('editName').value = result.name || 'อาหารจานนี้';
                 document.getElementById('editMealType').value = result.meal_type || 'lunch';
                 document.getElementById('editCal').value = result.calories || 0;
@@ -2557,6 +2581,10 @@
             if (!meal) return;
 
             currentEditingMealId = mealId;
+
+            const cleanTime = (meal.time || '').replace(/[^0-9:]/g, '').substring(0, 5);
+            document.getElementById('editMealDate').value = meal.date || getLocalDateString();
+            document.getElementById('editMealTime').value = cleanTime || getLocalTimeString();
 
             document.getElementById('editName').value = meal.name || '';
             document.getElementById('editMealType').value = meal.meal_type || 'lunch';
@@ -2596,6 +2624,8 @@
         function confirmSaveMeal() {
             const name = document.getElementById('editName').value.trim() || 'อาหาร';
             const mealType = document.getElementById('editMealType').value;
+            const mealDate = document.getElementById('editMealDate').value || getLocalDateString();
+            const mealTime = document.getElementById('editMealTime').value || getLocalTimeString();
             const cal = Number(document.getElementById('editCal').value) || 0;
             const p = Number(document.getElementById('editP').value) || 0;
             const c = Number(document.getElementById('editC').value) || 0;
@@ -2609,6 +2639,8 @@
                 if (idx !== -1) {
                     meals[idx].name = name;
                     meals[idx].meal_type = mealType;
+                    meals[idx].date = mealDate;
+                    meals[idx].time = mealTime;
                     meals[idx].calories = cal;
                     meals[idx].protein_g = p;
                     meals[idx].carbs_g = c;
@@ -2620,8 +2652,8 @@
                 // บันทึกมื้ออาหารใหม่
                 const newMeal = {
                     id: 'meal_' + Date.now(),
-                    date: getLocalDateString(),
-                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                    date: mealDate,
+                    time: mealTime,
                     name: name,
                     meal_type: mealType,
                     calories: cal,
@@ -2829,6 +2861,8 @@
         function selectOfficialProduct(product) {
             closeOfficialSearchModal();
 
+            document.getElementById('editMealDate').value = getLocalDateString();
+            document.getElementById('editMealTime').value = getLocalTimeString();
             document.getElementById('editName').value = product.name;
             document.getElementById('editCal').value = product.calories;
             document.getElementById('editP').value = product.protein_g;
@@ -3017,6 +3051,8 @@
                 loadingModal.classList.add('hidden');
                 loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
 
+                document.getElementById('editMealDate').value = getLocalDateString();
+                document.getElementById('editMealTime').value = getLocalTimeString();
                 document.getElementById('editName').value = data.name || (extraNote ? extraNote : 'อาหารจานนี้');
                 document.getElementById('editMealType').value = data.meal_type || builderMealType;
                 document.getElementById('editCal').value = Number(data.calories) || 0;
@@ -3516,6 +3552,8 @@
                 loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
 
                 // นำเข้าสู่หน้าต่าง Review เพื่อตรวจสอบและยืนยัน
+                document.getElementById('editMealDate').value = getLocalDateString();
+                document.getElementById('editMealTime').value = getLocalTimeString();
                 document.getElementById('editName').value = data.name || text;
                 document.getElementById('editMealType').value = data.meal_type || builderMealType;
                 document.getElementById('editCal').value = Number(data.calories) || 0;
