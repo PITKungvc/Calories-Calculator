@@ -1234,10 +1234,19 @@
         const STORAGE_MEALS = 'calsnap_v1_meals';
         const STORAGE_PROFILE = 'calsnap_user_profile';
 
+        // Helper: ดึงวันที่ตามเวลาเครื่องท้องถิ่น (Local Timezone เช่น ไทย UTC+7) ป้องกันปัญหาหลังเที่ยงคืนกลายเป็นเมื่อวานของ UTC
+        function getLocalDateString(d = new Date()) {
+            const target = d instanceof Date ? d : new Date(d);
+            const year = target.getFullYear();
+            const month = String(target.getMonth() + 1).padStart(2, '0');
+            const day = String(target.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         let config = { apiKey: '', model: 'gemini-3-flash-preview', goal: 2000 };
         let meals = [];
         let currentScanMeta = { is_official: false, source: '' };
-        let selectedHistoryDate = new Date().toISOString().split('T')[0];
+        let selectedHistoryDate = getLocalDateString();
 
         function initApp() {
             // Register PWA Service Worker เพื่อรองรับโหมดเต็มจอแบบ Native App
@@ -1262,6 +1271,24 @@
 
             const savedMeals = localStorage.getItem(STORAGE_MEALS) || localStorage.getItem('kalguroo_v3_meals');
             if (savedMeals) meals = JSON.parse(savedMeals);
+
+            // Auto-heal: แก้ไขวันที่ของมื้ออาหารที่บันทึกหลังเที่ยงคืนแต่ติดบั๊ก UTC ย้อนกลับเป็นเมื่อวาน
+            let mealsFixed = false;
+            meals.forEach(m => {
+                if (m.id && m.id.startsWith('meal_')) {
+                    const ts = Number(m.id.replace('meal_', ''));
+                    if (ts && !isNaN(ts) && Date.now() - ts < 48 * 3600 * 1000) {
+                        const correctLocalDate = getLocalDateString(new Date(ts));
+                        if (m.date !== correctLocalDate) {
+                            m.date = correctLocalDate;
+                            mealsFixed = true;
+                        }
+                    }
+                }
+            });
+            if (mealsFixed) {
+                localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
+            }
 
             // Init Profile
             loadUserProfile();
@@ -1387,7 +1414,7 @@
             loadChatMessages();
 
             // แสดงสถานะภาพรวมอาหารของวันนี้บนแถบ Context bar
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const todayMeals = meals.filter(m => m.date === today);
             let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
             todayMeals.forEach(m => {
@@ -1493,7 +1520,7 @@
             if (typingIndicator) typingIndicator.classList.remove('hidden');
             if (btnSend) btnSend.disabled = true;
 
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const todayMeals = meals.filter(m => m.date === today);
             let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
             todayMeals.forEach(m => {
@@ -1749,7 +1776,7 @@
         }
 
         function renderHomeDashboard() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const todayMeals = meals.filter(m => m.date === today);
 
             let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
@@ -1994,14 +2021,14 @@
         function navigateHistoryDate(offsetDays) {
             const date = new Date(selectedHistoryDate);
             date.setDate(date.getDate() + offsetDays);
-            selectedHistoryDate = date.toISOString().split('T')[0];
+            selectedHistoryDate = getLocalDateString(date);
             document.getElementById('historyDateInput').value = selectedHistoryDate;
             renderHistoryView();
         }
 
         function renderHistoryView() {
             selectedHistoryDate = document.getElementById('historyDateInput').value;
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getLocalDateString();
             
             const labelEl = document.getElementById('historyDayLabel');
             if (selectedHistoryDate === todayStr) {
@@ -2051,12 +2078,12 @@
                     customBox.classList.remove('hidden');
                     const startInput = document.getElementById('insightStartDate');
                     const endInput = document.getElementById('insightEndDate');
-                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayStr = getLocalDateString();
                     if (endInput && !endInput.value) endInput.value = todayStr;
                     if (startInput && !startInput.value) {
                         const d = new Date();
                         d.setDate(d.getDate() - 7);
-                        startInput.value = d.toISOString().split('T')[0];
+                        startInput.value = getLocalDateString(d);
                     }
                 } else {
                     customBox.classList.add('hidden');
@@ -2072,25 +2099,25 @@
             let filteredMeals = [];
             let periodLabel = '7 วันล่าสุด';
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            const todayStr = getLocalDateString(today);
 
             if (period === '7') {
                 periodLabel = '7 วันล่าสุด';
                 const pastDate = new Date();
                 pastDate.setDate(pastDate.getDate() - 6);
-                const pastDateStr = pastDate.toISOString().split('T')[0];
+                const pastDateStr = getLocalDateString(pastDate);
                 filteredMeals = meals.filter(m => m.date >= pastDateStr && m.date <= todayStr);
             } else if (period === '14') {
                 periodLabel = '14 วันล่าสุด';
                 const pastDate = new Date();
                 pastDate.setDate(pastDate.getDate() - 13);
-                const pastDateStr = pastDate.toISOString().split('T')[0];
+                const pastDateStr = getLocalDateString(pastDate);
                 filteredMeals = meals.filter(m => m.date >= pastDateStr && m.date <= todayStr);
             } else if (period === '30') {
                 periodLabel = '30 วันล่าสุด';
                 const pastDate = new Date();
                 pastDate.setDate(pastDate.getDate() - 29);
-                const pastDateStr = pastDate.toISOString().split('T')[0];
+                const pastDateStr = getLocalDateString(pastDate);
                 filteredMeals = meals.filter(m => m.date >= pastDateStr && m.date <= todayStr);
             } else if (period === 'this_month') {
                 const year = today.getFullYear();
@@ -2437,7 +2464,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(meals, null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `calsnap_backup_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchor.setAttribute("download", `calsnap_backup_${getLocalDateString()}.json`);
             dlAnchor.click();
         }
 
@@ -2593,7 +2620,7 @@
                 // บันทึกมื้ออาหารใหม่
                 const newMeal = {
                     id: 'meal_' + Date.now(),
-                    date: new Date().toISOString().split('T')[0],
+                    date: getLocalDateString(),
                     time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
                     name: name,
                     meal_type: mealType,
@@ -3359,7 +3386,7 @@
         }
 
         function saveAllReviewedMeals() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
             multiAnalyzedResults.forEach(item => {
