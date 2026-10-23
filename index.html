@@ -106,6 +106,10 @@
                                     <stop offset="0%" stop-color="#fdba74" />
                                     <stop offset="100%" stop-color="#ea580c" />
                                 </linearGradient>
+                                <linearGradient id="roseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fb7185" />
+                                    <stop offset="100%" stop-color="#f43f5e" />
+                                </linearGradient>
                             </defs>
                         </svg>
                         <div class="absolute text-center">
@@ -1763,11 +1767,25 @@
                 }
             }
 
-            const percent = Math.min(Math.round((totalCal / config.goal) * 100), 100);
-            document.getElementById('percentDisplay').innerText = `${percent}%`;
+            const percent = config.goal > 0 ? Math.round((totalCal / config.goal) * 100) : 0;
+            const percentEl = document.getElementById('percentDisplay');
+            if (percentEl) {
+                percentEl.innerText = `${percent}%`;
+                percentEl.className = percent > 100 ? "text-base font-black text-rose-400" : "text-base font-black text-white";
+            }
+
             const circumference = 251.2;
-            const offset = circumference - (circumference * percent / 100);
-            document.getElementById('progressCircle').style.strokeDashoffset = offset;
+            const circlePercent = Math.min(percent, 100);
+            const offset = circumference - (circumference * circlePercent / 100);
+            const progressCircle = document.getElementById('progressCircle');
+            if (progressCircle) {
+                progressCircle.style.strokeDashoffset = offset;
+                if (percent > 100) {
+                    progressCircle.setAttribute('stroke', 'url(#roseGrad)');
+                } else {
+                    progressCircle.setAttribute('stroke', 'url(#orangeGrad)');
+                }
+            }
 
             // คำนวณคำแนะนำสำหรับมื้อถัดไป
             renderNextMealAdvice(totalCal, totalP, totalC, totalF, totalSugar, totalSodium, mealBreakdown, targets, remaining);
