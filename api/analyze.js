@@ -1,10 +1,13 @@
 // ฐานข้อมูลสินค้าทางการที่พบได้บ่อยในร้านสะดวกซื้อ (7-Eleven, Lawson, Supermarket)
 const OFFICIAL_STORE_PRODUCTS = [
   // Cielo 0 Calorie Drinks (เครื่องดื่มวิตามินสปาร์คกลิ้ง 0% น้ำตาล 0 แคล ตราเซียโล่)
-  { keywords: ['cielo'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
-  { keywords: ['เซียโล่'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
-  { keywords: ['ซีเอโล่'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
-  { keywords: ['เซียโล'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['cielo', 'แอปเปิ้ล'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง กลิ่นแอปเปิ้ล 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['cielo', 'apple'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง กลิ่นแอปเปิ้ล 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['เซียโล่', 'แอปเปิ้ล'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง กลิ่นแอปเปิ้ล 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['cielo'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['เซียโล่'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['ซีเอโล่'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
+  { keywords: ['เซียโล'], name: 'เครื่องดื่ม เซียโล่ สปาร์คกลิ้ง 0 แคล (Cielo)', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 160, portion: '1 ขวด (600ml)', source: 'ฐานข้อมูลทางการ 7-Eleven / AJE Thai' },
 
   // เครื่องดื่ม 0 Cal / 0% น้ำตาล ยอดนิยมใน 7-Eleven
   { keywords: ['สิงห์', 'เลมอน', 'โซดา'], name: 'สิงห์ เลมอน โซดา 0 แคลอรี', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, sugar_g: 0, sodium_mg: 25, portion: '1 กระป๋อง (330ml)', source: 'ฐานข้อมูลทางการ Singha' },
@@ -139,13 +142,17 @@ export default async function handler(req, res) {
           // ตรวจสอบกับฐานข้อมูลสินค้าทางการในระบบเพื่อความแม่นยำ 100%
           const matchedOfficial = matchOfficialProduct(parsed.name);
           if (matchedOfficial) {
+            const scannedSodium = Number(parsed.sodium_mg) || 0;
+            const scannedSugar = Number(parsed.sugar_g) || 0;
+
             parsed.name = matchedOfficial.name;
             parsed.calories = matchedOfficial.calories;
             parsed.protein_g = matchedOfficial.protein_g;
             parsed.carbs_g = matchedOfficial.carbs_g;
             parsed.fat_g = matchedOfficial.fat_g;
-            parsed.sugar_g = matchedOfficial.sugar_g;
-            parsed.sodium_mg = matchedOfficial.sodium_mg;
+            // หากสแกนเห็นตัวเลขจากตารางฉลากชัดเจน ให้ใช้ค่าจากฉลากจริง ถ้าไม่เห็นให้ใช้ฐานข้อมูลทางการ
+            parsed.sugar_g = matchedOfficial.sugar_g !== undefined ? matchedOfficial.sugar_g : scannedSugar;
+            parsed.sodium_mg = scannedSodium > 0 ? scannedSodium : matchedOfficial.sodium_mg;
             parsed.portion = matchedOfficial.portion;
             parsed.is_official = true;
             parsed.source = matchedOfficial.source;
