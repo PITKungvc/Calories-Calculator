@@ -569,6 +569,26 @@
                 </div>
             </div>
 
+            <!-- iOS Home Screen Widget Setup Card -->
+            <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 space-y-3 glow-card">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl flex-shrink-0">
+                        <i class="ph-bold ph-layout"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                            Widget บนหน้าจอโฮม iPhone (iOS)
+                            <span class="px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 text-[9px] font-black">แนะนำ</span>
+                        </h4>
+                        <p class="text-[10px] text-slate-400">แสดงแคลอรี่ประจำวันและแนะนำว่าควรกินอะไรมื้อถัดไป</p>
+                    </div>
+                </div>
+                <button onclick="openWidgetModal()" class="w-full py-2.5 px-4 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition">
+                    <i class="ph-bold ph-sparkle"></i>
+                    <span>วิธีติดตั้ง Widget บนหน้าจอหลัก</span>
+                </button>
+            </div>
+
             <!-- Health Calculator & BMR / TDEE & Weight Goal Card -->
             <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 space-y-4 glow-card">
                 <div class="flex justify-between items-center">
@@ -1148,6 +1168,62 @@
 
             <button id="btnConfirmSaveMeal" onclick="confirmSaveMeal()" class="w-full py-4 bg-brand-500 hover:bg-brand-400 text-zinc-950 font-black rounded-2xl active:scale-95 transition shadow-lg text-sm">
                 ✅ ยืนยันบันทึกมื้ออาหารนี้
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: iOS Scriptable Widget Setup Guide -->
+    <div id="widgetModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+                    <i class="ph-bold ph-layout"></i> ติดตั้ง iOS Widget บนหน้าจอหลัก iPhone
+                </span>
+                <button onclick="closeWidgetModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <div class="flex items-start gap-2.5 p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800">
+                    <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs flex-shrink-0">1</span>
+                    <div>
+                        <strong class="text-white">ดาวน์โหลดแอป Scriptable</strong>
+                        <p class="text-slate-400 text-[11px] mt-0.5">ค้นหาและติดตั้งแอป <b>Scriptable</b> (ฟรี) จาก Apple App Store บน iPhone ของคุณ</p>
+                        <a href="https://apps.apple.com/app/scriptable/id1405459188" target="_blank" class="inline-flex items-center gap-1 text-brand-400 underline text-[11px] mt-1 font-semibold">
+                            เปิด App Store <i class="ph-bold ph-arrow-square-out"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800">
+                    <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs flex-shrink-0">2</span>
+                    <div class="w-full">
+                        <strong class="text-white">คัดลอกโค้ดสคริปต์ CalSnap</strong>
+                        <p class="text-slate-400 text-[11px] mt-0.5">ระบบจะฝัง URL ของเว็บไซต์นี้ลงในสคริปต์ให้อัตโนมัติ</p>
+                        <button onclick="copyWidgetScriptCode()" id="btnCopyWidgetCode" class="mt-2 w-full py-2.5 px-3 bg-brand-500 hover:bg-brand-400 text-zinc-950 font-bold rounded-xl active:scale-95 transition flex items-center justify-center gap-1.5 text-xs shadow-md">
+                            <i class="ph-bold ph-copy"></i> คัดลอกโค้ดสคริปต์สำหรับ Scriptable
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800">
+                    <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs flex-shrink-0">3</span>
+                    <div>
+                        <strong class="text-white">สร้างสคริปต์ในแอป Scriptable</strong>
+                        <p class="text-slate-400 text-[11px] mt-0.5">เปิดแอป Scriptable ➔ กดปุ่ม <b>(+)</b> มุมขวาบน ➔ วางโค้ดลงไป ➔ กดชื่อด้านบนเปลี่ยนเป็น <b>"CalSnap"</b> ➔ กด Done</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800">
+                    <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs flex-shrink-0">4</span>
+                    <div>
+                        <strong class="text-white">เพิ่ม Widget บนหน้าจอโฮม iPhone</strong>
+                        <p class="text-slate-400 text-[11px] mt-0.5">ไปที่หน้าจอหลัก ➔ กดค้างที่ว่าง ➔ กดปุ่ม <b>(+)</b> มุมซ้ายบน ➔ เลือก <b>Scriptable</b> ➔ เลือกขนาด <b>Medium (สี่เหลี่ยมผืนผ้า)</b> ➔ แตะที่ Widget เลือก Script เป็น <b>CalSnap</b></p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeWidgetModal()" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl active:scale-95 transition text-xs">
+                ปิดหน้าต่าง
             </button>
         </div>
     </div>
@@ -3469,6 +3545,110 @@
             } else {
                 alert('วิธีติดตั้งแบบแอปเต็มจอ (ปิดแถบ Chrome):\n\n• สำหรับ Android Chrome: แตะไอคอน 3 จุด (⋮) มุมขวาบน ➔ เลือก "ติดตั้งแอป" หรือ "เพิ่มลงในหน้าจอหลัก"\n\n• สำหรับ iOS Safari: แตะปุ่มแชร์ ➔ เลือก "เพิ่มไปยังหน้าจอโฮม"');
             }
+        }
+
+        // ==========================================
+        // IOS SCRIPTABLE WIDGET MODAL & CODE COPIER
+        // ==========================================
+        function openWidgetModal() {
+            document.getElementById('widgetModal').classList.remove('hidden');
+        }
+
+        function closeWidgetModal() {
+            document.getElementById('widgetModal').classList.add('hidden');
+        }
+
+        function getScriptableWidgetCode() {
+            const origin = window.location.origin;
+            return `// ==========================================
+// CalSnap iOS Widget Script (Scriptable)
+// ==========================================
+const API_URL = "${origin}/api/widget";
+const APP_URL = "${origin}";
+
+async function createWidget() {
+  const widget = new ListWidget();
+  widget.backgroundColor = new Color("#0b0c10");
+  widget.url = APP_URL;
+
+  let data = {
+    totalCal: 0,
+    goalCal: 2000,
+    remainingCal: 2000,
+    percent: 0,
+    nextMeal: "มื้อถัดไป",
+    advice: "กำลังรอข้อมูลมื้อแรกของวัน..."
+  };
+
+  try {
+    const req = new Request(API_URL);
+    req.timeoutInterval = 4;
+    data = await req.loadJSON();
+  } catch (e) {}
+
+  const header = widget.addStack();
+  header.centerAlignContent();
+  const title = header.addText("⚡ CalSnap AI");
+  title.textColor = new Color("#f97316");
+  title.font = Font.boldSystemFont(12);
+  header.addSpacer();
+
+  const isOver = data.percent > 100;
+  const badge = header.addText(isOver ? \`⚠️ เกิน \${Math.abs(data.remainingCal)} kcal\` : \`🔥 เหลือ \${data.remainingCal} kcal\`);
+  badge.textColor = isOver ? new Color("#fb7185") : new Color("#fdba74");
+  badge.font = Font.boldSystemFont(11);
+
+  widget.addSpacer(6);
+
+  const calRow = widget.addText(\`\${data.totalCal} / \${data.goalCal} kcal  (\${data.percent}%)\`);
+  calRow.textColor = isOver ? new Color("#fb7185") : Color.white();
+  calRow.font = Font.heavySystemFont(16);
+
+  widget.addSpacer(6);
+
+  const adviceBox = widget.addStack();
+  adviceBox.backgroundColor = new Color("#18181b");
+  adviceBox.cornerRadius = 10;
+  adviceBox.setPadding(8, 10, 8, 10);
+  adviceBox.layoutVertically();
+
+  const mealTitle = adviceBox.addText(\`🥗 แนะนำ \${data.nextMeal}:\`);
+  mealTitle.textColor = new Color("#f97316");
+  mealTitle.font = Font.boldSystemFont(10);
+
+  adviceBox.addSpacer(2);
+
+  const adviceDesc = adviceBox.addText(data.advice);
+  adviceDesc.textColor = new Color("#e4e4e7");
+  adviceDesc.font = Font.systemFont(11);
+
+  return widget;
+}
+
+const widget = await createWidget();
+if (config.runsInWidget) {
+  Script.setWidget(widget);
+} else {
+  widget.presentMedium();
+}
+Script.complete();`;
+        }
+
+        function copyWidgetScriptCode() {
+            const code = getScriptableWidgetCode();
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('btnCopyWidgetCode');
+                if (btn) {
+                    btn.innerHTML = '<i class="ph-bold ph-check"></i> คัดลอกสำเร็จแล้ว!';
+                    btn.className = "mt-2 w-full py-2.5 px-3 bg-emerald-500 text-zinc-950 font-bold rounded-xl active:scale-95 transition flex items-center justify-center gap-1.5 text-xs shadow-md";
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="ph-bold ph-copy"></i> คัดลอกโค้ดสคริปต์สำหรับ Scriptable';
+                        btn.className = "mt-2 w-full py-2.5 px-3 bg-brand-500 hover:bg-brand-400 text-zinc-950 font-bold rounded-xl active:scale-95 transition flex items-center justify-center gap-1.5 text-xs shadow-md";
+                    }, 3000);
+                }
+            }).catch(() => {
+                prompt('คัดลอกโค้ดสำหรับ Scriptable ด้านล่างนี้:', code);
+            });
         }
 
         window.onload = initApp;
