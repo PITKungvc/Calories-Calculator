@@ -3842,6 +3842,7 @@ async function createWidget() {
 }
 
 const widget = await createWidget();
+widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * 5);
 if (config.runsInWidget) {
   Script.setWidget(widget);
 } else {
