@@ -22,6 +22,7 @@ let widgetCache = {
   protein: 0,
   carbs: 0,
   fat: 0,
+  streak: 0,
   updatedAt: new Date().toISOString()
 };
 
@@ -57,6 +58,7 @@ export default async function handler(req, res) {
         protein: Number(body.protein) || 0,
         carbs: Number(body.carbs) || 0,
         fat: Number(body.fat) || 0,
+        streak: Number(body.streak) || 0,
         updatedAt: new Date().toISOString()
       };
 
@@ -96,6 +98,9 @@ export default async function handler(req, res) {
   }
   if (req.query.date) {
     widgetCache.date = req.query.date;
+  }
+  if (req.query.streak) {
+    widgetCache.streak = Number(req.query.streak) || 0;
   }
 
   return res.status(200).json(widgetCache);

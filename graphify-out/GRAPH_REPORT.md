@@ -1,7 +1,7 @@
 # Graph Report - kalguroo-app  (2026-10-24)
 
 ## Corpus Check
-- 10 files · ~19,774 words
+- 10 files · ~21,261 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `503882a8`
+- Built from commit: `04aec2f5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
