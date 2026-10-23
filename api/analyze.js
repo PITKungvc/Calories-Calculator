@@ -26,6 +26,12 @@ export default async function handler(req, res) {
       inputImages = [{ data: req.body.image, mimeType: req.body.mimeType || 'image/jpeg' }];
     }
 
+    // ทำความสะอาดและตรวจสอบข้อมูล base64 ของรูปภาพป้องกัน undefined
+    inputImages = inputImages.map(img => ({
+      data: img.data || img.base64 || '',
+      mimeType: img.mimeType || 'image/jpeg'
+    })).filter(img => typeof img.data === 'string' && img.data.length > 0);
+
     const trimmedText = text.trim();
     if (inputImages.length === 0 && !trimmedText) {
       return res.status(400).json({ error: 'Image data or text description is required' });

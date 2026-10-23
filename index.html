@@ -1954,14 +1954,18 @@
                             dataUrl = canvas.toDataURL(mimeType, quality);
                         }
 
+                        const rawB64 = dataUrl.split(',')[1];
                         resolve({
-                            data: dataUrl.split(',')[1],
+                            data: rawB64,
+                            base64: rawB64,
                             mimeType: mimeType
                         });
                     };
                     img.onerror = () => {
+                        const fallbackB64 = e.target.result.split(',')[1];
                         resolve({
-                            data: e.target.result.split(',')[1],
+                            data: fallbackB64,
+                            base64: fallbackB64,
                             mimeType: file.type || 'image/jpeg'
                         });
                     };
@@ -2151,8 +2155,10 @@
                 const compressed = await compressImage(file, 1280, 0.80);
                 const previewUrl = URL.createObjectURL(file);
 
+                const imgData = compressed.data || compressed.base64;
                 currentNormalPhoto = {
-                    data: compressed.base64,
+                    data: imgData,
+                    base64: imgData,
                     mimeType: compressed.mimeType,
                     previewUrl: previewUrl
                 };
@@ -2233,8 +2239,15 @@
                     body: JSON.stringify(payload)
                 });
 
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Server error');
+                let data = null;
+                const contentType = res.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    data = await res.json();
+                } else {
+                    const textErr = await res.text().catch(() => '');
+                    throw new Error(textErr || `Server HTTP ${res.status}`);
+                }
+                if (!res.ok) throw new Error(data?.error || `Server HTTP ${res.status}`);
 
                 loadingModal.classList.add('hidden');
                 loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
@@ -2419,8 +2432,10 @@
                 const compressed = await compressImage(file, 1280, 0.80);
                 const previewUrl = URL.createObjectURL(file);
 
+                const imgData = compressed.data || compressed.base64;
                 mealBuilderItems[activeSlotIndex].photos.push({
-                    data: compressed.base64,
+                    data: imgData,
+                    base64: imgData,
                     mimeType: compressed.mimeType,
                     previewUrl: previewUrl,
                     tag: activeSlotTag || 'product'
@@ -2468,10 +2483,15 @@
                         body: JSON.stringify(payload)
                     });
 
-                    const data = await res.json();
-                    if (!res.ok) {
-                        throw new Error(data.error || 'Server error');
+                    let data = null;
+                    const contentType = res.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        data = await res.json();
+                    } else {
+                        const textErr = await res.text().catch(() => '');
+                        throw new Error(textErr || `Server HTTP ${res.status}`);
                     }
+                    if (!res.ok) throw new Error(data?.error || `Server HTTP ${res.status}`);
 
                     multiAnalyzedResults.push({
                         id: 'item_' + Date.now() + '_' + i,
@@ -2715,9 +2735,16 @@
                     })
                 });
 
-                const data = await res.json();
+                let data = null;
+                const contentType = res.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    data = await res.json();
+                } else {
+                    const textErr = await res.text().catch(() => '');
+                    throw new Error(textErr || `Server HTTP ${res.status}`);
+                }
                 if (!res.ok) {
-                    throw new Error(data.error || 'Server error');
+                    throw new Error(data?.error || `Server HTTP ${res.status}`);
                 }
 
                 loadingModal.classList.add('hidden');
