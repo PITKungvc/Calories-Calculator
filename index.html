@@ -1209,8 +1209,112 @@
         }
 
         // ==========================================
-        // HOME DASHBOARD RENDER
+        // HOME DASHBOARD RENDER & MEAL CARD BUILDER
         // ==========================================
+        function getMealTypeName(type) {
+            switch(type) {
+                case 'breakfast': return 'มื้อเช้า';
+                case 'lunch': return 'มื้อกลางวัน';
+                case 'dinner': return 'มื้อเย็น';
+                case 'snack': return 'ของว่าง';
+                default: return 'มื้ออาหาร';
+            }
+        }
+
+        function createMealCardElement(m) {
+            const cal = Number(m.calories) || 0;
+            const p = Number(m.protein_g) || 0;
+            const c = Number(m.carbs_g) || 0;
+            const f = Number(m.fat_g) || 0;
+            const sugar = m.sugar_g !== undefined && m.sugar_g !== null ? Number(m.sugar_g) : null;
+            const sodium = m.sodium_mg !== undefined && m.sodium_mg !== null ? Number(m.sodium_mg) : null;
+
+            const totalG = p + c + f;
+            let pPct = 0, cPct = 0, fPct = 0;
+            if (totalG > 0) {
+                pPct = Math.round((p / totalG) * 100);
+                cPct = Math.round((c / totalG) * 100);
+                fPct = Math.max(0, 100 - pPct - cPct);
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-zinc-900/80 border border-zinc-800/80 p-3.5 rounded-2xl space-y-2.5 transition hover:border-zinc-700/80';
+            card.innerHTML = `
+                <div class="flex justify-between items-start gap-2">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex-shrink-0 flex items-center justify-center text-lg">
+                            ${getMealEmoji(m.meal_type)}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-sm text-white flex items-center flex-wrap gap-1.5 leading-snug">
+                                <span class="truncate">${m.name}</span>
+                                ${m.is_official ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold inline-flex items-center gap-1"><i class="ph-bold ph-seal-check"></i> ทางการ</span>' : ''}
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
+                                <span class="text-slate-300 font-medium">${getMealTypeName(m.meal_type)}</span>
+                                <span class="text-slate-600">•</span>
+                                <span>${m.time || ''}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="text-right">
+                            <span class="font-extrabold text-sm text-brand-400">${cal}</span>
+                            <span class="text-[10px] text-slate-500 block leading-tight">kcal</span>
+                        </div>
+                        <button onclick="openEditMealModal('${m.id}')" class="p-1.5 text-slate-400 hover:text-brand-400 hover:bg-zinc-800/80 rounded-lg active:scale-90 transition" title="แก้ไขมื้อนี้">
+                            <i class="ph-bold ph-pencil-simple text-base"></i>
+                        </button>
+                        <button onclick="deleteMeal('${m.id}')" class="p-1.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg active:scale-90 transition" title="ลบรายการ">
+                            <i class="ph-bold ph-trash text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-1 border-t border-zinc-800/60">
+                    <!-- Segmented Macro Bar (แถบสัดส่วนสารอาหาร) -->
+                    <div class="w-full bg-zinc-950/90 h-2 rounded-full overflow-hidden flex gap-0.5 p-0.5 border border-zinc-800/60">
+                        ${totalG > 0 ? `
+                            ${pPct > 0 ? `<div style="width: ${pPct}%" class="bg-brand-500 h-full rounded-sm transition-all" title="โปรตีน ${p}g (${pPct}%)"></div>` : ''}
+                            ${cPct > 0 ? `<div style="width: ${cPct}%" class="bg-amber-400 h-full rounded-sm transition-all" title="คาร์บ ${c}g (${cPct}%)"></div>` : ''}
+                            ${fPct > 0 ? `<div style="width: ${fPct}%" class="bg-rose-400 h-full rounded-sm transition-all" title="ไขมัน ${f}g (${fPct}%)"></div>` : ''}
+                        ` : `
+                            <div class="w-full bg-zinc-800 h-full rounded-sm"></div>
+                        `}
+                    </div>
+
+                    <!-- Macro Breakdown Numbers & Chips -->
+                    <div class="flex items-center justify-between text-[11px] flex-wrap gap-y-1.5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="inline-flex items-center gap-1 font-bold text-white">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+                                <span class="text-slate-400 text-[10px]">P</span> ${p}g
+                                <span class="text-[9px] text-brand-400/90 font-normal">(${pPct}%)</span>
+                            </span>
+                            <span class="inline-flex items-center gap-1 font-bold text-white">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="text-slate-400 text-[10px]">C</span> ${c}g
+                                <span class="text-[9px] text-amber-400/90 font-normal">(${cPct}%)</span>
+                            </span>
+                            <span class="inline-flex items-center gap-1 font-bold text-white">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                                <span class="text-slate-400 text-[10px]">F</span> ${f}g
+                                <span class="text-[9px] text-rose-400/90 font-normal">(${fPct}%)</span>
+                            </span>
+                        </div>
+
+                        <!-- Sugar & Sodium Badges -->
+                        <div class="flex items-center gap-1.5 text-[10px]">
+                            ${sugar !== null && !isNaN(sugar) ? `<span class="px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 font-semibold inline-flex items-center gap-1">🍬 ${sugar}g</span>` : ''}
+                            ${sodium !== null && !isNaN(sodium) ? `<span class="px-2 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/20 text-sky-300 font-semibold inline-flex items-center gap-1">🧂 ${sodium}mg</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
         function renderHomeDashboard() {
             const today = new Date().toISOString().split('T')[0];
             const todayMeals = meals.filter(m => m.date === today);
@@ -1220,6 +1324,10 @@
 
             const listEl = document.getElementById('mealList');
             listEl.innerHTML = '';
+
+            if (todayMeals.length === 0) {
+                listEl.innerHTML = `<div class="bg-zinc-900/40 border border-dashed border-zinc-800/80 p-6 rounded-2xl text-center text-xs text-slate-500">ยังไม่มีรายการอาหารสำหรับวันนี้</div>`;
+            }
 
             todayMeals.forEach(m => {
                 const cal = Number(m.calories) || 0;
@@ -1234,39 +1342,7 @@
                     mealBreakdown[m.meal_type] += cal;
                 }
 
-                const card = document.createElement('div');
-                card.className = 'bg-zinc-900/80 border border-zinc-800/80 p-3.5 rounded-2xl flex justify-between items-center';
-                card.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-lg">
-                            ${getMealEmoji(m.meal_type)}
-                        </div>
-                        <div>
-                            <div class="font-bold text-sm text-white flex items-center flex-wrap gap-1.5">
-                                ${m.name}
-                                ${m.is_official ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold inline-flex items-center gap-1"><i class="ph-bold ph-seal-check"></i> ทางการ</span>' : ''}
-                            </div>
-                            <div class="text-[11px] text-slate-400">
-                                ${m.time} • P:${m.protein_g}g C:${m.carbs_g}g F:${m.fat_g}g
-                                ${m.sugar_g !== undefined ? ` • 🍬 ${m.sugar_g}g` : ''}
-                                ${m.sodium_mg !== undefined ? ` • 🧂 ${m.sodium_mg}mg` : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="text-right">
-                            <span class="font-extrabold text-sm text-brand-400">${cal}</span>
-                            <span class="text-[10px] text-slate-500 block">kcal</span>
-                        </div>
-                        <button onclick="openEditMealModal('${m.id}')" class="p-2 text-slate-400 hover:text-brand-400 active:scale-90 transition" title="แก้ไขมื้อนี้">
-                            <i class="ph-bold ph-pencil-simple text-base"></i>
-                        </button>
-                        <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition" title="ลบรายการ">
-                            <i class="ph-bold ph-trash text-base"></i>
-                        </button>
-                    </div>
-                `;
-                listEl.appendChild(card);
+                listEl.appendChild(createMealCardElement(m));
             });
 
             document.getElementById('totalCalDisplay').innerText = totalCal.toLocaleString();
@@ -1484,40 +1560,10 @@
                     totalP += Number(m.protein_g) || 0;
                     totalC += Number(m.carbs_g) || 0;
                     totalF += Number(m.fat_g) || 0;
+                    totalSugar += Number(m.sugar_g) || 0;
+                    totalSodium += Number(m.sodium_mg) || 0;
 
-                    const card = document.createElement('div');
-                    card.className = 'bg-zinc-900/80 border border-zinc-800/80 p-3.5 rounded-2xl flex justify-between items-center';
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-base">
-                                ${getMealEmoji(m.meal_type)}
-                            </div>
-                            <div>
-                                <div class="font-bold text-sm text-white flex items-center flex-wrap gap-1">
-                                    ${m.name}
-                                    ${m.is_official ? '<span class="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">ทางการ</span>' : ''}
-                                </div>
-                                <div class="text-[11px] text-slate-400">
-                                ${m.time} • P:${m.protein_g}g C:${m.carbs_g}g F:${m.fat_g}g
-                                ${m.sugar_g !== undefined ? ` • 🍬 ${m.sugar_g}g` : ''}
-                                ${m.sodium_mg !== undefined ? ` • 🧂 ${m.sodium_mg}mg` : ''}
-                            </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="text-right">
-                                <span class="font-extrabold text-sm text-brand-400">${cal}</span>
-                                <span class="text-[10px] text-slate-500 block">kcal</span>
-                            </div>
-                            <button onclick="openEditMealModal('${m.id}')" class="p-2 text-slate-400 hover:text-brand-400 active:scale-90 transition" title="แก้ไขมื้อนี้">
-                                <i class="ph-bold ph-pencil-simple text-base"></i>
-                            </button>
-                            <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition" title="ลบรายการ">
-                                <i class="ph-bold ph-trash text-base"></i>
-                            </button>
-                        </div>
-                    `;
-                    listEl.appendChild(card);
+                    listEl.appendChild(createMealCardElement(m));
                 });
             }
 
