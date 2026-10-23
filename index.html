@@ -1929,7 +1929,7 @@
                 const percent = goal > 0 ? Math.round((totalCal / goal) * 100) : 0;
                 let dateStr = '';
                 try {
-                    dateStr = new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                    dateStr = new Date().toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short' });
                 } catch(e) {
                     dateStr = todayStr;
                 }
@@ -3675,7 +3675,7 @@ const APP_URL = "${origin}";
 function getTodayThaiDate() {
   const d = new Date();
   try {
-    return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+    return d.toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short" });
   } catch (e) {
     return d.getDate() + "/" + (d.getMonth() + 1);
   }
@@ -3800,7 +3800,7 @@ async function createWidget() {
 
   topRow.addSpacer();
 
-  const dateLabel = topRow.addText("📅 " + (data.date || getTodayThaiDate()));
+  const dateLabel = topRow.addText("📅 " + getTodayThaiDate());
   dateLabel.textColor = new Color("#94a3b8");
   dateLabel.font = Font.mediumSystemFont(10);
 

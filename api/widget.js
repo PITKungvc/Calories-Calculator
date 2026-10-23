@@ -4,9 +4,10 @@ const TMP_FILE = '/tmp/calsnap_widget.json';
 
 function getThaiDateShort(d = new Date()) {
   try {
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short' });
   } catch(e) {
-    return `${d.getDate()}/${d.getMonth() + 1}`;
+    const bkk = new Date(d.getTime() + 7 * 3600 * 1000);
+    return `${bkk.getUTCDate()}/${bkk.getUTCMonth() + 1}`;
   }
 }
 
@@ -69,10 +70,19 @@ export default async function handler(req, res) {
     }
   }
 
-  // GET Request: รองรับ query parameters ถ้ามี
-  if (!widgetCache.date) {
-    widgetCache.date = getThaiDateShort();
+  // GET Request: รองรับ query parameters และตรวจสอบการเปลี่ยนวันใหม่ตามเวลาไทย
+  const todayBkk = getThaiDateShort();
+  if (widgetCache.date && widgetCache.date !== todayBkk && !req.query.date) {
+    widgetCache.totalCal = 0;
+    widgetCache.remainingCal = widgetCache.goalCal;
+    widgetCache.percent = 0;
+    widgetCache.date = todayBkk;
+    widgetCache.advice = "พร้อมบันทึกอาหารมื้อแรกของวัน";
+    widgetCache.nextMeal = "มื้อเช้า (Breakfast)";
+  } else if (!widgetCache.date) {
+    widgetCache.date = todayBkk;
   }
+
   if (req.query.goal) {
     const qGoal = Number(req.query.goal);
     if (qGoal > 0) {
