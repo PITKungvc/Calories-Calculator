@@ -12,15 +12,39 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792700832.695002,
-    "seen": 1792700852.8917267,
-    "ast_hash": "a4b8c90c2f848c669d9e1b270068e47e",
+    "mtime": 1792736073.54557,
+    "seen": 1792736096.7893891,
+    "ast_hash": "53ba2070b1f4471e4a2bbf0f5759256c",
     "semantic_hash": ""
   },
   "api/analyze.js": {
-    "mtime": 1792734423.975529,
-    "seen": 1792734431.7221758,
-    "ast_hash": "8639ffebaa9373f9be89b1e2a320c142",
+    "mtime": 1792735950.6158106,
+    "seen": 1792736096.7893891,
+    "ast_hash": "bc87bcdcc609a49be33b3f41e27ae306",
+    "semantic_hash": ""
+  },
+  "api/products.js": {
+    "mtime": 1792735884.0408547,
+    "seen": 1792736096.7893891,
+    "ast_hash": "f0d07446a6f8f311e996b0a64dfec6a4",
+    "semantic_hash": ""
+  },
+  "data/products.js": {
+    "mtime": 1792735845.0670867,
+    "seen": 1792736096.7893891,
+    "ast_hash": "abc42f9858fcd315a36ec75106f2c792",
+    "semantic_hash": ""
+  },
+  "data/scraped_products.json": {
+    "mtime": 1792735863.9008348,
+    "seen": 1792736096.7893891,
+    "ast_hash": "d751713988987e9331980363e24189ce",
+    "semantic_hash": ""
+  },
+  "scripts/scrape_7eleven.js": {
+    "mtime": 1792735857.941439,
+    "seen": 1792736096.7893891,
+    "ast_hash": "9c4c584fbbaee8c42fc6ecadffaf6184",
     "semantic_hash": ""
   }
 }

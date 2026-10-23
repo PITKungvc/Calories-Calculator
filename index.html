@@ -465,6 +465,50 @@
                     <span class="text-[10px] text-slate-500">อัลบั้ม / คลังภาพ</span>
                 </button>
             </div>
+
+            <!-- ค้นหาจากฐานข้อมูลทางการ 7-Eleven โดยตรง -->
+            <div class="pt-2">
+                <button onclick="openOfficialSearchModal()" class="w-full p-3.5 rounded-2xl bg-zinc-950 hover:bg-zinc-800 border border-emerald-500/30 flex items-center justify-between px-4 active:scale-98 transition group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+                            <i class="ph-bold ph-magnifying-glass"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                                ค้นหาฐานข้อมูล 7-Eleven
+                                <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-black">ทางการ</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500">เลือกสินค้าโดยไม่ต้องถ่ายรูป (Cielo, CP, Meiji...)</div>
+                        </div>
+                    </div>
+                    <i class="ph-bold ph-caret-right text-slate-500 text-sm group-hover:translate-x-0.5 transition"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Product Search Modal -->
+    <div id="officialSearchModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-800/80">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-seal-check text-emerald-400 text-lg"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider text-white">ค้นหาสินค้าสะดวกซื้อทางการ</span>
+                </div>
+                <button onclick="closeOfficialSearchModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Search Input -->
+            <div class="relative">
+                <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                <input id="officialSearchInput" type="text" placeholder="พิมพ์ชื่อสินค้า เช่น cielo, อกไก่, มาม่า..." oninput="handleOfficialSearch(event)"
+                       class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+            </div>
+
+            <!-- Results List -->
+            <div id="officialSearchResults" class="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-[220px]">
+                <!-- Dynamic Items -->
+            </div>
         </div>
     </div>
 
@@ -1089,6 +1133,15 @@
             localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
             renderHomeDashboard();
             closeReviewModal();
+
+            // Auto-Save Crowdsource Database (ถ้าเป็นสินค้าทางการ หรือตรวจจากฉลาก จะซิงค์ไปยังฐานข้อมูลกลาง)
+            if (newMeal.is_official) {
+                fetch('/api/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newMeal)
+                }).catch(() => {});
+            }
         }
 
         function deleteMeal(id) {
@@ -1177,6 +1230,110 @@
         function triggerGalleryInput() {
             closePhotoSourceModal();
             document.getElementById('galleryInput').click();
+        }
+
+        // ==========================================
+        // OFFICIAL 7-ELEVEN & CONVENIENCE PRODUCTS SEARCH
+        // ==========================================
+        let officialSearchDebounce = null;
+
+        function openOfficialSearchModal() {
+            closePhotoSourceModal();
+            const modal = document.getElementById('officialSearchModal');
+            modal.classList.remove('hidden');
+            const input = document.getElementById('officialSearchInput');
+            input.value = '';
+            input.focus();
+            fetchOfficialProducts('');
+        }
+
+        function closeOfficialSearchModal() {
+            document.getElementById('officialSearchModal').classList.add('hidden');
+        }
+
+        function handleOfficialSearch(e) {
+            clearTimeout(officialSearchDebounce);
+            const query = e.target.value.trim();
+            officialSearchDebounce = setTimeout(() => {
+                fetchOfficialProducts(query);
+            }, 250);
+        }
+
+        async function fetchOfficialProducts(query) {
+            const listEl = document.getElementById('officialSearchResults');
+            listEl.innerHTML = `
+                <div class="py-8 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
+                    <div class="w-4 h-4 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                    กำลังค้นหาฐานข้อมูลทางการ...
+                </div>`;
+
+            try {
+                const res = await fetch(`/api/products?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                const items = data.products || [];
+
+                if (items.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="py-12 text-center text-slate-500 text-xs">
+                            <i class="ph-bold ph-magnifying-glass text-2xl text-slate-600 mb-1"></i>
+                            <p>ไม่พบสินค้าทางการที่ตรงกับ "${query}"</p>
+                            <span class="text-[10px] text-slate-600">สามารถถ่ายรูปเพื่อให้ AI วิเคราะห์หรือสแกนฉลากได้</span>
+                        </div>`;
+                    return;
+                }
+
+                listEl.innerHTML = items.map(item => `
+                    <div onclick='selectOfficialProduct(${JSON.stringify(item).replace(/'/g, "&#39;")})'
+                         class="p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-800/80 border border-zinc-800/80 hover:border-emerald-500/40 cursor-pointer active:scale-98 transition flex items-center justify-between gap-3 group">
+                        <div class="space-y-1 flex-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-bold text-white group-hover:text-emerald-400 transition">${item.name}</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-bold inline-flex items-center gap-0.5">
+                                    <i class="ph-bold ph-seal-check"></i> ทางการ
+                                </span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 flex items-center gap-2 flex-wrap">
+                                <span>${item.portion || '1 หน่วย'}</span>
+                                <span>•</span>
+                                <span class="text-emerald-400 font-semibold">${item.calories} kcal</span>
+                                <span>•</span>
+                                <span>P: ${item.protein_g}g</span>
+                                <span>•</span>
+                                <span>น้ำตาล: ${item.sugar_g || 0}g</span>
+                                <span>•</span>
+                                <span>โซเดียม: ${item.sodium_mg || 0}mg</span>
+                            </div>
+                        </div>
+                        <i class="ph-bold ph-plus-circle text-lg text-slate-600 group-hover:text-emerald-400 transition"></i>
+                    </div>
+                `).join('');
+            } catch (err) {
+                listEl.innerHTML = `<div class="py-8 text-center text-rose-400 text-xs">โหลดฐานข้อมูลไม่สำเร็จ: ${err.message}</div>`;
+            }
+        }
+
+        function selectOfficialProduct(product) {
+            closeOfficialSearchModal();
+
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editCal').value = product.calories;
+            document.getElementById('editP').value = product.protein_g;
+            document.getElementById('editC').value = product.carbs_g;
+            document.getElementById('editF').value = product.fat_g;
+            document.getElementById('editSugar').value = product.sugar_g || 0;
+            document.getElementById('editSodium').value = product.sodium_mg || 0;
+
+            currentScanMeta = {
+                is_official: true,
+                source: product.source || 'ฐานข้อมูลทางการ 7-Eleven'
+            };
+
+            const officialBadge = document.getElementById('officialBadge');
+            const sourceText = document.getElementById('sourceText');
+            sourceText.innerText = currentScanMeta.source;
+            officialBadge.classList.remove('hidden');
+
+            document.getElementById('reviewModal').classList.remove('hidden');
         }
 
         window.onload = initApp;
