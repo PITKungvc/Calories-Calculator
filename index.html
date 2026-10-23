@@ -59,10 +59,6 @@
         <!-- Top App Header -->
         <header class="flex justify-between items-center py-2">
             <div>
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
-                    <span id="modelBadge" class="text-[11px] font-bold uppercase tracking-wider text-brand-400">Gemini 3.8 Flash</span>
-                </div>
                 <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
                     <span class="text-brand-500 flex items-center justify-center"><i class="ph-bold ph-camera"></i></span> CalSnap <span class="text-xs bg-brand-500/20 text-brand-400 border border-brand-500/30 px-2 py-0.5 rounded-full font-bold ml-1">AI</span>
                 </h1>
@@ -233,11 +229,41 @@
         <!-- TAB 4: INSIGHTS VIEW (วิเคราะห์เชิงลึก)    -->
         <!-- ========================================== -->
         <div id="viewInsights" class="tab-view hidden space-y-4">
-            <!-- 7-Day Calorie Average -->
+            <!-- Period Range Selector (เลือกระบุช่วงเวลาที่ต้องการดู) -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2 text-xs font-bold text-white">
+                        <i class="ph-bold ph-calendar-blank text-brand-400 text-base"></i>
+                        <span>ช่วงเวลาที่ต้องการวิเคราะห์</span>
+                    </div>
+                    <select id="insightPeriodSelect" onchange="onInsightPeriodChange()" class="bg-zinc-950 border border-zinc-800 text-xs text-brand-400 font-bold rounded-xl px-3 py-1.5 outline-none focus:border-brand-500">
+                        <option value="7">7 วันล่าสุด</option>
+                        <option value="14">14 วันล่าสุด</option>
+                        <option value="30">30 วันล่าสุด</option>
+                        <option value="this_month">เดือนนี้</option>
+                        <option value="all">ทั้งหมดที่บันทึก</option>
+                        <option value="custom">กำหนดช่วงวันที่เอง...</option>
+                    </select>
+                </div>
+
+                <!-- Custom Date Range Picker (แสดงเมื่อเลือกกำหนดช่วงวันเอง) -->
+                <div id="insightCustomRangeContainer" class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800/80">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">ตั้งแต่วันที่</label>
+                        <input type="date" id="insightStartDate" onchange="renderInsightsView()" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 text-xs text-white outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">ถึงวันที่</label>
+                        <input type="date" id="insightEndDate" onchange="renderInsightsView()" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 text-xs text-white outline-none focus:border-brand-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calorie Average Card -->
             <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3 glow-card">
                 <div class="flex justify-between items-center">
                     <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">ค่าเฉลี่ยแคลอรี่ 7 วันล่าสุด</span>
+                        <span id="insightAverageLabel" class="text-xs font-semibold uppercase tracking-wider text-slate-400">ค่าเฉลี่ยแคลอรี่ (7 วันล่าสุด)</span>
                         <div class="text-3xl font-black text-white mt-0.5" id="avg7Cal">0 <span class="text-sm font-normal text-slate-500">kcal/วัน</span></div>
                     </div>
                     <div class="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 text-2xl">
@@ -446,8 +472,24 @@
                     <input id="calorieGoalInput" type="number" value="2000" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 font-medium">AI Model Name</label>
-                    <input id="modelNameInput" type="text" value="gemini-3.8-flash" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs text-slate-400 font-medium">AI Model Name</label>
+                        <span class="text-[10px] text-brand-400 font-semibold">เลือกโมเดลที่ต้องการ</span>
+                    </div>
+                    <select id="modelPresetSelect" onchange="onModelPresetChange()" class="w-full p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white font-medium">
+                        <option value="gemini-2.5-flash">⚡ Gemini 2.5 Flash (แนะนำ - เร็ว แม่นยำ)</option>
+                        <option value="gemini-2.5-pro">🧠 Gemini 2.5 Pro (ฉลาด ละเอียด โภชนาการเป๊ะ)</option>
+                        <option value="gemini-2.0-flash">🚀 Gemini 2.0 Flash (Next-Gen)</option>
+                        <option value="gemini-1.5-flash">⚡ Gemini 1.5 Flash (เสถียร ประหยัดโควต้า)</option>
+                        <option value="gemini-1.5-pro">🔍 Gemini 1.5 Pro (วิเคราะห์ระดับลึก)</option>
+                        <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash</option>
+                        <option value="custom">⚙️ กำหนดชื่อโมเดลเอง (Custom Model)...</option>
+                    </select>
+
+                    <div id="customModelBox" class="hidden mt-2">
+                        <label class="text-[10px] text-slate-400 block mb-1">ระบุรหัสโมเดล</label>
+                        <input id="modelNameInput" type="text" placeholder="เช่น gemini-2.5-flash" class="w-full p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
+                    </div>
                 </div>
                 <button onclick="saveAppSettings()" class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-xs text-zinc-950 active:scale-95 transition">
                     บันทึกการตั้งค่า
@@ -844,10 +886,11 @@
             const savedConfig = localStorage.getItem(STORAGE_CONFIG) || localStorage.getItem('kalguroo_v3_config');
             if (savedConfig) config = JSON.parse(savedConfig);
 
-            document.getElementById('modelNameInput').value = config.model || 'gemini-3.8-flash';
+            initModelSelector();
             document.getElementById('calorieGoalInput').value = config.goal || 2000;
             document.getElementById('goalDisplay').innerText = config.goal || 2000;
-            document.getElementById('modelBadge').innerText = config.model || 'gemini-3.8-flash';
+            const badge = document.getElementById('modelBadge');
+            if (badge) badge.innerText = config.model || 'gemini-2.5-flash';
 
             const savedMeals = localStorage.getItem(STORAGE_MEALS) || localStorage.getItem('kalguroo_v3_meals');
             if (savedMeals) meals = JSON.parse(savedMeals);
@@ -1084,46 +1127,102 @@
         }
 
         // ==========================================
-        // TAB 4: INSIGHTS LOGIC
+        // TAB 4: INSIGHTS LOGIC (วิเคราะห์ตามช่วงเวลาที่กำหนด)
         // ==========================================
+        function onInsightPeriodChange() {
+            const select = document.getElementById('insightPeriodSelect');
+            const period = select ? select.value : '7';
+            const customBox = document.getElementById('insightCustomRangeContainer');
+            if (customBox) {
+                if (period === 'custom') {
+                    customBox.classList.remove('hidden');
+                    const startInput = document.getElementById('insightStartDate');
+                    const endInput = document.getElementById('insightEndDate');
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    if (endInput && !endInput.value) endInput.value = todayStr;
+                    if (startInput && !startInput.value) {
+                        const d = new Date();
+                        d.setDate(d.getDate() - 7);
+                        startInput.value = d.toISOString().split('T')[0];
+                    }
+                } else {
+                    customBox.classList.add('hidden');
+                }
+            }
+            renderInsightsView();
+        }
+
         function renderInsightsView() {
-            // 7 Days Rolling Average
-            const datesLast7 = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                datesLast7.push(d.toISOString().split('T')[0]);
+            const periodSelect = document.getElementById('insightPeriodSelect');
+            const period = periodSelect ? periodSelect.value : '7';
+
+            let filteredMeals = [];
+            let periodLabel = '7 วันล่าสุด';
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            if (period === '7') {
+                periodLabel = '7 วันล่าสุด';
+                const pastDate = new Date();
+                pastDate.setDate(pastDate.getDate() - 6);
+                const pastDateStr = pastDate.toISOString().split('T')[0];
+                filteredMeals = meals.filter(m => m.date >= pastDateStr && m.date <= todayStr);
+            } else if (period === '14') {
+                periodLabel = '14 วันล่าสุด';
+                const pastDate = new Date();
+                pastDate.setDate(pastDate.getDate() - 13);
+                const pastDateStr = pastDate.toISOString().split('T')[0];
+                filteredMeals = meals.filter(m => m.date >= pastDateStr && m.date <= todayStr);
+            } else if (period === '30') {
+                periodLabel = '30 วันล่าสุด';
+                const pastDate = new Date();
+                pastDate.setDate(pastDate.getDate() - 29);
+                const pastDateStr = pastDate.toISOString().split('T')[0];
+                filteredMeals = meals.filter(m => m.date >= pastDateStr && m.date <= todayStr);
+            } else if (period === 'this_month') {
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const startOfMonth = `${year}-${month}-01`;
+                periodLabel = `เดือนนี้ (${month}/${year})`;
+                filteredMeals = meals.filter(m => m.date >= startOfMonth && m.date <= todayStr);
+            } else if (period === 'all') {
+                periodLabel = 'ทั้งหมดที่บันทึก';
+                filteredMeals = [...meals];
+            } else if (period === 'custom') {
+                const startStr = document.getElementById('insightStartDate')?.value || todayStr;
+                const endStr = document.getElementById('insightEndDate')?.value || todayStr;
+                periodLabel = `${startStr} ถึง ${endStr}`;
+                filteredMeals = meals.filter(m => m.date >= startStr && m.date <= endStr);
             }
 
-            let last7TotalCal = 0;
-            let daysWithLogs = 0;
+            const labelEl = document.getElementById('insightAverageLabel');
+            if (labelEl) labelEl.innerText = `ค่าเฉลี่ยแคลอรี่ (${periodLabel})`;
+
+            let totalCal = 0;
             let totalProtein = 0, totalCarbs = 0, totalFat = 0;
             let officialCount = 0;
+            const daysLoggedSet = new Set();
 
-            datesLast7.forEach(dateStr => {
-                const dayMeals = meals.filter(m => m.date === dateStr);
-                if (dayMeals.length > 0) {
-                    daysWithLogs++;
-                    dayMeals.forEach(m => {
-                        last7TotalCal += Number(m.calories) || 0;
-                        totalProtein += Number(m.protein_g) || 0;
-                        totalCarbs += Number(m.carbs_g) || 0;
-                        totalFat += Number(m.fat_g) || 0;
-                        if (m.is_official) officialCount++;
-                    });
-                }
+            filteredMeals.forEach(m => {
+                totalCal += Number(m.calories) || 0;
+                totalProtein += Number(m.protein_g) || 0;
+                totalCarbs += Number(m.carbs_g) || 0;
+                totalFat += Number(m.fat_g) || 0;
+                if (m.is_official) officialCount++;
+                if (m.date) daysLoggedSet.add(m.date);
             });
 
-            const avg7 = daysWithLogs > 0 ? Math.round(last7TotalCal / daysWithLogs) : 0;
-            document.getElementById('avg7Cal').innerHTML = `${avg7.toLocaleString()} <span class="text-sm font-normal text-slate-500">kcal/วัน</span>`;
+            const daysWithLogs = daysLoggedSet.size;
+            const avgCal = daysWithLogs > 0 ? Math.round(totalCal / daysWithLogs) : 0;
+            document.getElementById('avg7Cal').innerHTML = `${avgCal.toLocaleString()} <span class="text-sm font-normal text-slate-500">kcal/วัน</span>`;
 
             const verdictEl = document.getElementById('insightCalVerdict');
-            if (avg7 === 0) {
-                verdictEl.innerText = "ยังไม่มีบันทึกอาหารในรอบ 7 วันที่ผ่านมา";
-            } else if (avg7 <= config.goal) {
-                verdictEl.innerText = `✅ คุณควบคุมพลังงานได้ดี อยู่ในเกณฑ์เป้าหมาย (${config.goal} kcal)`;
+            if (filteredMeals.length === 0) {
+                verdictEl.innerText = `ยังไม่มีบันทึกอาหารในช่วง ${periodLabel}`;
+            } else if (avgCal <= config.goal) {
+                verdictEl.innerText = `✅ คุณควบคุมพลังงานได้ดี อยู่ในเกณฑ์เป้าหมาย (${config.goal} kcal/วัน)`;
             } else {
-                verdictEl.innerText = `⚠️ แคลอรี่เฉลี่ยเกินเป้าหมายประมาณ ${avg7 - config.goal} kcal/วัน`;
+                verdictEl.innerText = `⚠️ แคลอรี่เฉลี่ยเกินเป้าหมายประมาณ ${avgCal - config.goal} kcal/วัน`;
             }
 
             // Ratio of P, C, F
@@ -1140,17 +1239,24 @@
                 document.getElementById('ratioPText').innerText = `${pPct}%`;
                 document.getElementById('ratioCText').innerText = `${cPct}%`;
                 document.getElementById('ratioFText').innerText = `${fPct}%`;
+            } else {
+                document.getElementById('ratioP').style.width = '33%';
+                document.getElementById('ratioC').style.width = '33%';
+                document.getElementById('ratioF').style.width = '34%';
+                document.getElementById('ratioPText').innerText = '0%';
+                document.getElementById('ratioCText').innerText = '0%';
+                document.getElementById('ratioFText').innerText = '0%';
             }
 
-            document.getElementById('totalLogsRecorded').innerText = `${meals.length} มื้อ`;
+            document.getElementById('totalLogsRecorded').innerText = `${filteredMeals.length} มื้อ`;
             document.getElementById('officialCountText').innerText = `${officialCount} รายการ`;
 
             // Health Advice Generator
             const adviceEl = document.getElementById('aiAdviceSummary');
-            if (meals.length === 0) {
-                adviceEl.innerText = "เริ่มถ่ายรูปบันทึกมื้ออาหารมื้อแรก เพื่อให้ระบบสร้างบทวิเคราะห์เชิงลึกให้คุณ";
+            if (filteredMeals.length === 0) {
+                adviceEl.innerText = `ยังไม่มีข้อมูลอาหารในช่วง ${periodLabel} ลองเลือกช่วงเวลาอื่น หรือบันทึกมื้ออาหารเพิ่ม`;
             } else {
-                adviceEl.innerText = `จากการวิเคราะห์มื้ออาหารที่บันทึกไว้ คุณมีค่าเฉลี่ยพลังงาน ${avg7} kcal/วัน สัดส่วนโปรตีน ${totalProtein > 0 ? 'อยู่ในเกณฑ์ดี' : 'ควรเสริมเพิ่ม'} แนะนำดื่มน้ำเปล่าอย่างน้อย 2-2.5 ลิตรต่อวันเพื่อช่วยระบบเผาผลาญ`;
+                adviceEl.innerText = `วิเคราะห์ช่วง ${periodLabel} (บันทึก ${daysWithLogs} วัน / รวม ${filteredMeals.length} มื้อ): พลังงานเฉลี่ย ${avgCal} kcal/วัน สัดส่วนโปรตีน ${totalProtein > 0 ? 'อยู่ในเกณฑ์เหมาะสม' : 'ควรเสริมเพิ่ม'} แนะนำรักษาความต่อเนื่องของการบันทึกเพื่อผลลัพธ์ที่แม่นยำ`;
             }
         }
 
@@ -1276,12 +1382,57 @@
             alert(`ตั้งเป้าหมายประจำวันตาม TDEE เป็น ${tdee} kcal เรียบร้อยแล้ว!`);
         }
 
+        function initModelSelector() {
+            const currentModel = config.model || 'gemini-2.5-flash';
+            const modelSelect = document.getElementById('modelPresetSelect');
+            const customBox = document.getElementById('customModelBox');
+            const modelInput = document.getElementById('modelNameInput');
+            if (!modelSelect) return;
+
+            const knownOptions = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-3.8-flash'];
+            if (knownOptions.includes(currentModel)) {
+                modelSelect.value = currentModel;
+                if (customBox) customBox.classList.add('hidden');
+                if (modelInput) modelInput.value = currentModel;
+            } else {
+                modelSelect.value = 'custom';
+                if (customBox) customBox.classList.remove('hidden');
+                if (modelInput) modelInput.value = currentModel;
+            }
+        }
+
+        function onModelPresetChange() {
+            const modelSelect = document.getElementById('modelPresetSelect');
+            const customBox = document.getElementById('customModelBox');
+            const modelInput = document.getElementById('modelNameInput');
+            if (!modelSelect) return;
+
+            if (modelSelect.value === 'custom') {
+                if (customBox) customBox.classList.remove('hidden');
+                if (modelInput) modelInput.focus();
+            } else {
+                if (customBox) customBox.classList.add('hidden');
+                if (modelInput) modelInput.value = modelSelect.value;
+            }
+        }
+
         function saveAppSettings() {
-            config.model = document.getElementById('modelNameInput').value.trim() || 'gemini-3.8-flash';
+            const modelSelect = document.getElementById('modelPresetSelect');
+            let chosenModel = 'gemini-2.5-flash';
+            if (modelSelect && modelSelect.value === 'custom') {
+                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-2.5-flash';
+            } else if (modelSelect) {
+                chosenModel = modelSelect.value;
+            } else {
+                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-2.5-flash';
+            }
+
+            config.model = chosenModel;
             config.goal = parseInt(document.getElementById('calorieGoalInput').value) || 2000;
             localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
             document.getElementById('goalDisplay').innerText = config.goal;
-            document.getElementById('modelBadge').innerText = config.model;
+            const badge = document.getElementById('modelBadge');
+            if (badge) badge.innerText = config.model;
             alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         }
 

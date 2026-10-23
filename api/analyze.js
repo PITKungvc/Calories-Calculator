@@ -88,7 +88,7 @@ export default async function handler(req, res) {
   "source": "ฉลากทางการ 7-Eleven / AJE Thai"
 }`;
 
-    const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
+    const candidateModels = [model, 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-3.5-flash', 'gemini-3.8-flash'].filter(Boolean);
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
