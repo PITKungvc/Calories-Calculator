@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 7-Eleven & Convenience Store Data Ingestion / Scraping Script
+ * CalSnap - 7-Eleven & Convenience Store Data Ingestion / Scraping Script
  * ใช้สำหรับดึงข้อมูลสินค้าทางการ ฉลากโภชนาการ และบาร์โค้ดจาก Open Food Facts (TH) และ Online Retail Catalogs
  *
  * การใช้งาน:
@@ -24,7 +24,7 @@ async function searchOpenFoodFacts(keyword) {
   try {
     const res = await fetch(endpoint, {
       headers: {
-        'User-Agent': 'KalgurooNutritionApp - Thailand - Version 1.0 (contact@kalguroo.app)'
+        'User-Agent': 'CalSnapNutritionApp - Thailand - Version 1.0 (contact@calsnap.app)'
       }
     });
 
@@ -84,7 +84,7 @@ async function main() {
   }
 
   console.log(`=======================================================`);
-  console.log(`   Kalguroo Automated Retail & Convenience Store Ingestion`);
+  console.log(`   CalSnap Automated Retail & Convenience Store Ingestion`);
   console.log(`=======================================================`);
 
   let allResults = [];

@@ -1,5 +1,5 @@
-// Kalguroo Service Worker - Enables PWA Standalone Fullscreen Mode
-const CACHE_NAME = 'kalguroo-v1';
+// CalSnap Service Worker - Enables PWA Standalone Fullscreen Mode
+const CACHE_NAME = 'calsnap-v1';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -10,6 +10,5 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Pass through fetch for dynamic API & static assets
   event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
 });
