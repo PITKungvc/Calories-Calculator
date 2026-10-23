@@ -111,7 +111,7 @@
                 </div>
 
                 <!-- Macro Progress Bars -->
-                <div class="grid grid-cols-3 gap-3 pt-5 mt-5 border-t border-zinc-800/80 text-xs">
+                <div class="grid grid-cols-3 gap-3 pt-4 mt-4 border-t border-zinc-800/80 text-xs">
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px]">
                             <span class="text-slate-400">โปรตีน</span>
@@ -120,6 +120,7 @@
                         <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                             <div id="pBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
+                        <div class="text-[9px] text-slate-500 text-right">เป้า 140g</div>
                     </div>
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px]">
@@ -129,6 +130,7 @@
                         <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                             <div id="cBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
+                        <div class="text-[9px] text-slate-500 text-right">เป้า 250g</div>
                     </div>
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px]">
@@ -137,6 +139,41 @@
                         </div>
                         <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                             <div id="fBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="text-[9px] text-slate-500 text-right">เป้า 70g</div>
+                    </div>
+                </div>
+
+                <!-- Sugar & Sodium Limits (เป้าหมายควบคุมสุขภาพ) -->
+                <div class="grid grid-cols-2 gap-2.5 pt-3 mt-3 border-t border-zinc-800/60 text-xs">
+                    <div class="space-y-1 bg-zinc-950/50 p-2.5 rounded-2xl border border-zinc-800/60">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-300 flex items-center gap-1 font-semibold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> น้ำตาล
+                            </span>
+                            <span id="totalSugarDisplay" class="font-bold text-purple-400">0g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="sugarBar" class="bg-purple-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] text-slate-400 pt-0.5">
+                            <span>เกณฑ์ WHO</span>
+                            <span id="sugarLimitText" class="font-medium">ไม่เกิน 24g</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1 bg-zinc-950/50 p-2.5 rounded-2xl border border-zinc-800/60">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-300 flex items-center gap-1 font-semibold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> โซเดียม
+                            </span>
+                            <span id="totalSodiumDisplay" class="font-bold text-sky-400">0mg</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="sodiumBar" class="bg-sky-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] text-slate-400 pt-0.5">
+                            <span>เกณฑ์ WHO</span>
+                            <span id="sodiumLimitText" class="font-medium">ไม่เกิน 2,000mg</span>
                         </div>
                     </div>
                 </div>
@@ -275,9 +312,12 @@
                 </div>
             </div>
 
-            <!-- Macro Distribution Ratio -->
-            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">สัดส่วนสารอาหารที่ได้รับ (Macro Ratio)</span>
+            <!-- Macro Distribution & Nutrition Ratio -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">สัดส่วนสารอาหารหลัก (Macro Ratio)</span>
+                    <span class="text-[10px] text-slate-500 font-medium">Protein / Carbs / Fat</span>
+                </div>
                 
                 <div class="h-3 w-full rounded-full bg-zinc-800 overflow-hidden flex">
                     <div id="ratioP" class="bg-brand-500 h-full transition-all duration-500" style="width: 33%"></div>
@@ -285,7 +325,7 @@
                     <div id="ratioF" class="bg-rose-400 h-full transition-all duration-500" style="width: 34%"></div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 text-xs pt-1">
+                <div class="grid grid-cols-3 gap-2 text-xs pt-1 border-b border-zinc-800/60 pb-3">
                     <div class="flex items-center gap-1.5 text-slate-300">
                         <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
                         <span>โปรตีน: <b id="ratioPText" class="text-white">0%</b></span>
@@ -297,6 +337,56 @@
                     <div class="flex items-center gap-1.5 text-slate-300">
                         <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
                         <span>ไขมัน: <b id="ratioFText" class="text-white">0%</b></span>
+                    </div>
+                </div>
+
+                <!-- Sugar & Sodium Intake Ratio in Insights -->
+                <div class="space-y-2.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                            <i class="ph-bold ph-shield-check text-brand-400"></i> สัดส่วนน้ำตาล & โซเดียมเฉลี่ย
+                        </span>
+                        <span class="text-[10px] text-slate-400">เทียบเกณฑ์มาตรฐาน WHO</span>
+                    </div>
+
+                    <!-- Sugar Ratio Row -->
+                    <div class="bg-zinc-950/50 p-3 rounded-2xl border border-zinc-800/60 space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 flex items-center gap-1.5 font-medium">
+                                <span class="w-2 h-2 rounded-full bg-purple-400"></span> น้ำตาลเฉลี่ย
+                            </span>
+                            <span class="font-bold text-white">
+                                <span id="avgSugarText" class="text-purple-400">0</span> <span class="text-[10px] text-slate-400 font-normal">g/วัน</span>
+                                <span id="sugarPctOfLimit" class="text-[10px] text-slate-400 font-normal ml-1">(0% ของ 24g)</span>
+                            </span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                            <div id="insightSugarBar" class="bg-purple-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span id="sugarStatusText">กำลังคำนวณ...</span>
+                            <span>สัดส่วนในคาร์บ: <b id="sugarInCarbsText" class="text-slate-200">0%</b></span>
+                        </div>
+                    </div>
+
+                    <!-- Sodium Ratio Row -->
+                    <div class="bg-zinc-950/50 p-3 rounded-2xl border border-zinc-800/60 space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 flex items-center gap-1.5 font-medium">
+                                <span class="w-2 h-2 rounded-full bg-sky-400"></span> โซเดียมเฉลี่ย
+                            </span>
+                            <span class="font-bold text-white">
+                                <span id="avgSodiumText" class="text-sky-400">0</span> <span class="text-[10px] text-slate-400 font-normal">mg/วัน</span>
+                                <span id="sodiumPctOfLimit" class="text-[10px] text-slate-400 font-normal ml-1">(0% ของ 2,000mg)</span>
+                            </span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                            <div id="insightSodiumBar" class="bg-sky-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span id="sodiumStatusText">กำลังคำนวณ...</span>
+                            <span>เพดานความปลอดภัย: <b class="text-slate-200">2,000 mg</b></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1041,6 +1131,33 @@
             document.getElementById('cBar').style.width = `${Math.min((totalC / 250) * 100, 100)}%`;
             document.getElementById('fBar').style.width = `${Math.min((totalF / 70) * 100, 100)}%`;
 
+            // Sugar & Sodium Limits Bar on Dashboard
+            const sugarPct = Math.min((totalSugar / 24) * 100, 100);
+            const sugarBar = document.getElementById('sugarBar');
+            if (sugarBar) {
+                sugarBar.style.width = `${sugarPct}%`;
+                if (totalSugar > 24) {
+                    sugarBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
+                    document.getElementById('sugarLimitText').innerHTML = `<span class="text-rose-400 font-bold">เกิน ${Math.round((totalSugar - 24) * 10) / 10}g ⚠️</span>`;
+                } else {
+                    sugarBar.className = "bg-purple-400 h-full rounded-full transition-all duration-500";
+                    document.getElementById('sugarLimitText').innerText = "ไม่เกิน 24g";
+                }
+            }
+
+            const sodiumPct = Math.min((totalSodium / 2000) * 100, 100);
+            const sodiumBar = document.getElementById('sodiumBar');
+            if (sodiumBar) {
+                sodiumBar.style.width = `${sodiumPct}%`;
+                if (totalSodium > 2000) {
+                    sodiumBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
+                    document.getElementById('sodiumLimitText').innerHTML = `<span class="text-rose-400 font-bold">เกิน ${Math.round(totalSodium - 2000).toLocaleString()}mg ⚠️</span>`;
+                } else {
+                    sodiumBar.className = "bg-sky-400 h-full rounded-full transition-all duration-500";
+                    document.getElementById('sodiumLimitText').innerText = "ไม่เกิน 2,000mg";
+                }
+            }
+
             const percent = Math.min(Math.round((totalCal / config.goal) * 100), 100);
             document.getElementById('percentDisplay').innerText = `${percent}%`;
             const circumference = 251.2;
@@ -1199,7 +1316,7 @@
             if (labelEl) labelEl.innerText = `ค่าเฉลี่ยแคลอรี่ (${periodLabel})`;
 
             let totalCal = 0;
-            let totalProtein = 0, totalCarbs = 0, totalFat = 0;
+            let totalProtein = 0, totalCarbs = 0, totalFat = 0, totalSugar = 0, totalSodium = 0;
             let officialCount = 0;
             const daysLoggedSet = new Set();
 
@@ -1208,12 +1325,16 @@
                 totalProtein += Number(m.protein_g) || 0;
                 totalCarbs += Number(m.carbs_g) || 0;
                 totalFat += Number(m.fat_g) || 0;
+                totalSugar += Number(m.sugar_g) || 0;
+                totalSodium += Number(m.sodium_mg) || 0;
                 if (m.is_official) officialCount++;
                 if (m.date) daysLoggedSet.add(m.date);
             });
 
             const daysWithLogs = daysLoggedSet.size;
             const avgCal = daysWithLogs > 0 ? Math.round(totalCal / daysWithLogs) : 0;
+            const avgSugar = daysWithLogs > 0 ? Math.round((totalSugar / daysWithLogs) * 10) / 10 : 0;
+            const avgSodium = daysWithLogs > 0 ? Math.round(totalSodium / daysWithLogs) : 0;
             document.getElementById('avg7Cal').innerHTML = `${avgCal.toLocaleString()} <span class="text-sm font-normal text-slate-500">kcal/วัน</span>`;
 
             const verdictEl = document.getElementById('insightCalVerdict');
@@ -1248,6 +1369,43 @@
                 document.getElementById('ratioFText').innerText = '0%';
             }
 
+            // Sugar & Sodium Ratio in Insights
+            const sugarLimit = 24;
+            const sodiumLimit = 2000;
+            const sugarRatio = Math.round((avgSugar / sugarLimit) * 100);
+            const sodiumRatio = Math.round((avgSodium / sodiumLimit) * 100);
+            const sugarInCarbs = totalCarbs > 0 ? Math.round((totalSugar / totalCarbs) * 100) : 0;
+
+            const avgSugarEl = document.getElementById('avgSugarText');
+            if (avgSugarEl) avgSugarEl.innerText = avgSugar;
+            const sugarLimitEl = document.getElementById('sugarPctOfLimit');
+            if (sugarLimitEl) sugarLimitEl.innerText = `(${sugarRatio}% ของ 24g)`;
+            const sugarBarEl = document.getElementById('insightSugarBar');
+            if (sugarBarEl) {
+                sugarBarEl.style.width = `${Math.min(sugarRatio, 100)}%`;
+                sugarBarEl.className = avgSugar > sugarLimit ? "bg-rose-500 h-full rounded-full transition-all duration-500" : "bg-purple-400 h-full rounded-full transition-all duration-500";
+            }
+            const sugarStatusEl = document.getElementById('sugarStatusText');
+            if (sugarStatusEl) {
+                sugarStatusEl.innerHTML = avgSugar > sugarLimit ? '<span class="text-rose-400 font-bold">⚠️ เกินเกณฑ์มาตรฐาน</span>' : '<span class="text-emerald-400 font-semibold">✅ อยู่ในเกณฑ์ปลอดภัย</span>';
+            }
+            const sugarInCarbsEl = document.getElementById('sugarInCarbsText');
+            if (sugarInCarbsEl) sugarInCarbsEl.innerText = `${sugarInCarbs}%`;
+
+            const avgSodiumEl = document.getElementById('avgSodiumText');
+            if (avgSodiumEl) avgSodiumEl.innerText = avgSodium.toLocaleString();
+            const sodiumLimitEl = document.getElementById('sodiumPctOfLimit');
+            if (sodiumLimitEl) sodiumLimitEl.innerText = `(${sodiumRatio}% ของ 2,000mg)`;
+            const sodiumBarEl = document.getElementById('insightSodiumBar');
+            if (sodiumBarEl) {
+                sodiumBarEl.style.width = `${Math.min(sodiumRatio, 100)}%`;
+                sodiumBarEl.className = avgSodium > sodiumLimit ? "bg-rose-500 h-full rounded-full transition-all duration-500" : "bg-sky-400 h-full rounded-full transition-all duration-500";
+            }
+            const sodiumStatusEl = document.getElementById('sodiumStatusText');
+            if (sodiumStatusEl) {
+                sodiumStatusEl.innerHTML = avgSodium > sodiumLimit ? '<span class="text-rose-400 font-bold">⚠️ เกินเกณฑ์มาตรฐาน</span>' : '<span class="text-emerald-400 font-semibold">✅ อยู่ในเกณฑ์ปลอดภัย</span>';
+            }
+
             document.getElementById('totalLogsRecorded').innerText = `${filteredMeals.length} มื้อ`;
             document.getElementById('officialCountText').innerText = `${officialCount} รายการ`;
 
@@ -1256,7 +1414,12 @@
             if (filteredMeals.length === 0) {
                 adviceEl.innerText = `ยังไม่มีข้อมูลอาหารในช่วง ${periodLabel} ลองเลือกช่วงเวลาอื่น หรือบันทึกมื้ออาหารเพิ่ม`;
             } else {
-                adviceEl.innerText = `วิเคราะห์ช่วง ${periodLabel} (บันทึก ${daysWithLogs} วัน / รวม ${filteredMeals.length} มื้อ): พลังงานเฉลี่ย ${avgCal} kcal/วัน สัดส่วนโปรตีน ${totalProtein > 0 ? 'อยู่ในเกณฑ์เหมาะสม' : 'ควรเสริมเพิ่ม'} แนะนำรักษาความต่อเนื่องของการบันทึกเพื่อผลลัพธ์ที่แม่นยำ`;
+                let healthNotes = [];
+                if (avgSugar > 24) healthNotes.push(`น้ำตาลเฉลี่ยค่อนข้างสูง (${avgSugar}g/วัน แนะนำลดของหวาน)`);
+                if (avgSodium > 2000) healthNotes.push(`โซเดียมเฉลี่ยเกินเกณฑ์ (${avgSodium.toLocaleString()}mg/วัน ควรลดน้ำซุป/ของหมักดอง)`);
+                const alertText = healthNotes.length > 0 ? ` • ⚠️ ข้อควรระวัง: ${healthNotes.join(' และ ')}` : ' • 🌟 สัดส่วนน้ำตาลและโซเดียมอยู่ในเกณฑ์ปลอดภัยดีมาก!';
+                
+                adviceEl.innerText = `วิเคราะห์ช่วง ${periodLabel} (${daysWithLogs} วัน / ${filteredMeals.length} มื้อ): พลังงานเฉลี่ย ${avgCal} kcal/วัน สัดส่วนโปรตีน ${totalProtein > 0 ? 'อยู่ในเกณฑ์เหมาะสม' : 'ควรเสริมเพิ่ม'}${alertText}`;
             }
         }
 
