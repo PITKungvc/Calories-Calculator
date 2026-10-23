@@ -21,10 +21,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS & Phosphor Icons & SheetJS -->
+    <!-- Tailwind CSS & Phosphor Icons & SheetJS & Html5Qrcode -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script>
         tailwind.config = {
@@ -117,13 +118,43 @@
                 </div>
             </div>
 
+            <!-- Calorie Bank / Cheat Day Mini Card -->
+            <div onclick="openBankModal()" class="cursor-pointer group flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800/80 hover:border-amber-500/40 transition active:scale-[0.99] shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="relative w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xl group-hover:scale-110 transition shadow-inner text-amber-400">
+                        <i class="ph-bold ph-piggy-bank"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-bold text-slate-300">กระปุกออมแคล (Cheat Day Bank)</span>
+                            <span id="bankCheatDayBadge" class="px-2 py-0.5 rounded-full text-[9px] bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30">เสาร์นี้ 🍕</span>
+                        </div>
+                        <div class="text-xs text-white font-extrabold mt-0.5 flex items-center gap-1.5">
+                            <span>ยอดสะสม: <span id="bankBalanceDisplay" class="text-amber-400 font-black">0</span> kcal</span>
+                            <span class="text-[10px] text-slate-400 font-normal">(กดเพื่อใช้วันนี้)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="event.stopPropagation(); openBankModal();" class="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold group-hover:bg-amber-500 group-hover:text-zinc-950 transition">
+                        จัดการ
+                    </button>
+                    <i class="ph-bold ph-caret-right text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition text-sm"></i>
+                </div>
+            </div>
+
             <!-- Calorie Ring Hero Card -->
             <div class="relative overflow-hidden bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 border border-zinc-800/80 rounded-[32px] p-6 glow-card">
                 <div class="absolute -top-16 -right-16 w-44 h-44 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="flex items-center justify-between">
                     <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">แคลอรี่วันนี้</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">แคลอรี่วันนี้</span>
+                            <button type="button" onclick="openDailyShareCard()" class="px-2 py-0.5 rounded-full bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 text-brand-400 text-[10px] font-bold inline-flex items-center gap-1 active:scale-95 transition" title="สร้างการ์ดสตอรี่แชร์ลง IG / TikTok">
+                                <i class="ph-bold ph-share-network"></i> แชร์สตอรี่
+                            </button>
+                        </div>
                         <div class="flex items-baseline gap-1.5 mt-1">
                             <span id="totalCalDisplay" class="text-4xl font-black text-white tracking-tight">0</span>
                             <span class="text-sm font-semibold text-slate-500">/ <span id="goalDisplay">2000</span> kcal</span>
@@ -834,16 +865,19 @@
                 </button>
             </div>
 
-            <!-- Mode Switcher: 1. Normal (ทั่วไป) | 2. Advance (สินค้า+ฉลาก) | 3. Text (พิมพ์ข้อความ) -->
-            <div class="grid grid-cols-3 gap-1 p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
+            <!-- Mode Switcher: 1. Normal (ทั่วไป) | 2. Advance (สินค้า+ฉลาก) | 3. Text (พิมพ์ข้อความ) | 4. Barcode (สแกนบาร์โค้ด) -->
+            <div class="grid grid-cols-4 gap-1 p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
                 <button type="button" onclick="switchBuilderMode('normal')" id="modeBtn-normal" class="py-2 text-[11px] font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1 shadow-md">
-                    <i class="ph-bold ph-camera"></i> <span>ปกติ (ทั่วไป)</span>
+                    <i class="ph-bold ph-camera"></i> <span>ปกติ</span>
                 </button>
                 <button type="button" onclick="switchBuilderMode('advance')" id="modeBtn-advance" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
-                    <i class="ph-bold ph-seal-check"></i> <span>Advance (ฉลาก)</span>
+                    <i class="ph-bold ph-seal-check"></i> <span>Advance</span>
                 </button>
                 <button type="button" onclick="switchBuilderMode('text')" id="modeBtn-text" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
-                    <i class="ph-bold ph-pencil-simple-line"></i> <span>พิมพ์บอก AI</span>
+                    <i class="ph-bold ph-pencil-simple-line"></i> <span>พิมพ์</span>
+                </button>
+                <button type="button" onclick="switchBuilderMode('barcode')" id="modeBtn-barcode" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
+                    <i class="ph-bold ph-barcode"></i> <span>บาร์โค้ด</span>
                 </button>
             </div>
 
@@ -990,6 +1024,52 @@
                         <i class="ph-bold ph-sparkle text-lg"></i>
                         <span>ให้ AI วิเคราะห์จากข้อความ</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- 4. BARCODE SCANNER SECTION (สแกนบาร์โค้ดสินค้า 7-Eleven ด้วยกล้อง หรือพิมพ์ตัวเลข) -->
+            <div id="builderBarcodeSection" class="hidden flex-1 flex flex-col space-y-3 min-h-0">
+                <div class="p-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-[11px] text-cyan-300 flex items-center gap-2">
+                    <i class="ph-bold ph-barcode text-cyan-400 text-base flex-shrink-0"></i>
+                    <span>ส่องกล้องไปที่ <b>บาร์โค้ดสินค้า (EAN-13/8)</b> เพื่อดึงข้อมูลโภชนาการจากฐานข้อมูลทันที</span>
+                </div>
+
+                <!-- Scanner Viewfinder Box -->
+                <div class="relative w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 min-h-[220px] flex items-center justify-center">
+                    <div id="barcodeReaderBox" class="w-full h-full min-h-[220px]"></div>
+                    <div id="barcodeScannerPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-zinc-950/90 space-y-3 z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl">
+                            <i class="ph-bold ph-camera"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-white">พร้อมสแกนบาร์โค้ดสินค้า</div>
+                            <p class="text-[10px] text-slate-400 mt-0.5">แตะปุ่มด้านล่างเพื่อเปิดกล้องส่องบาร์โค้ด</p>
+                        </div>
+                        <button type="button" onclick="startBarcodeScanner()" class="py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition">
+                            <i class="ph-bold ph-camera text-sm"></i> เปิดกล้องสแกน
+                        </button>
+                    </div>
+                    <div id="barcodeScanningControls" class="hidden absolute top-2 right-2 flex gap-2 z-20">
+                        <button type="button" onclick="stopBarcodeScanner()" class="px-2.5 py-1 rounded-xl bg-black/80 backdrop-blur-md text-slate-300 hover:text-white border border-zinc-700 text-xs font-semibold flex items-center gap-1">
+                            <i class="ph-bold ph-stop"></i> ปิดกล้อง
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Feedback -->
+                <div id="barcodeStatusFeedback" class="hidden p-2.5 rounded-xl text-center text-xs font-medium"></div>
+
+                <!-- Manual Barcode Input Fallback -->
+                <div class="p-3 rounded-2xl bg-zinc-950 border border-zinc-800/80 space-y-2">
+                    <label class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                        <i class="ph-bold ph-keyboard text-cyan-400"></i> หรือกรอกเลขบาร์โค้ดด้วยตัวเอง
+                    </label>
+                    <div class="flex gap-2">
+                        <input id="manualBarcodeInput" type="tel" placeholder="เช่น 8850188800101" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono tracking-wider">
+                        <button type="button" onclick="lookupManualBarcode()" class="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-cyan-500 hover:text-zinc-950 text-white font-bold text-xs transition active:scale-95">
+                            ค้นหา
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1339,6 +1419,126 @@
         </div>
     </div>
 
+    <!-- Modal: Calorie Bank / Cheat Day Mode -->
+    <div id="bankModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
+                        <i class="ph-bold ph-piggy-bank"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">กระปุกออมแคลอรี่ (Calorie Bank)</h3>
+                        <p class="text-[10px] text-slate-400">ออมแคลที่เหลือรายวัน ไว้กินมื้อพิเศษ/Cheat Day</p>
+                    </div>
+                </div>
+                <button onclick="closeBankModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Balance Hero Card -->
+            <div class="text-center p-5 rounded-2xl bg-gradient-to-b from-amber-500/10 via-zinc-950 to-zinc-950 border border-amber-500/20 relative overflow-hidden">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">ยอดแคลอรี่สะสมในกระปุก</span>
+                <div class="flex items-baseline justify-center gap-1.5 mt-1">
+                    <span id="bankModalBalance" class="text-4xl font-black text-amber-400 tracking-tight">0</span>
+                    <span class="text-sm font-semibold text-slate-400">kcal</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1" id="bankModalSubtext">ออมวันละไม่เกิน 300 kcal จากแคลอรี่ที่เหลือ</p>
+            </div>
+
+            <!-- Withdrawal Quick Actions (ถอนมาใช้วันนี้) -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="ph-bold ph-arrow-circle-down-right text-emerald-400"></i> ถอนแคลอรี่มาใช้วันนี้ (เพิ่มโควตา)
+                </label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="withdrawBankCalories(200)" class="py-2.5 px-3 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 hover:bg-amber-500/10 text-white font-bold text-xs flex flex-col items-center gap-0.5 active:scale-95 transition">
+                        <span>+200 kcal</span>
+                        <span class="text-[9px] text-slate-500 font-normal">ของหวานเล็กน้อย</span>
+                    </button>
+                    <button type="button" onclick="withdrawBankCalories(300)" class="py-2.5 px-3 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 hover:bg-amber-500/10 text-white font-bold text-xs flex flex-col items-center gap-0.5 active:scale-95 transition">
+                        <span>+300 kcal</span>
+                        <span class="text-[9px] text-slate-500 font-normal">ชานมไข่มุก</span>
+                    </button>
+                    <button type="button" onclick="withdrawBankCalories(500)" class="py-2.5 px-3 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-amber-500/50 hover:bg-amber-500/10 text-white font-bold text-xs flex flex-col items-center gap-0.5 active:scale-95 transition">
+                        <span>+500 kcal</span>
+                        <span class="text-[9px] text-amber-400 font-normal">มื้อบุฟเฟต์ 🍕</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bank Settings -->
+            <div class="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800/80 space-y-3 text-xs">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white">ออมแคลอรี่อัตโนมัติ</div>
+                        <div class="text-[10px] text-slate-400">นำแคลอรี่ที่เหลือก่อนเที่ยงคืนเข้ากระปุกอัตโนมัติ</div>
+                    </div>
+                    <input id="bankAutoSaveToggle" type="checkbox" onchange="toggleBankAutoSave(this.checked)" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                </div>
+                <div class="pt-2 border-t border-zinc-800/60 flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white">วัน Cheat Day ประจำสัปดาห์</div>
+                        <div class="text-[10px] text-slate-400">แจ้งเตือนและเตรียมโควตาพิเศษ</div>
+                    </div>
+                    <select id="bankCheatDaySelect" onchange="changeBankCheatDay(this.value)" class="bg-zinc-900 border border-zinc-800 text-white rounded-xl px-2.5 py-1 text-xs focus:outline-none focus:border-amber-500">
+                        <option value="saturday">วันเสาร์</option>
+                        <option value="sunday">วันอาทิตย์</option>
+                        <option value="friday">วันศุกร์</option>
+                        <option value="none">ไม่ระบุวัน</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-2">
+                <button type="button" onclick="resetBankBalance()" class="px-3 py-2 text-rose-400 hover:text-rose-300 text-xs font-semibold">
+                    ล้างยอดสะสม
+                </button>
+                <button onclick="closeBankModal()" class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl active:scale-95 transition text-xs">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Smart Story Share Card Generator (9:16) -->
+    <div id="shareCardModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-sm p-4 space-y-3.5 shadow-2xl max-h-[95vh] flex flex-col">
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 text-sm">
+                        <i class="ph-bold ph-instagram-logo"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-white">Smart Story Share Card</h3>
+                        <p class="text-[10px] text-slate-400">การ์ดสรุปสำหรับลง IG Stories / TikTok</p>
+                    </div>
+                </div>
+                <button onclick="closeShareCardModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-base"></i></button>
+            </div>
+
+            <!-- Canvas Preview Box (Responsive 9:16 aspect ratio preview) -->
+            <div class="relative w-full aspect-[9/16] max-h-[55vh] rounded-2xl overflow-hidden border border-zinc-800 bg-black flex items-center justify-center shadow-inner">
+                <canvas id="shareCanvas" class="w-full h-full object-contain"></canvas>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2 pt-1">
+                <button type="button" onclick="executeNativeShare()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 text-zinc-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition">
+                    <i class="ph-bold ph-share-network text-base"></i>
+                    <span>แชร์ลง Story / แพลตฟอร์มอื่น</span>
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="downloadShareCardImage()" class="py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+                        <i class="ph-bold ph-download-simple"></i> บันทึกรูป
+                    </button>
+                    <button type="button" onclick="copyShareCardImage()" class="py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+                        <i class="ph-bold ph-copy"></i> คัดลอกรูป
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Script Application Logic -->
     <script>
         const STORAGE_CONFIG = 'calsnap_v1_config';
@@ -1415,6 +1615,7 @@
             document.getElementById('historyDateInput').value = selectedHistoryDate;
 
             renderHomeDashboard();
+            loadCalorieBank();
             calculateBmrTdee();
         }
 
@@ -1841,6 +2042,9 @@
                             <span class="font-extrabold text-sm text-brand-400">${cal}</span>
                             <span class="text-[10px] text-slate-500 block leading-tight">kcal</span>
                         </div>
+                        <button onclick="openMealShareCard('${m.id}')" class="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-zinc-800/80 rounded-lg active:scale-90 transition" title="สร้างการ์ดสตอรี่แชร์ลง IG / TikTok">
+                            <i class="ph-bold ph-share-network text-base"></i>
+                        </button>
                         <button onclick="openEditMealModal('${m.id}')" class="p-1.5 text-slate-400 hover:text-brand-400 hover:bg-zinc-800/80 rounded-lg active:scale-90 transition" title="แก้ไขมื้อนี้">
                             <i class="ph-bold ph-pencil-simple text-base"></i>
                         </button>
@@ -2013,6 +2217,9 @@
 
             // คำนวณและแสดงผลสถิติความสม่ำเสมอ (Streak & Level)
             renderStreakStats();
+
+            // อัปเดตการแสดงผลกระปุกออมแคลอรี่
+            renderCalorieBank();
         }
 
         // ==========================================
@@ -3073,6 +3280,7 @@
         }
 
         function closeMealBuilderModal() {
+            stopBarcodeScanner();
             document.getElementById('mealBuilderModal').classList.add('hidden');
         }
 
@@ -3609,24 +3817,31 @@
         }
 
         // ==========================================
-        // 3-WAY BUILDER MODE SWITCHER (NORMAL, ADVANCE, TEXT)
+        // 4-WAY BUILDER MODE SWITCHER (NORMAL, ADVANCE, TEXT, BARCODE)
         // ==========================================
         function switchBuilderMode(mode) {
             const normalBtn = document.getElementById('modeBtn-normal');
             const advanceBtn = document.getElementById('modeBtn-advance');
             const textBtn = document.getElementById('modeBtn-text');
+            const barcodeBtn = document.getElementById('modeBtn-barcode');
 
             const normalSection = document.getElementById('builderNormalSection');
             const advanceSection = document.getElementById('builderAdvanceSection');
             const textSection = document.getElementById('builderTextSection');
+            const barcodeSection = document.getElementById('builderBarcodeSection');
+
+            // If leaving barcode mode, stop camera scanner
+            if (mode !== 'barcode') {
+                stopBarcodeScanner();
+            }
 
             // Reset all tab button styles
-            [normalBtn, advanceBtn, textBtn].forEach(btn => {
+            [normalBtn, advanceBtn, textBtn, barcodeBtn].forEach(btn => {
                 if (btn) btn.className = 'py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1';
             });
 
             // Hide all sections
-            [normalSection, advanceSection, textSection].forEach(sec => {
+            [normalSection, advanceSection, textSection, barcodeSection].forEach(sec => {
                 if (sec) sec.classList.add('hidden');
             });
 
@@ -3643,6 +3858,12 @@
                     textSection.classList.remove('hidden');
                     const textInput = document.getElementById('builderTextInput');
                     if (textInput) setTimeout(() => textInput.focus(), 100);
+                }
+            } else if (mode === 'barcode') {
+                if (barcodeBtn) barcodeBtn.className = 'py-2 text-[11px] font-bold rounded-xl transition bg-cyan-500 text-zinc-950 flex items-center justify-center gap-1 shadow-md';
+                if (barcodeSection) {
+                    barcodeSection.classList.remove('hidden');
+                    startBarcodeScanner();
                 }
             }
         }
@@ -4238,6 +4459,741 @@ Script.complete();`;
             }).catch(() => {
                 prompt('คัดลอกโค้ดสำหรับ Scriptable ด้านล่างนี้:', code);
             });
+        }
+
+        // ==========================================
+        // FEATURE 1: BARCODE SCANNER & OPENFOODFACTS
+        // ==========================================
+        let html5QrScannerInstance = null;
+        let isBarcodeScanning = false;
+
+        function playBeepSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.12);
+            } catch (e) {
+                // AudioContext restrictions
+            }
+        }
+
+        async function startBarcodeScanner() {
+            if (typeof Html5Qrcode === 'undefined') {
+                alert('ไลบรารีสแกนเนอร์กำลังโหลด กรุณาลองใหม่อีกครั้งใน 2-3 วินาที');
+                return;
+            }
+
+            const placeholder = document.getElementById('barcodeScannerPlaceholder');
+            const controls = document.getElementById('barcodeScanningControls');
+            const feedback = document.getElementById('barcodeStatusFeedback');
+            if (placeholder) placeholder.classList.add('hidden');
+            if (controls) controls.classList.remove('hidden');
+            if (feedback) {
+                feedback.classList.remove('hidden');
+                feedback.className = 'p-2 rounded-xl text-center text-xs bg-cyan-500/10 text-cyan-300 border border-cyan-500/20';
+                feedback.innerHTML = '<i class="ph-bold ph-camera animate-pulse"></i> กำลังเปิดกล้องสแกน...';
+            }
+
+            try {
+                if (html5QrScannerInstance) {
+                    await stopBarcodeScanner();
+                }
+
+                html5QrScannerInstance = new Html5Qrcode("barcodeReaderBox");
+                isBarcodeScanning = true;
+
+                const qrConfig = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 160 },
+                    aspectRatio: 1.0
+                };
+
+                await html5QrScannerInstance.start(
+                    { facingMode: "environment" },
+                    qrConfig,
+                    (decodedText) => {
+                        onBarcodeDetected(decodedText);
+                    },
+                    () => {}
+                );
+
+                if (feedback) {
+                    feedback.innerHTML = '<span class="text-cyan-400 font-bold">● กำลังส่องบาร์โค้ด</span> จัดเส้นบาร์โค้ดให้อยู่ในกรอบ';
+                }
+            } catch (err) {
+                console.warn('Barcode camera start error:', err);
+                if (feedback) {
+                    feedback.className = 'p-2 rounded-xl text-center text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20';
+                    feedback.innerHTML = `เปิดกล้องไม่สำเร็จ (${err.message || 'กรุณาอนุญาตสิทธิ์เข้าถึงกล้อง'}) สามารถกรอกเลขบาร์โค้ดด้านล่างได้`;
+                }
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (controls) controls.classList.add('hidden');
+                isBarcodeScanning = false;
+            }
+        }
+
+        async function stopBarcodeScanner() {
+            if (html5QrScannerInstance && isBarcodeScanning) {
+                try {
+                    await html5QrScannerInstance.stop();
+                    html5QrScannerInstance.clear();
+                } catch (e) {
+                    console.warn('Barcode stop error:', e);
+                }
+            }
+            html5QrScannerInstance = null;
+            isBarcodeScanning = false;
+
+            const placeholder = document.getElementById('barcodeScannerPlaceholder');
+            const controls = document.getElementById('barcodeScanningControls');
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (controls) controls.classList.add('hidden');
+        }
+
+        async function onBarcodeDetected(barcode) {
+            playBeepSound();
+            await stopBarcodeScanner();
+            lookupBarcode(barcode);
+        }
+
+        function lookupManualBarcode() {
+            const input = document.getElementById('manualBarcodeInput');
+            const barcode = (input ? input.value : '').trim();
+            if (!barcode) {
+                alert('กรุณากรอกตัวเลขบาร์โค้ด');
+                return;
+            }
+            lookupBarcode(barcode);
+        }
+
+        async function lookupBarcode(barcode) {
+            const feedback = document.getElementById('barcodeStatusFeedback');
+            if (feedback) {
+                feedback.classList.remove('hidden');
+                feedback.className = 'p-2.5 rounded-xl text-center text-xs bg-cyan-500/10 text-cyan-300 border border-cyan-500/20';
+                feedback.innerHTML = `<div class="flex items-center justify-center gap-2"><div class="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div> <span>พบรหัส ${barcode} กำลังดึงข้อมูลโภชนาการ...</span></div>`;
+            }
+
+            try {
+                // 1. ค้นหาจาก Open Food Facts API (Global & Thailand)
+                const offRes = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`, {
+                    headers: {
+                        'User-Agent': 'CalSnapNutritionApp - Thailand - Version 1.0 (contact@calsnap.app)'
+                    }
+                });
+
+                if (offRes.ok) {
+                    const offData = await offRes.json();
+                    if (offData.status === 1 && offData.product) {
+                        const p = offData.product;
+                        const nut = p.nutriments || {};
+                        const name = p.product_name_th || p.product_name || p.generic_name || `สินค้าบาร์โค้ด ${barcode}`;
+                        const cal = Math.round(Number(nut['energy-kcal_serving'] || nut['energy-kcal_100g'] || nut['energy-kcal'] || 0));
+                        const protein = Math.round(Number(nut['proteins_serving'] || nut['proteins_100g'] || 0) * 10) / 10;
+                        const carbs = Math.round(Number(nut['carbohydrates_serving'] || nut['carbohydrates_100g'] || 0) * 10) / 10;
+                        const fat = Math.round(Number(nut['fat_serving'] || nut['fat_100g'] || 0) * 10) / 10;
+                        const sugar = Math.round(Number(nut['sugars_serving'] || nut['sugars_100g'] || 0) * 10) / 10;
+                        let sodium = Number(nut['sodium_serving'] || nut['sodium_100g'] || 0);
+                        if (sodium > 0 && sodium < 10) sodium = Math.round(sodium * 1000);
+                        if (!sodium && nut['salt_100g']) sodium = Math.round(Number(nut['salt_100g']) * 400);
+
+                        populateReviewModalFromBarcode({
+                            name: name,
+                            calories: cal,
+                            protein_g: protein,
+                            carbs_g: carbs,
+                            fat_g: fat,
+                            sugar_g: sugar,
+                            sodium_mg: Math.round(sodium),
+                            portion: p.serving_size || '1 หน่วยบริโภค',
+                            source: `OpenFoodFacts (บาร์โค้ด ${barcode})`,
+                            is_official: true
+                        });
+                        return;
+                    }
+                }
+
+                // 2. ค้นหาจากฐานข้อมูลสินค้าทางการภายในระบบ (7-Eleven)
+                const localRes = await fetch(`/api/products?q=${encodeURIComponent(barcode)}`);
+                if (localRes.ok) {
+                    const localData = await localRes.json();
+                    if (localData.products && localData.products.length > 0) {
+                        const item = localData.products[0];
+                        populateReviewModalFromBarcode(item);
+                        return;
+                    }
+                }
+
+                // 3. ถ้ายังไม่พบข้อมูล
+                if (feedback) {
+                    feedback.className = 'p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-2';
+                    feedback.innerHTML = `
+                        <div>ไม่พบข้อมูลโภชนาการของบาร์โค้ด <b>${barcode}</b> ในฐานข้อมูลอัตโนมัติ</div>
+                        <button type="button" onclick="populateReviewModalFromBarcode({ name: 'สินค้าบาร์โค้ด ${barcode}', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, source: 'บาร์โค้ด ${barcode}' })" class="px-3 py-1.5 rounded-xl bg-amber-500 text-zinc-950 font-bold text-xs inline-flex items-center gap-1 active:scale-95 transition">
+                            <i class="ph-bold ph-pencil-simple"></i> ใส่ข้อมูลเองในหน้ารีวิว
+                        </button>
+                    `;
+                }
+            } catch (err) {
+                console.error('Barcode lookup error:', err);
+                if (feedback) {
+                    feedback.className = 'p-2 rounded-xl text-center text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20';
+                    feedback.innerText = `เกิดข้อผิดพลาดในการค้นหา: ${err.message}`;
+                }
+            }
+        }
+
+        function populateReviewModalFromBarcode(product) {
+            closeMealBuilderModal();
+
+            document.getElementById('editMealDate').value = getLocalDateString();
+            document.getElementById('editMealTime').value = getLocalTimeString();
+            document.getElementById('editName').value = product.name || '';
+            document.getElementById('editCal').value = product.calories || 0;
+            document.getElementById('editP').value = product.protein_g || 0;
+            document.getElementById('editC').value = product.carbs_g || 0;
+            document.getElementById('editF').value = product.fat_g || 0;
+            document.getElementById('editSugar').value = product.sugar_g || 0;
+            document.getElementById('editSodium').value = product.sodium_mg || 0;
+
+            currentScanMeta = {
+                is_official: !!product.is_official,
+                source: product.source || 'สแกนบาร์โค้ด'
+            };
+
+            const officialBadge = document.getElementById('officialBadge');
+            const sourceText = document.getElementById('sourceText');
+            if (sourceText) sourceText.innerText = currentScanMeta.source;
+            if (officialBadge) {
+                if (product.is_official) officialBadge.classList.remove('hidden');
+                else officialBadge.classList.add('hidden');
+            }
+
+            document.getElementById('reviewModal').classList.remove('hidden');
+        }
+
+        // ==========================================
+        // FEATURE 3: CALORIE BANK & CHEAT DAY MODE
+        // ==========================================
+        const STORAGE_CALORIE_BANK = 'calsnap_calorie_bank';
+        let calorieBankData = {
+            balance: 0,
+            maxDailySave: 300,
+            cheatDay: 'saturday',
+            autoSave: true,
+            lastSavedDate: ''
+        };
+
+        function loadCalorieBank() {
+            try {
+                const saved = localStorage.getItem(STORAGE_CALORIE_BANK);
+                if (saved) {
+                    calorieBankData = Object.assign(calorieBankData, JSON.parse(saved));
+                }
+            } catch (e) {
+                console.warn('Load calorie bank error:', e);
+            }
+
+            checkAutoSaveYesterdaySurplus();
+            renderCalorieBank();
+        }
+
+        function saveCalorieBank() {
+            localStorage.setItem(STORAGE_CALORIE_BANK, JSON.stringify(calorieBankData));
+            renderCalorieBank();
+        }
+
+        function checkAutoSaveYesterdaySurplus() {
+            if (!calorieBankData.autoSave) return;
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = getLocalDateString(yesterday);
+
+            if (calorieBankData.lastSavedDate !== yesterdayStr) {
+                const yesterdayMeals = meals.filter(m => m.date === yesterdayStr);
+                const yesterdayCal = yesterdayMeals.reduce((sum, m) => sum + (Number(m.calories) || 0), 0);
+                const dailyGoal = Number(config.goal) || 2000;
+
+                if (yesterdayMeals.length > 0 && yesterdayCal < dailyGoal) {
+                    const surplus = Math.min(dailyGoal - yesterdayCal, calorieBankData.maxDailySave || 300);
+                    if (surplus > 0) {
+                        calorieBankData.balance = (calorieBankData.balance || 0) + surplus;
+                    }
+                }
+                calorieBankData.lastSavedDate = yesterdayStr;
+                saveCalorieBank();
+            }
+        }
+
+        function renderCalorieBank() {
+            const balance = Math.max(0, calorieBankData.balance || 0);
+            const balanceEl = document.getElementById('bankBalanceDisplay');
+            if (balanceEl) balanceEl.innerText = balance.toLocaleString();
+
+            const modalBalanceEl = document.getElementById('bankModalBalance');
+            if (modalBalanceEl) modalBalanceEl.innerText = balance.toLocaleString();
+
+            const badgeEl = document.getElementById('bankCheatDayBadge');
+            if (badgeEl) {
+                const dayMap = {
+                    saturday: 'เสาร์นี้ 🍕',
+                    sunday: 'อาทิตย์นี้ 🍕',
+                    friday: 'ศุกร์นี้ 🍕',
+                    none: 'กระปุกออม'
+                };
+                badgeEl.innerText = dayMap[calorieBankData.cheatDay] || 'Cheat Day 🍕';
+            }
+
+            const toggleEl = document.getElementById('bankAutoSaveToggle');
+            if (toggleEl) toggleEl.checked = !!calorieBankData.autoSave;
+
+            const selectEl = document.getElementById('bankCheatDaySelect');
+            if (selectEl) selectEl.value = calorieBankData.cheatDay || 'saturday';
+        }
+
+        function openBankModal() {
+            renderCalorieBank();
+            document.getElementById('bankModal').classList.remove('hidden');
+        }
+
+        function closeBankModal() {
+            document.getElementById('bankModal').classList.add('hidden');
+        }
+
+        function withdrawBankCalories(amount) {
+            const currentBalance = calorieBankData.balance || 0;
+            if (currentBalance < amount) {
+                if (!confirm(`ยอดในกระปุกมี ${currentBalance} kcal ซึ่งน้อยกว่า ${amount} kcal ต้องการถอนเท่าที่มี (${currentBalance} kcal) หรือไม่?`)) {
+                    return;
+                }
+                amount = currentBalance;
+            }
+
+            if (amount <= 0) {
+                alert('ไม่มียอดแคลอรี่สะสมในกระปุกให้ออกมาใช้');
+                return;
+            }
+
+            calorieBankData.balance -= amount;
+            saveCalorieBank();
+
+            config.goal = (Number(config.goal) || 2000) + amount;
+            localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+
+            document.getElementById('calorieGoalInput').value = config.goal;
+            document.getElementById('goalDisplay').innerText = config.goal;
+
+            renderHomeDashboard();
+            syncWidgetData();
+            closeBankModal();
+
+            alert(`🎉 ถอนสำเร็จ! เพิ่มโควตาแคลอรี่สำหรับวันนี้อีก +${amount} kcal (เป้าหมายใหม่: ${config.goal.toLocaleString()} kcal)`);
+        }
+
+        function resetBankBalance() {
+            if (confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างยอดแคลอรี่สะสมในกระปุกทั้งหมด?')) {
+                calorieBankData.balance = 0;
+                saveCalorieBank();
+            }
+        }
+
+        function toggleBankAutoSave(enabled) {
+            calorieBankData.autoSave = !!enabled;
+            saveCalorieBank();
+        }
+
+        function changeBankCheatDay(day) {
+            calorieBankData.cheatDay = day;
+            saveCalorieBank();
+        }
+
+        // ==========================================
+        // FEATURE 4: SMART STORY SHARE CARD (9:16)
+        // ==========================================
+        let shareCardState = {
+            mode: 'daily',
+            mealId: null
+        };
+
+        function openDailyShareCard() {
+            shareCardState.mode = 'daily';
+            shareCardState.mealId = null;
+            document.getElementById('shareCardModal').classList.remove('hidden');
+            renderShareCanvas();
+        }
+
+        function openMealShareCard(mealId) {
+            shareCardState.mode = 'meal';
+            shareCardState.mealId = mealId;
+            document.getElementById('shareCardModal').classList.remove('hidden');
+            renderShareCanvas();
+        }
+
+        function closeShareCardModal() {
+            document.getElementById('shareCardModal').classList.add('hidden');
+        }
+
+        function renderShareCanvas() {
+            const canvas = document.getElementById('shareCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const W = 1080;
+            const H = 1920;
+            canvas.width = W;
+            canvas.height = H;
+
+            // Background Gradient
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#09090b');
+            bgGrad.addColorStop(0.5, '#111114');
+            bgGrad.addColorStop(1, '#050507');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Glowing Radial Aura
+            const auraGrad = ctx.createRadialGradient(W / 2, 480, 50, W / 2, 480, 500);
+            auraGrad.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
+            auraGrad.addColorStop(1, 'rgba(249, 115, 22, 0)');
+            ctx.fillStyle = auraGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Subtle Grid dots pattern
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            for (let x = 40; x < W; x += 60) {
+                for (let y = 40; y < H; y += 60) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Top Header Branding
+            ctx.fillStyle = '#f97316';
+            ctx.font = 'bold 36px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⚡ CalSnap', W / 2, 140);
+
+            ctx.fillStyle = '#71717a';
+            ctx.font = '600 24px "Noto Sans Thai", sans-serif';
+            ctx.fillText('AI NUTRITION TRACKER', W / 2, 180);
+
+            const dateObj = new Date();
+            const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const formattedDate = `${dateObj.getDate()} ${thMonths[dateObj.getMonth()]} ${dateObj.getFullYear() + 543}`;
+
+            // Draw Card Container
+            drawRoundedRect(ctx, 80, 240, W - 160, H - 460, 48, '#18181b', 'rgba(255, 255, 255, 0.1)', 3);
+
+            if (shareCardState.mode === 'daily') {
+                renderDailyStoryCard(ctx, W, H, formattedDate);
+            } else {
+                renderMealStoryCard(ctx, W, H, formattedDate);
+            }
+
+            // Footer Branding
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '500 26px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('ติดตามแคลอรี่และโภชนาการง่ายๆ ด้วย AI', W / 2, H - 150);
+
+            ctx.fillStyle = '#f97316';
+            ctx.font = 'bold 28px "Noto Sans Thai", sans-serif';
+            ctx.fillText('calsnap.app', W / 2, H - 105);
+        }
+
+        function renderDailyStoryCard(ctx, W, H, formattedDate) {
+            const todayMeals = meals.filter(m => m.date === getLocalDateString());
+            let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+            todayMeals.forEach(m => {
+                totalCal += Number(m.calories) || 0;
+                totalP += Number(m.protein_g) || 0;
+                totalC += Number(m.carbs_g) || 0;
+                totalF += Number(m.fat_g) || 0;
+            });
+            const goal = Number(config.goal) || 2000;
+            const streakStats = calculateStreakStats();
+            const percent = Math.min(Math.round((totalCal / goal) * 100), 999);
+
+            ctx.fillStyle = '#71717a';
+            ctx.font = '600 24px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('DAILY SUMMARY • ' + formattedDate, W / 2, 320);
+
+            if (streakStats.currentStreak > 0) {
+                drawRoundedRect(ctx, W / 2 - 140, 355, 280, 56, 28, 'rgba(249, 115, 22, 0.15)', 'rgba(249, 115, 22, 0.4)', 2);
+                ctx.fillStyle = '#ea580c';
+                ctx.font = 'bold 26px "Noto Sans Thai", sans-serif';
+                ctx.fillText(`🔥 ${streakStats.currentStreak} วันติด (Streak)`, W / 2, 393);
+            }
+
+            const ringX = W / 2;
+            const ringY = 660;
+            const ringRadius = 180;
+            const ringWidth = 24;
+
+            ctx.beginPath();
+            ctx.arc(ringX, ringY, ringRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#27272a';
+            ctx.lineWidth = ringWidth;
+            ctx.stroke();
+
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + (Math.min(percent, 100) / 100) * (Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(ringX, ringY, ringRadius, startAngle, endAngle);
+            ctx.strokeStyle = totalCal <= goal ? '#f97316' : '#f43f5e';
+            ctx.lineWidth = ringWidth;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 84px "Noto Sans Thai", sans-serif';
+            ctx.fillText(totalCal.toLocaleString(), ringX, ringY + 15);
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '600 28px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`/ ${goal.toLocaleString()} kcal`, ringX, ringY + 65);
+
+            const remaining = goal - totalCal;
+            const statusY = 930;
+            if (remaining >= 0) {
+                drawRoundedRect(ctx, W / 2 - 180, statusY - 35, 360, 58, 29, 'rgba(16, 185, 129, 0.15)', 'rgba(16, 185, 129, 0.3)', 2);
+                ctx.fillStyle = '#34d399';
+                ctx.font = 'bold 26px "Noto Sans Thai", sans-serif';
+                ctx.fillText(`เหลืออีก ${remaining.toLocaleString()} kcal ✨`, W / 2, statusY + 3);
+            } else {
+                drawRoundedRect(ctx, W / 2 - 180, statusY - 35, 360, 58, 29, 'rgba(244, 63, 94, 0.15)', 'rgba(244, 63, 94, 0.3)', 2);
+                ctx.fillStyle = '#fb7185';
+                ctx.font = 'bold 26px "Noto Sans Thai", sans-serif';
+                ctx.fillText(`เกินเป้า ${Math.abs(remaining).toLocaleString()} kcal 🔥`, W / 2, statusY + 3);
+            }
+
+            const macroY = 1050;
+            const pillW = 260;
+            const pillH = 130;
+            const pillGap = 20;
+            const startX = (W - (pillW * 3 + pillGap * 2)) / 2;
+
+            drawRoundedRect(ctx, startX, macroY, pillW, pillH, 24, '#27272a', 'rgba(249, 115, 22, 0.3)', 2);
+            ctx.fillStyle = '#f97316';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText('โปรตีน (P)', startX + pillW / 2, macroY + 45);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(totalP)}g`, startX + pillW / 2, macroY + 95);
+
+            drawRoundedRect(ctx, startX + pillW + pillGap, macroY, pillW, pillH, 24, '#27272a', 'rgba(251, 191, 36, 0.3)', 2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText('คาร์บ (C)', startX + pillW + pillGap + pillW / 2, macroY + 45);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(totalC)}g`, startX + pillW + pillGap + pillW / 2, macroY + 95);
+
+            drawRoundedRect(ctx, startX + (pillW + pillGap) * 2, macroY, pillW, pillH, 24, '#27272a', 'rgba(244, 63, 94, 0.3)', 2);
+            ctx.fillStyle = '#fb7185';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText('ไขมัน (F)', startX + (pillW + pillGap) * 2 + pillW / 2, macroY + 45);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(totalF)}g`, startX + (pillW + pillGap) * 2 + pillW / 2, macroY + 95);
+
+            const quoteY = 1250;
+            drawRoundedRect(ctx, 130, quoteY, W - 260, 200, 32, 'rgba(0, 0, 0, 0.4)', 'rgba(255, 255, 255, 0.08)', 2);
+            ctx.fillStyle = '#f97316';
+            ctx.font = 'bold 24px "Noto Sans Thai", sans-serif';
+            ctx.fillText('💬 AI NUTRITION VERDICT', W / 2, quoteY + 60);
+
+            ctx.fillStyle = '#e4e4e7';
+            ctx.font = '500 28px "Noto Sans Thai", sans-serif';
+            const verdictText = percent <= 100 
+                ? (totalP >= 80 ? 'คุมแคลอรี่เป๊ะ โปรตีนแน่น สุขภาพดีขึ้นทุกวัน 💪' : 'แคลอรี่อยู่ในเป้าหมายอย่างยอดเยี่ยม มีวินัยมาก 🎯')
+                : 'พลังงานเกินเป้าเล็กน้อย พรุ่งนี้บาลานซ์ใหม่ได้สบายมาก ✨';
+            ctx.fillText(verdictText, W / 2, quoteY + 120);
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '500 24px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`บันทึกไปแล้วทั้งหมด ${todayMeals.length} มื้อในวันนี้`, W / 2, 1530);
+        }
+
+        function renderMealStoryCard(ctx, W, H, formattedDate) {
+            const meal = meals.find(m => m.id === shareCardState.mealId) || meals[0];
+            if (!meal) return;
+
+            const cal = Number(meal.calories) || 0;
+            const p = Number(meal.protein_g) || 0;
+            const c = Number(meal.carbs_g) || 0;
+            const f = Number(meal.fat_g) || 0;
+
+            ctx.fillStyle = '#71717a';
+            ctx.font = '600 24px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('MEAL LOGGED • ' + formattedDate, W / 2, 320);
+
+            ctx.font = '80px sans-serif';
+            ctx.fillText(getMealEmoji(meal.meal_type), W / 2, 450);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
+            const displayName = meal.name.length > 25 ? meal.name.substring(0, 25) + '...' : meal.name;
+            ctx.fillText(displayName, W / 2, 540);
+
+            drawRoundedRect(ctx, W / 2 - 130, 580, 260, 48, 24, '#27272a', 'rgba(255, 255, 255, 0.1)', 1.5);
+            ctx.fillStyle = '#d4d4d8';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${getMealTypeName(meal.meal_type)} • ${meal.time || ''}`, W / 2, 612);
+
+            const calBoxY = 680;
+            drawRoundedRect(ctx, 160, calBoxY, W - 320, 250, 36, 'rgba(249, 115, 22, 0.12)', 'rgba(249, 115, 22, 0.35)', 3);
+            ctx.fillStyle = '#f97316';
+            ctx.font = 'bold 28px "Noto Sans Thai", sans-serif';
+            ctx.fillText('พลังงานทั้งหมด', W / 2, calBoxY + 65);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'black 92px "Noto Sans Thai", sans-serif';
+            ctx.fillText(cal.toLocaleString(), W / 2, calBoxY + 165);
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = 'bold 26px "Noto Sans Thai", sans-serif';
+            ctx.fillText('kcal', W / 2, calBoxY + 215);
+
+            const macroY = 990;
+            const pillW = 260;
+            const pillH = 130;
+            const pillGap = 20;
+            const startX = (W - (pillW * 3 + pillGap * 2)) / 2;
+
+            drawRoundedRect(ctx, startX, macroY, pillW, pillH, 24, '#27272a', 'rgba(249, 115, 22, 0.3)', 2);
+            ctx.fillStyle = '#f97316';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText('โปรตีน (P)', startX + pillW / 2, macroY + 45);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${p}g`, startX + pillW / 2, macroY + 95);
+
+            drawRoundedRect(ctx, startX + pillW + pillGap, macroY, pillW, pillH, 24, '#27272a', 'rgba(251, 191, 36, 0.3)', 2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText('คาร์บ (C)', startX + pillW + pillGap + pillW / 2, macroY + 45);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${c}g`, startX + pillW + pillGap + pillW / 2, macroY + 95);
+
+            drawRoundedRect(ctx, startX + (pillW + pillGap) * 2, macroY, pillW, pillH, 24, '#27272a', 'rgba(244, 63, 94, 0.3)', 2);
+            ctx.fillStyle = '#fb7185';
+            ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
+            ctx.fillText('ไขมัน (F)', startX + (pillW + pillGap) * 2 + pillW / 2, macroY + 45);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${f}g`, startX + (pillW + pillGap) * 2 + pillW / 2, macroY + 95);
+
+            const healthY = 1170;
+            drawRoundedRect(ctx, 160, healthY, W - 320, 110, 24, '#27272a', 'rgba(255, 255, 255, 0.08)', 1.5);
+            ctx.fillStyle = '#c084fc';
+            ctx.font = 'bold 24px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`น้ำตาล: ${meal.sugar_g || 0}g`, W / 2 - 160, healthY + 65);
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText(`โซเดียม: ${meal.sodium_mg || 0}mg`, W / 2 + 160, healthY + 65);
+
+            const badgeY = 1370;
+            drawRoundedRect(ctx, W / 2 - 200, badgeY, 400, 60, 30, 'rgba(16, 185, 129, 0.15)', 'rgba(16, 185, 129, 0.3)', 2);
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 24px "Noto Sans Thai", sans-serif';
+            ctx.fillText('✓ ยืนยันข้อมูลด้วย CalSnap AI', W / 2, badgeY + 40);
+        }
+
+        function drawRoundedRect(ctx, x, y, width, height, radius, fillStyle, strokeStyle, lineWidth) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+
+            if (fillStyle) {
+                ctx.fillStyle = fillStyle;
+                ctx.fill();
+            }
+            if (strokeStyle) {
+                ctx.strokeStyle = strokeStyle;
+                ctx.lineWidth = lineWidth || 1;
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        async function executeNativeShare() {
+            const canvas = document.getElementById('shareCanvas');
+            if (!canvas) return;
+
+            try {
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        downloadShareCardImage();
+                        return;
+                    }
+                    const file = new File([blob], 'calsnap-story.png', { type: 'image/png' });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'CalSnap AI Story',
+                            text: 'มื้ออาหารและแคลอรี่วันนี้กับ CalSnap AI ⚡'
+                        });
+                    } else {
+                        downloadShareCardImage();
+                    }
+                }, 'image/png');
+            } catch (err) {
+                console.warn('Native share error or dismissed:', err);
+                downloadShareCardImage();
+            }
+        }
+
+        function downloadShareCardImage() {
+            const canvas = document.getElementById('shareCanvas');
+            if (!canvas) return;
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `calsnap-${shareCardState.mode === 'daily' ? 'daily' : 'meal'}-${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
+
+        function copyShareCardImage() {
+            const canvas = document.getElementById('shareCanvas');
+            if (!canvas) return;
+            try {
+                canvas.toBlob(blob => {
+                    if (!blob) return;
+                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => {
+                        alert('คัดลอกรูปภาพลง Clipboard เรียบร้อยแล้ว! สามารถนำไปวางลงในแอปต่างๆ ได้ทันที');
+                    }).catch(() => {
+                        downloadShareCardImage();
+                    });
+                }, 'image/png');
+            } catch (e) {
+                downloadShareCardImage();
+            }
         }
 
         window.onload = initApp;
