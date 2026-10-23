@@ -1,9 +1,21 @@
-// In-memory cache สำหรับ Widget API (รองรับการดึงข้อมูลจาก Scriptable บน iOS)
+import fs from 'fs';
+
+const TMP_FILE = '/tmp/calsnap_widget.json';
+
+function getThaiDateShort(d = new Date()) {
+  try {
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  } catch(e) {
+    return `${d.getDate()}/${d.getMonth() + 1}`;
+  }
+}
+
 let widgetCache = {
   totalCal: 0,
   goalCal: 2000,
   remainingCal: 2000,
   percent: 0,
+  date: getThaiDateShort(),
   nextMeal: "มื้อถัดไป",
   advice: "พร้อมบันทึกอาหารมื้อแรกของวัน",
   protein: 0,
@@ -21,14 +33,24 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // ดึงข้อมูลล่าสุดจาก /tmp ถ้ามี
+  try {
+    if (fs.existsSync(TMP_FILE)) {
+      widgetCache = JSON.parse(fs.readFileSync(TMP_FILE, 'utf8'));
+    }
+  } catch (e) {}
+
   if (req.method === 'POST') {
     try {
       const body = req.body || {};
+      const goal = Number(body.goalCal) || 2000;
+      const total = Number(body.totalCal) || 0;
       widgetCache = {
-        totalCal: Number(body.totalCal) || 0,
-        goalCal: Number(body.goalCal) || 2000,
-        remainingCal: Number(body.remainingCal) || 0,
-        percent: Number(body.percent) || 0,
+        totalCal: total,
+        goalCal: goal,
+        remainingCal: body.remainingCal !== undefined ? Number(body.remainingCal) : (goal - total),
+        percent: Number(body.percent) || (goal > 0 ? Math.round((total / goal) * 100) : 0),
+        date: body.date || getThaiDateShort(),
         nextMeal: body.nextMeal || 'มื้อถัดไป',
         advice: body.advice || 'ควบคุมสารอาหารให้พอดี',
         protein: Number(body.protein) || 0,
@@ -36,10 +58,31 @@ export default async function handler(req, res) {
         fat: Number(body.fat) || 0,
         updatedAt: new Date().toISOString()
       };
+
+      try {
+        fs.writeFileSync(TMP_FILE, JSON.stringify(widgetCache));
+      } catch (e) {}
+
       return res.status(200).json({ success: true, data: widgetCache });
     } catch (e) {
       return res.status(400).json({ error: e.message });
     }
+  }
+
+  // GET Request: รองรับ query parameters ถ้ามี
+  if (!widgetCache.date) {
+    widgetCache.date = getThaiDateShort();
+  }
+  if (req.query.goal) {
+    const qGoal = Number(req.query.goal);
+    if (qGoal > 0) {
+      widgetCache.goalCal = qGoal;
+      widgetCache.remainingCal = qGoal - widgetCache.totalCal;
+      widgetCache.percent = Math.round((widgetCache.totalCal / qGoal) * 100);
+    }
+  }
+  if (req.query.date) {
+    widgetCache.date = req.query.date;
   }
 
   return res.status(200).json(widgetCache);

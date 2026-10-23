@@ -1917,8 +1917,45 @@
         }
 
         // ==========================================
-        // NEXT MEAL SMART RECOMMENDATION LOGIC
+        // NEXT MEAL SMART RECOMMENDATION & WIDGET SYNC
         // ==========================================
+        function syncWidgetData(overrides = {}) {
+            try {
+                const todayStr = getLocalDateString();
+                const todayMeals = meals.filter(m => m.date === todayStr);
+                const totalCal = todayMeals.reduce((acc, cur) => acc + (Number(cur.calories) || 0), 0);
+                const goal = Number(config.goal) || 2000;
+                const remaining = goal - totalCal;
+                const percent = goal > 0 ? Math.round((totalCal / goal) * 100) : 0;
+                let dateStr = '';
+                try {
+                    dateStr = new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                } catch(e) {
+                    dateStr = todayStr;
+                }
+
+                const payload = {
+                    totalCal,
+                    goalCal: goal,
+                    remainingCal: remaining,
+                    percent,
+                    date: dateStr,
+                    nextMeal: overrides.nextMeal || 'มื้อถัดไป',
+                    advice: overrides.advice || (remaining <= 0 ? `วันนี้ครบเป้าหมาย ${goal} kcal แล้ว` : `เหลืออีก ${remaining} kcal`),
+                    protein: overrides.protein || 0,
+                    carbs: overrides.carbs || 0,
+                    fat: overrides.fat || 0,
+                    ...overrides
+                };
+
+                fetch('/api/widget', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(() => {});
+            } catch (e) {}
+        }
+
         function renderNextMealAdvice(totalCal, totalP, totalC, totalF, totalSugar, totalSodium, mealBreakdown, targets, remainingCal) {
             const adviceCard = document.getElementById('nextMealAdviceCard');
             const titleEl = document.getElementById('nextMealTitle');
@@ -1954,6 +1991,14 @@
                 textEl.innerText = `วันนี้ได้รับพลังงานครบตามเป้าหมาย ${config.goal} kcal แล้ว แนะนำงดอาหารมื้อหนัก หากยังหิวแนะนำดื่มน้ำเปล่า, ชาอุ่นไม่ใส่น้ำตาล หรือเครื่องดื่ม 0 แคลอรี`;
                 tags = ['💧 ดื่มน้ำเปล่า 1 แก้ว', '🍵 ชาเขียวอุ่น 0 Cal', '🫧 เครื่องดื่ม 0 Cal'];
                 tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
+                
+                syncWidgetData({
+                    nextMeal: 'พักย่อยอาหาร',
+                    advice: `ทานครบเป้าหมาย ${config.goal} kcal แล้ว แนะนำดื่มน้ำเปล่า`,
+                    protein: Math.round(totalP),
+                    carbs: Math.round(totalC),
+                    fat: Math.round(totalF)
+                });
                 return;
             }
 
@@ -2018,23 +2063,13 @@
             tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
 
             // Background sync widget data for iOS Scriptable / WidgetKit
-            try {
-                fetch('/api/widget', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        totalCal,
-                        goalCal: config.goal,
-                        remainingCal,
-                        percent: Math.round((totalCal / config.goal) * 100),
-                        nextMeal: mealName,
-                        advice: adviceMsg,
-                        protein: Math.round(totalP),
-                        carbs: Math.round(totalC),
-                        fat: Math.round(totalF)
-                    })
-                }).catch(() => {});
-            } catch (e) {}
+            syncWidgetData({
+                nextMeal: mealName,
+                advice: adviceMsg,
+                protein: Math.round(totalP),
+                carbs: Math.round(totalC),
+                fat: Math.round(totalF)
+            });
         }
 
         // ==========================================
@@ -2398,6 +2433,8 @@
             document.getElementById('calorieGoalInput').value = tdee;
             document.getElementById('goalDisplay').innerText = tdee;
             localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+            renderHomeDashboard();
+            syncWidgetData();
             alert(`ตั้งเป้าหมายประจำวันตาม TDEE เป็น ${tdee} kcal เรียบร้อยแล้ว!`);
         }
 
@@ -2452,6 +2489,8 @@
             document.getElementById('goalDisplay').innerText = config.goal;
             const badge = document.getElementById('modelBadge');
             if (badge) badge.innerText = config.model;
+            renderHomeDashboard();
+            syncWidgetData();
             alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         }
 
@@ -3625,11 +3664,21 @@
 
         function getScriptableWidgetCode() {
             const origin = window.location.origin;
+            const userGoal = Number(config.goal) || 2000;
             return `// ==========================================
 // CalSnap iOS Widget Script (Scriptable)
 // ==========================================
-const API_URL = "${origin}/api/widget";
+const API_URL = "${origin}/api/widget?goal=${userGoal}";
 const APP_URL = "${origin}";
+
+function getTodayThaiDate() {
+  const d = new Date();
+  try {
+    return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+  } catch (e) {
+    return d.getDate() + "/" + (d.getMonth() + 1);
+  }
+}
 
 async function createWidget() {
   const widget = new ListWidget();
@@ -3638,24 +3687,39 @@ async function createWidget() {
 
   let data = {
     totalCal: 0,
-    goalCal: 2000,
-    remainingCal: 2000,
+    goalCal: ${userGoal},
+    remainingCal: ${userGoal},
     percent: 0,
+    date: getTodayThaiDate(),
     nextMeal: "มื้อถัดไป",
     advice: "กำลังรอข้อมูลมื้อแรกของวัน..."
   };
 
   try {
     const req = new Request(API_URL);
-    req.timeoutInterval = 4;
-    data = await req.loadJSON();
+    req.timeoutInterval = 5;
+    const res = await req.loadJSON();
+    if (res && typeof res === "object") {
+      data = { ...data, ...res };
+      if (!data.date) data.date = getTodayThaiDate();
+    }
   } catch (e) {}
 
+  // Header Stack (Title, Date, Remaining Badge)
   const header = widget.addStack();
   header.centerAlignContent();
-  const title = header.addText("⚡ CalSnap AI");
+
+  const titleCol = header.addStack();
+  titleCol.layoutVertically();
+
+  const title = titleCol.addText("⚡ CalSnap AI");
   title.textColor = new Color("#f97316");
   title.font = Font.boldSystemFont(12);
+
+  const dateLabel = titleCol.addText("📅 " + (data.date || getTodayThaiDate()));
+  dateLabel.textColor = new Color("#94a3b8");
+  dateLabel.font = Font.mediumSystemFont(9);
+
   header.addSpacer();
 
   const isOver = data.percent > 100;
@@ -3663,18 +3727,18 @@ async function createWidget() {
   badge.textColor = isOver ? new Color("#fb7185") : new Color("#fdba74");
   badge.font = Font.boldSystemFont(11);
 
-  widget.addSpacer(6);
+  widget.addSpacer(5);
 
   const calRow = widget.addText(\`\${data.totalCal} / \${data.goalCal} kcal  (\${data.percent}%)\`);
   calRow.textColor = isOver ? new Color("#fb7185") : Color.white();
   calRow.font = Font.heavySystemFont(16);
 
-  widget.addSpacer(6);
+  widget.addSpacer(5);
 
   const adviceBox = widget.addStack();
   adviceBox.backgroundColor = new Color("#18181b");
   adviceBox.cornerRadius = 10;
-  adviceBox.setPadding(8, 10, 8, 10);
+  adviceBox.setPadding(6, 10, 6, 10);
   adviceBox.layoutVertically();
 
   const mealTitle = adviceBox.addText(\`🥗 แนะนำ \${data.nextMeal}:\`);
