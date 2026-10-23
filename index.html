@@ -3667,6 +3667,7 @@
             const userGoal = Number(config.goal) || 2000;
             return `// ==========================================
 // CalSnap iOS Widget Script (Scriptable)
+// Layout: ด้านซ้าย Donut Ring | ด้านขวา คำแนะนำ + วันที่
 // ==========================================
 const API_URL = "${origin}/api/widget?goal=${userGoal}";
 const APP_URL = "${origin}";
@@ -3680,10 +3681,71 @@ function getTodayThaiDate() {
   }
 }
 
+function createDonutImage(percent, totalCal, goalCal, isOver) {
+  const size = 200;
+  const strokeWidth = 20;
+  const dc = new DrawContext();
+  dc.size = new Size(size, size);
+  dc.opaque = false;
+  dc.respectScreenScale = true;
+
+  const center = size / 2;
+  const radius = (size - strokeWidth) / 2;
+
+  // 1. Background Track Ring
+  const trackPath = new Path();
+  trackPath.addEllipse(new Rect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2));
+  dc.addPath(trackPath);
+  dc.setStrokeColor(new Color("#27272a"));
+  dc.setLineWidth(strokeWidth);
+  dc.strokePath();
+
+  // 2. Progress Arc Ring
+  const clampedPercent = Math.max(0, percent);
+  let ringColor = new Color("#f97316"); // CalSnap Flame
+  if (isOver) {
+    ringColor = new Color("#f43f5e"); // Rose Red
+  } else if (percent >= 90) {
+    ringColor = new Color("#fb923c"); // Amber
+  }
+
+  if (clampedPercent >= 100) {
+    const fullPath = new Path();
+    fullPath.addEllipse(new Rect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2));
+    dc.addPath(fullPath);
+    dc.setStrokeColor(ringColor);
+    dc.setLineWidth(strokeWidth);
+    dc.strokePath();
+  } else if (clampedPercent > 0) {
+    const startAngle = -Math.PI / 2;
+    const progressAngle = startAngle + (clampedPercent / 100) * (Math.PI * 2);
+    const progressPath = new Path();
+    progressPath.addArc(new Point(center, center), radius, startAngle, progressAngle, false);
+    dc.addPath(progressPath);
+    dc.setStrokeColor(ringColor);
+    dc.setLineWidth(strokeWidth);
+    dc.strokePath();
+  }
+
+  // 3. Center Text (Percentage & Status)
+  dc.setFont(Font.heavySystemFont(32));
+  dc.setTextColor(isOver ? new Color("#fb7185") : Color.white());
+  dc.setTextAlignedCenter();
+  dc.drawTextInRect(\`\${percent}%\`, new Rect(0, center - 28, size, 38));
+
+  dc.setFont(Font.boldSystemFont(12));
+  dc.setTextColor(isOver ? new Color("#fda4af") : new Color("#a1a1aa"));
+  dc.setTextAlignedCenter();
+  dc.drawTextInRect(isOver ? "เกินเป้า" : "พลังงาน", new Rect(0, center + 10, size, 18));
+
+  return dc.getImage();
+}
+
 async function createWidget() {
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#0b0c10");
   widget.url = APP_URL;
+  widget.setPadding(12, 14, 12, 14);
 
   let data = {
     totalCal: 0,
@@ -3705,51 +3767,76 @@ async function createWidget() {
     }
   } catch (e) {}
 
-  // Header Stack (Title, Date, Remaining Badge)
-  const header = widget.addStack();
-  header.centerAlignContent();
+  const isOver = data.percent > 100;
+  const donutImg = createDonutImage(data.percent, data.totalCal, data.goalCal, isOver);
 
-  const titleCol = header.addStack();
-  titleCol.layoutVertically();
+  // Split Horizontal Layout
+  const mainRow = widget.addStack();
+  mainRow.layoutHorizontally();
+  mainRow.centerAlignContent();
 
-  const title = titleCol.addText("⚡ CalSnap AI");
+  // LEFT COLUMN: Donut Ring Chart
+  const leftCol = mainRow.addStack();
+  leftCol.layoutVertically();
+  leftCol.centerAlignContent();
+
+  const chartNode = leftCol.addImage(donutImg);
+  chartNode.imageSize = new Size(100, 100);
+  chartNode.centerAlignImage();
+
+  mainRow.addSpacer(12);
+
+  // RIGHT COLUMN: Status, Date, Advice
+  const rightCol = mainRow.addStack();
+  rightCol.layoutVertically();
+
+  // Top Line: CalSnap Title + Date
+  const topRow = rightCol.addStack();
+  topRow.centerAlignContent();
+
+  const title = topRow.addText("⚡ CalSnap");
   title.textColor = new Color("#f97316");
   title.font = Font.boldSystemFont(12);
 
-  const dateLabel = titleCol.addText("📅 " + (data.date || getTodayThaiDate()));
+  topRow.addSpacer();
+
+  const dateLabel = topRow.addText("📅 " + (data.date || getTodayThaiDate()));
   dateLabel.textColor = new Color("#94a3b8");
-  dateLabel.font = Font.mediumSystemFont(9);
+  dateLabel.font = Font.mediumSystemFont(10);
 
-  header.addSpacer();
+  rightCol.addSpacer(3);
 
-  const isOver = data.percent > 100;
-  const badge = header.addText(isOver ? \`⚠️ เกิน \${Math.abs(data.remainingCal)} kcal\` : \`🔥 เหลือ \${data.remainingCal} kcal\`);
-  badge.textColor = isOver ? new Color("#fb7185") : new Color("#fdba74");
-  badge.font = Font.boldSystemFont(11);
-
-  widget.addSpacer(5);
-
-  const calRow = widget.addText(\`\${data.totalCal} / \${data.goalCal} kcal  (\${data.percent}%)\`);
+  // Calorie Numbers
+  const totalNum = (Number(data.totalCal) || 0).toLocaleString();
+  const goalNum = (Number(data.goalCal) || 2000).toLocaleString();
+  const calRow = rightCol.addText(\`\${totalNum} / \${goalNum} kcal\`);
   calRow.textColor = isOver ? new Color("#fb7185") : Color.white();
-  calRow.font = Font.heavySystemFont(16);
+  calRow.font = Font.heavySystemFont(14);
 
-  widget.addSpacer(5);
+  const remainNum = (Math.abs(Number(data.remainingCal)) || 0).toLocaleString();
+  const statusLabel = rightCol.addText(isOver ? \`⚠️ เกินเป้า \${remainNum} kcal\` : \`🔥 เหลืออีก \${remainNum} kcal\`);
+  statusLabel.textColor = isOver ? new Color("#fb7185") : new Color("#fdba74");
+  statusLabel.font = Font.boldSystemFont(11);
 
-  const adviceBox = widget.addStack();
+  rightCol.addSpacer(5);
+
+  // Advice Card Box
+  const adviceBox = rightCol.addStack();
   adviceBox.backgroundColor = new Color("#18181b");
-  adviceBox.cornerRadius = 10;
-  adviceBox.setPadding(6, 10, 6, 10);
+  adviceBox.cornerRadius = 8;
+  adviceBox.setPadding(5, 8, 5, 8);
   adviceBox.layoutVertically();
 
   const mealTitle = adviceBox.addText(\`🥗 แนะนำ \${data.nextMeal}:\`);
   mealTitle.textColor = new Color("#f97316");
   mealTitle.font = Font.boldSystemFont(10);
 
-  adviceBox.addSpacer(2);
+  adviceBox.addSpacer(1);
 
   const adviceDesc = adviceBox.addText(data.advice);
-  adviceDesc.textColor = new Color("#e4e4e7");
-  adviceDesc.font = Font.systemFont(11);
+  adviceDesc.textColor = new Color("#d4d4d8");
+  adviceDesc.font = Font.systemFont(10);
+  adviceDesc.lineLimit = 2;
 
   return widget;
 }
