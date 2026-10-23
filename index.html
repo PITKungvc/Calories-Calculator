@@ -65,6 +65,10 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <button onclick="switchTab('chat')" class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-brand-500/10 border border-brand-500/30 text-brand-400 hover:bg-brand-500/20 active:scale-95 transition text-xs font-bold" title="คุยกับ AI โภชนาการ">
+                    <i class="ph-bold ph-chat-circle-dots text-base"></i>
+                    <span>ถาม AI</span>
+                </button>
                 <button onclick="switchTab('profile')" class="p-2.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-slate-300 hover:text-white active:scale-95 transition" title="โปรไฟล์ & ตั้งค่า">
                     <i class="ph-bold ph-gear-six text-lg"></i>
                 </button>
@@ -225,6 +229,9 @@
                 <div id="nextMealTags" class="flex flex-wrap gap-1.5 pt-0.5">
                     <!-- Dynamic Recommendation Chips -->
                 </div>
+                <button onclick="switchTab('chat'); sendQuickChatMessage('ช่วยวิเคราะห์มื้ออาหารที่กินวันนี้และแนะนำมื้อถัดไปตามโควต้าที่เหลือให้หน่อย');" class="w-full mt-1 py-1.5 px-3 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/20 text-brand-400 font-bold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition">
+                    <i class="ph-bold ph-chat-circle-dots text-sm"></i> ปรึกษา AI เพิ่มเติมเกี่ยวกับมื้อนี้
+                </button>
             </div>
 
             <!-- Today Food Items List -->
@@ -283,6 +290,79 @@
             <div class="space-y-2">
                 <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400 px-1">รายการอาหารในวันที่เลือก</h4>
                 <div id="historyMealList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: AI CHAT VIEW (ถาม-ตอบกับ AI โภชนาการ) -->
+        <!-- ========================================== -->
+        <div id="viewChat" class="tab-view hidden space-y-4 pb-16">
+            <!-- Chat Header Card with Status & Action -->
+            <div class="p-4 rounded-3xl bg-zinc-900/80 border border-zinc-800/80 glow-card flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-500 to-amber-400 text-zinc-950 flex items-center justify-center text-xl font-black shadow-lg shadow-brand-500/20">
+                        <i class="ph-fill ph-sparkle"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-sm text-white">CalSnap AI Coach</h3>
+                            <span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> พร้อมตอบ
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">ผู้ช่วยโภชนาการ วิเคราะห์อาหารที่กินวันนี้แบบเรียลไทม์</p>
+                    </div>
+                </div>
+                <button onclick="clearChatHistory()" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl active:scale-90 transition" title="ล้างประวัติการคุย">
+                    <i class="ph-bold ph-trash text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Daily Diet Context Summary Chip -->
+            <div id="chatTodayContextSummary" class="p-3 rounded-2xl bg-zinc-950/70 border border-zinc-800/70 text-xs flex justify-between items-center text-slate-300">
+                <!-- Injected via renderChatView -->
+            </div>
+
+            <!-- Quick Question Chips -->
+            <div class="space-y-1.5">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">คำถามแนะนำด่วน</span>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="sendQuickChatMessage('วันนี้สารอาหารที่กินไปครบถ้วนไหม มีอะไรขาดหรือเกินบ้าง?')" class="px-2.5 py-1 rounded-xl bg-zinc-900/90 border border-zinc-800 text-[11px] text-slate-300 hover:text-brand-400 hover:border-brand-500/40 active:scale-95 transition">
+                        💡 วันนี้สารอาหารครบไหม?
+                    </button>
+                    <button onclick="sendQuickChatMessage('ช่วยแนะนำเมนูมื้อถัดไปตามโควต้าแคลอรี่และสารอาหารที่เหลือให้หน่อย')" class="px-2.5 py-1 rounded-xl bg-zinc-900/90 border border-zinc-800 text-[11px] text-slate-300 hover:text-brand-400 hover:border-brand-500/40 active:scale-95 transition">
+                        🥗 มื้อถัดไปกินอะไรดี?
+                    </button>
+                    <button onclick="sendQuickChatMessage('โซเดียมและน้ำตาลที่กินไปวันนี้ เกินเกณฑ์มาตรฐานสุขภาพหรือยัง?')" class="px-2.5 py-1 rounded-xl bg-zinc-900/90 border border-zinc-800 text-[11px] text-slate-300 hover:text-brand-400 hover:border-brand-500/40 active:scale-95 transition">
+                        ⚠️ โซเดียม/น้ำตาลวันนี้เยอะไปไหม?
+                    </button>
+                    <button onclick="sendQuickChatMessage('แนะนำของกินคลีนโปรตีนสูงใน 7-Eleven ที่เหมาะกับโควต้าวันนี้หน่อย')" class="px-2.5 py-1 rounded-xl bg-zinc-900/90 border border-zinc-800 text-[11px] text-slate-300 hover:text-brand-400 hover:border-brand-500/40 active:scale-95 transition">
+                        🏪 แนะนำของกิน 7-11 ให้หน่อย
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages Container -->
+            <div id="chatMessagesList" class="space-y-3 min-h-[260px] p-0.5">
+                <!-- Dynamic Chat Messages rendered here -->
+            </div>
+
+            <!-- Chat Typing Indicator -->
+            <div id="chatTypingIndicator" class="hidden flex items-center gap-2 text-xs text-slate-400 pl-2">
+                <div class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-xs">
+                    <i class="ph-bold ph-sparkle animate-spin"></i>
+                </div>
+                <span>AI กำลังวิเคราะห์ข้อมูลมื้ออาหารและคิดคำตอบ...</span>
+            </div>
+
+            <!-- Sticky Chat Input Area -->
+            <div class="pt-2 sticky bottom-20 z-30">
+                <form onsubmit="handleSendChatMessage(event)" class="flex items-center gap-2 bg-zinc-900/95 border border-zinc-800 rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl">
+                    <input id="chatInputText" type="text" placeholder="ถาม AI เรื่องอาหาร เช่น มื้อเย็นกินอะไรดี..." class="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-slate-500 outline-none" autocomplete="off">
+                    <button type="submit" id="btnSendChat" class="w-10 h-10 rounded-xl bg-brand-500 hover:bg-brand-400 active:scale-90 text-zinc-950 flex items-center justify-center font-bold transition shadow-md">
+                        <i class="ph-bold ph-paper-plane-right text-lg"></i>
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -649,16 +729,16 @@
                 </button>
             </div>
 
-            <!-- Tab 4: Insights -->
+            <!-- Tab 4: AI Nutrition Coach Chat -->
+            <button onclick="switchTab('chat')" id="tabBtn-chat" class="flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90">
+                <i class="ph-bold ph-chat-circle-dots text-2xl"></i>
+                <span class="text-[10px] font-medium">ถาม AI</span>
+            </button>
+
+            <!-- Tab 5: Insights -->
             <button onclick="switchTab('insights')" id="tabBtn-insights" class="flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90">
                 <i class="ph-bold ph-chart-pie-slice text-2xl"></i>
                 <span class="text-[10px] font-medium">อินไซต์</span>
-            </button>
-
-            <!-- Tab 5: Profile & Health -->
-            <button onclick="switchTab('profile')" id="tabBtn-profile" class="flex flex-col items-center gap-1 py-1 px-3 text-zinc-500 hover:text-zinc-300 transition active:scale-90">
-                <i class="ph-bold ph-user-circle text-2xl"></i>
-                <span class="text-[10px] font-medium">โปรไฟล์</span>
             </button>
 
         </div>
@@ -1121,7 +1201,7 @@
             document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
             
             // Reset nav buttons styling
-            const tabs = ['home', 'history', 'insights', 'profile'];
+            const tabs = ['home', 'history', 'chat', 'insights', 'profile'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn-${t}`);
                 if (btn) {
@@ -1142,6 +1222,10 @@
                 document.getElementById('viewHistory').classList.remove('hidden');
                 activateTabBtn('history', 'ph-calendar');
                 renderHistoryView();
+            } else if (tabName === 'chat') {
+                document.getElementById('viewChat').classList.remove('hidden');
+                activateTabBtn('chat', 'ph-chat-circle-dots');
+                renderChatView();
             } else if (tabName === 'insights') {
                 document.getElementById('viewInsights').classList.remove('hidden');
                 activateTabBtn('insights', 'ph-chart-pie-slice');
@@ -1160,6 +1244,275 @@
                 const icon = btn.querySelector('i');
                 if (icon) icon.className = `ph-fill ${iconName} text-2xl`;
             }
+        }
+
+        // ==========================================
+        // AI NUTRITION COACH CHAT SYSTEM & PERSISTENCE
+        // ==========================================
+        const STORAGE_AI_CHAT = 'calsnap_v1_ai_chat';
+        let chatMessages = [];
+        let isChatWaiting = false;
+
+        function loadChatMessages() {
+            try {
+                const stored = localStorage.getItem(STORAGE_AI_CHAT);
+                if (stored) {
+                    chatMessages = JSON.parse(stored);
+                }
+            } catch (e) {
+                chatMessages = [];
+            }
+
+            if (!Array.isArray(chatMessages) || chatMessages.length === 0) {
+                chatMessages = [
+                    {
+                        id: 'msg_welcome',
+                        role: 'assistant',
+                        content: 'สวัสดีครับ! ผมคือ **CalSnap AI Coach** ผู้ช่วยโภชนาการส่วนตัวของคุณ 🥗✨\n\nผมรู้ข้อมูลอาหารที่คุณกินไปแล้วในวันนี้ทั้งหมด สามารถถามผมได้เลยครับ เช่น:\n• **"มื้อเย็นควรกินอะไรดี ให้โปรตีนถึงและแคลไม่เกิน?"**\n• **"วันนี้กินโซเดียมหรือน้ำตาลเยอะไปไหม?"**\n• **"แนะนำของกินคลีนโปรตีนสูงใน 7-Eleven ให้หน่อย"**\n\nพิมพ์ถามหรือเลือกแตะคำถามแนะนำด้านบนได้เลยครับ!',
+                        time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                    }
+                ];
+                saveChatMessages();
+            }
+        }
+
+        function saveChatMessages() {
+            try {
+                localStorage.setItem(STORAGE_AI_CHAT, JSON.stringify(chatMessages));
+            } catch (e) {}
+        }
+
+        function escapeChatHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatChatMarkdown(text) {
+            if (!text) return '';
+            let html = escapeChatHtml(text);
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+            html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-zinc-800 text-brand-400 font-mono text-[11px]">$1</code>');
+            html = html.replace(/^[•\-\*]\s+(.*)$/gm, '<li class="ml-4 list-disc text-slate-300">$1</li>');
+            html = html.replace(/^(\d+)\.\s+(.*)$/gm, '<li class="ml-4 list-decimal text-slate-300"><span class="font-semibold text-brand-400">$1.</span> $2</li>');
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
+
+        function renderChatView() {
+            loadChatMessages();
+
+            // แสดงสถานะภาพรวมอาหารของวันนี้บนแถบ Context bar
+            const today = new Date().toISOString().split('T')[0];
+            const todayMeals = meals.filter(m => m.date === today);
+            let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
+            todayMeals.forEach(m => {
+                totalCal += Number(m.calories) || 0;
+                totalP += Number(m.protein_g) || 0;
+                totalC += Number(m.carbs_g) || 0;
+                totalF += Number(m.fat_g) || 0;
+                totalSugar += Number(m.sugar_g) || 0;
+                totalSodium += Number(m.sodium_mg) || 0;
+            });
+            const targets = getMacroTargets(config.goal);
+            const remainingCal = Math.max(0, targets.goal - totalCal);
+
+            const summaryEl = document.getElementById('chatTodayContextSummary');
+            if (summaryEl) {
+                summaryEl.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                        <span>วันนี้กินไป <strong>${totalCal.toLocaleString()}</strong> / ${targets.goal.toLocaleString()} kcal (เหลือโควต้า <strong class="text-brand-400">${remainingCal.toLocaleString()}</strong> kcal)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-semibold px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800">${todayMeals.length} รายการ</span>
+                `;
+            }
+
+            const listEl = document.getElementById('chatMessagesList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            chatMessages.forEach(msg => {
+                const isUser = msg.role === 'user';
+                const div = document.createElement('div');
+                div.className = 'w-full';
+                if (isUser) {
+                    div.innerHTML = `
+                        <div class="flex justify-end">
+                            <div class="max-w-[85%] bg-brand-500/15 border border-brand-500/30 text-white rounded-2xl rounded-br-sm px-4 py-2.5 text-xs font-medium leading-relaxed shadow-sm">
+                                ${escapeChatHtml(msg.content)}
+                                <div class="text-[9px] text-brand-300/60 text-right mt-1">${msg.time || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="flex justify-start gap-2.5 items-start">
+                            <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-brand-500 to-amber-400 text-zinc-950 flex-shrink-0 flex items-center justify-center text-sm mt-0.5 shadow-sm font-black">
+                                <i class="ph-bold ph-sparkle"></i>
+                            </div>
+                            <div class="max-w-[88%] bg-zinc-900/90 border border-zinc-800/90 text-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-xs leading-relaxed space-y-1 shadow-md">
+                                <div class="font-bold text-[10px] text-brand-400 flex items-center gap-1 mb-0.5">
+                                    <span>CalSnap AI Coach</span>
+                                </div>
+                                <div class="text-slate-300 text-xs">${formatChatMarkdown(msg.content)}</div>
+                                <div class="text-[9px] text-slate-500 mt-1.5 text-right">${msg.time || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                listEl.appendChild(div);
+            });
+
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 60);
+        }
+
+        async function handleSendChatMessage(e) {
+            if (e) e.preventDefault();
+            if (isChatWaiting) return;
+
+            const input = document.getElementById('chatInputText');
+            const text = (input ? input.value : '').trim();
+            if (!text) return;
+
+            input.value = '';
+            await processUserChatMessage(text);
+        }
+
+        function sendQuickChatMessage(promptText) {
+            if (isChatWaiting) return;
+            // Switch to chat tab if called from outside
+            if (document.getElementById('viewChat').classList.contains('hidden')) {
+                switchTab('chat');
+            }
+            processUserChatMessage(promptText);
+        }
+
+        async function processUserChatMessage(userText) {
+            const timeStr = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+            const userMsg = {
+                id: 'msg_' + Date.now(),
+                role: 'user',
+                content: userText,
+                time: timeStr
+            };
+            chatMessages.push(userMsg);
+            saveChatMessages();
+            renderChatView();
+
+            isChatWaiting = true;
+            const typingIndicator = document.getElementById('chatTypingIndicator');
+            const btnSend = document.getElementById('btnSendChat');
+            if (typingIndicator) typingIndicator.classList.remove('hidden');
+            if (btnSend) btnSend.disabled = true;
+
+            const today = new Date().toISOString().split('T')[0];
+            const todayMeals = meals.filter(m => m.date === today);
+            let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
+            todayMeals.forEach(m => {
+                totalCal += Number(m.calories) || 0;
+                totalP += Number(m.protein_g) || 0;
+                totalC += Number(m.carbs_g) || 0;
+                totalF += Number(m.fat_g) || 0;
+                totalSugar += Number(m.sugar_g) || 0;
+                totalSodium += Number(m.sodium_mg) || 0;
+            });
+            const targets = getMacroTargets(config.goal);
+
+            let profileData = { goalMode: 'maintain' };
+            try {
+                const savedP = localStorage.getItem(STORAGE_PROFILE);
+                if (savedP) profileData = JSON.parse(savedP);
+            } catch (e) {}
+
+            const contextData = {
+                todayMeals: todayMeals.map(m => ({
+                    name: m.name,
+                    meal_type: m.meal_type,
+                    calories: m.calories,
+                    protein_g: m.protein_g,
+                    carbs_g: m.carbs_g,
+                    fat_g: m.fat_g,
+                    sugar_g: m.sugar_g || 0,
+                    sodium_mg: m.sodium_mg || 0
+                })),
+                todayTotals: {
+                    calories: totalCal,
+                    protein: totalP,
+                    carbs: totalC,
+                    fat: totalF,
+                    sugar: totalSugar,
+                    sodium: totalSodium
+                },
+                targets: {
+                    goal: targets.goal,
+                    protein: targets.protein,
+                    carbs: targets.carbs,
+                    fat: targets.fat,
+                    sugar: targets.sugar,
+                    sodium: targets.sodium
+                },
+                userProfile: {
+                    weight: profileData.weight || null,
+                    height: profileData.height || null,
+                    goalMode: profileData.goalMode || 'maintain'
+                }
+            };
+
+            try {
+                const recentMsgs = chatMessages.slice(-10);
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: recentMsgs,
+                        model: config.model || 'gemini-3-flash-preview',
+                        apiKey: config.apiKey || '',
+                        context: contextData
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'เชื่อมต่อ AI Serverless ไม่สำเร็จ');
+                }
+
+                const aiReply = data.reply || 'ขออภัยครับ ไม่สามารถสร้างคำตอบได้ในขณะนี้';
+                chatMessages.push({
+                    id: 'msg_' + Date.now(),
+                    role: 'assistant',
+                    content: aiReply,
+                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                });
+                saveChatMessages();
+            } catch (err) {
+                chatMessages.push({
+                    id: 'msg_' + Date.now(),
+                    role: 'assistant',
+                    content: `⚠️ เกิดข้อผิดพลาดในการตอบกลับ: ${err.message || 'กรุณาลองใหม่อีกครั้ง'}`,
+                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                });
+                saveChatMessages();
+            } finally {
+                isChatWaiting = false;
+                if (typingIndicator) typingIndicator.classList.add('hidden');
+                if (btnSend) btnSend.disabled = false;
+                renderChatView();
+            }
+        }
+
+        function clearChatHistory() {
+            if (!confirm('ต้องการล้างประวัติการคุยกับ AI ทั้งหมดใช่หรือไม่?')) return;
+            localStorage.removeItem(STORAGE_AI_CHAT);
+            chatMessages = [];
+            renderChatView();
         }
 
         // ==========================================

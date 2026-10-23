@@ -3,5 +3,6 @@
   "1": "vercel.json",
   "2": "api/products.js",
   "3": "scrape_7eleven.js",
-  "4": "sw.js"
+  "4": "sw.js",
+  "5": "chat.js"
 }
