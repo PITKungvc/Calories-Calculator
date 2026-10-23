@@ -417,7 +417,7 @@
 
             <!-- Tab 3 (Center): Raised Circular Snap / Plus Button -->
             <div class="relative -top-5">
-                <button onclick="openPhotoSourceModal()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-400 text-zinc-950 flex items-center justify-center glow-center-btn border-4 border-[#0b0c10] active:scale-90 transition">
+                <button onclick="openMealBuilderModal()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 via-brand-500 to-amber-400 text-zinc-950 flex items-center justify-center glow-center-btn border-4 border-[#0b0c10] active:scale-90 transition">
                     <i class="ph-bold ph-plus text-2xl text-zinc-950"></i>
                 </button>
             </div>
@@ -439,6 +439,132 @@
     <!-- Hidden File Inputs: Camera vs Device Gallery -->
     <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleFoodScan(event)">
     <input id="galleryInput" type="file" accept="image/*" class="hidden" onchange="handleFoodScan(event)">
+    
+    <!-- Hidden File Inputs for Multi-Item Slot Photos -->
+    <input id="slotCameraInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleSlotPhotoCaptured(event)">
+    <input id="slotGalleryInput" type="file" accept="image/*" class="hidden" onchange="handleSlotPhotoCaptured(event)">
+
+    <!-- Multi-Item Meal Scanner Modal (ช่องสินค้า 1, 2, 3... ถ่ายได้หลายรูปต่อสินค้า) -->
+    <div id="mealBuilderModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-3 sm:p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-zinc-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
+                        <i class="ph-bold ph-camera-plus text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">บันทึกมื้ออาหาร (หลายสินค้า)</h3>
+                        <p class="text-[10px] text-slate-400">ถ่ายรูปสินค้า + ฉลากโภชนาการได้หลายรูปต่อช่อง</p>
+                    </div>
+                </div>
+                <button onclick="closeMealBuilderModal()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-slate-400 hover:text-white transition">
+                    <i class="ph-bold ph-x text-base"></i>
+                </button>
+            </div>
+
+            <!-- Meal Type Selector -->
+            <div>
+                <label class="text-[11px] font-semibold text-slate-400 mb-1.5 block">ประเภทมื้ออาหาร</label>
+                <div class="grid grid-cols-4 gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
+                    <button type="button" onclick="setBuilderMealType('breakfast')" id="builderMeal-breakfast" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white">🍳 เช้า</button>
+                    <button type="button" onclick="setBuilderMealType('lunch')" id="builderMeal-lunch" class="py-2 text-[11px] font-bold rounded-xl transition bg-brand-500 text-zinc-950 shadow-md">🍛 เที่ยง</button>
+                    <button type="button" onclick="setBuilderMealType('dinner')" id="builderMeal-dinner" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white">🥗 เย็น</button>
+                    <button type="button" onclick="setBuilderMealType('snack')" id="builderMeal-snack" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white">☕ ของว่าง</button>
+                </div>
+            </div>
+
+            <!-- Item Slots List (Scrollable) -->
+            <div id="mealBuilderSlots" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar min-h-[200px]">
+                <!-- Dynamic Slots injected by JS -->
+            </div>
+
+            <!-- Add Slot & Database Search Shortcuts -->
+            <div class="space-y-2 pt-1 border-t border-zinc-800/80">
+                <button type="button" onclick="addMealBuilderSlot()" class="w-full py-2.5 rounded-2xl border-2 border-dashed border-zinc-800 hover:border-brand-500/50 bg-zinc-950/60 hover:bg-zinc-950 text-xs font-bold text-slate-300 hover:text-brand-400 flex items-center justify-center gap-2 transition active:scale-98">
+                    <i class="ph-bold ph-plus-circle text-base"></i>
+                    <span>+ เพิ่มสินค้า/อาหารอีกรายการ (ช่องที่ <span id="nextSlotNumber">2</span>)</span>
+                </button>
+
+                <div class="flex items-center justify-between text-[11px] px-1 text-slate-400">
+                    <span>หรือเลือกจากสินค้าสะดวกซื้อ:</span>
+                    <button type="button" onclick="openOfficialSearchModal()" class="text-emerald-400 hover:underline font-semibold flex items-center gap-1">
+                        <i class="ph-bold ph-magnifying-glass"></i> ค้นหาฐานข้อมูล 7-Eleven
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analyze Action Button -->
+            <div class="pt-2">
+                <button id="btnAnalyzeAll" type="button" onclick="startMultiItemAnalysis()" disabled class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 disabled:from-zinc-800 disabled:to-zinc-800 text-zinc-950 disabled:text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-lg disabled:shadow-none active:scale-98 transition">
+                    <i class="ph-bold ph-sparkle text-lg"></i>
+                    <span id="analyzeBtnText">กรุณาถ่ายรูปอย่างน้อย 1 รายการ</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-Item Review Modal (สรุปผลหลายรายการก่อนบันทึก) -->
+    <div id="multiReviewModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-3 sm:p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <i class="ph-bold ph-check-circle text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">ผลการวิเคราะห์มื้ออาหาร</h3>
+                        <p class="text-[10px] text-slate-400">ตรวจสอบและแก้ไขก่อนบันทึก</p>
+                    </div>
+                </div>
+                <button onclick="closeMultiReviewModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Grand Totals Banner -->
+            <div class="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800/80 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-slate-400 font-medium">พลังงานรวมทั้งมื้อ</span>
+                    <span id="multiGrandCalories" class="text-xl font-black text-brand-400">0 kcal</span>
+                </div>
+                <div class="grid grid-cols-5 gap-1 pt-1.5 border-t border-zinc-800/60 text-center text-[10px]">
+                    <div>
+                        <span class="text-slate-500 block">โปรตีน</span>
+                        <span id="multiGrandP" class="font-bold text-white">0g</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">คาร์บ</span>
+                        <span id="multiGrandC" class="font-bold text-white">0g</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">ไขมัน</span>
+                        <span id="multiGrandF" class="font-bold text-white">0g</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">น้ำตาล</span>
+                        <span id="multiGrandSugar" class="font-bold text-amber-400">0g</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">โซเดียม</span>
+                        <span id="multiGrandSodium" class="font-bold text-cyan-400">0mg</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List of Analyzed Items -->
+            <div id="multiReviewItemsList" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar min-h-[180px]">
+                <!-- Dynamic Items -->
+            </div>
+
+            <!-- Save All Button -->
+            <div class="pt-2">
+                <button type="button" onclick="saveAllReviewedMeals()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-zinc-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-98 transition">
+                    <i class="ph-bold ph-floppy-disk text-lg"></i>
+                    <span>บันทึกมื้ออาหารนี้ทั้งหมด (<span id="multiSaveCount">0</span> รายการ)</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Photo Source Selector Modal -->
     <div id="photoSourceModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
@@ -1334,6 +1460,383 @@
             officialBadge.classList.remove('hidden');
 
             document.getElementById('reviewModal').classList.remove('hidden');
+        }
+
+        // ==========================================
+        // MULTI-ITEM MEAL BUILDER & MULTI-PHOTO SCANNER
+        // ==========================================
+        let mealBuilderItems = [];
+        let builderMealType = 'lunch';
+        let activeSlotIndex = 0;
+        let multiAnalyzedResults = [];
+
+        function openMealBuilderModal() {
+            if (mealBuilderItems.length === 0) {
+                mealBuilderItems = [
+                    { id: 1, label: 'สินค้า / อาหาร 1', photos: [] }
+                ];
+            }
+            document.getElementById('mealBuilderModal').classList.remove('hidden');
+            renderMealBuilderSlots();
+        }
+
+        function closeMealBuilderModal() {
+            document.getElementById('mealBuilderModal').classList.add('hidden');
+        }
+
+        function setBuilderMealType(type) {
+            builderMealType = type;
+            ['breakfast', 'lunch', 'dinner', 'snack'].forEach(t => {
+                const btn = document.getElementById(`builderMeal-${t}`);
+                if (!btn) return;
+                if (t === type) {
+                    btn.className = 'py-2 text-[11px] font-bold rounded-xl transition bg-brand-500 text-zinc-950 shadow-md';
+                } else {
+                    btn.className = 'py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white';
+                }
+            });
+        }
+
+        function addMealBuilderSlot() {
+            const nextNum = mealBuilderItems.length + 1;
+            mealBuilderItems.push({
+                id: Date.now(),
+                label: `สินค้า / อาหาร ${nextNum}`,
+                photos: []
+            });
+            renderMealBuilderSlots();
+            const container = document.getElementById('mealBuilderSlots');
+            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+        }
+
+        function removeMealBuilderSlot(index) {
+            if (mealBuilderItems.length <= 1) return;
+            mealBuilderItems.splice(index, 1);
+            mealBuilderItems.forEach((item, idx) => {
+                item.label = `สินค้า / อาหาร ${idx + 1}`;
+            });
+            renderMealBuilderSlots();
+        }
+
+        function renderMealBuilderSlots() {
+            const container = document.getElementById('mealBuilderSlots');
+            document.getElementById('nextSlotNumber').innerText = mealBuilderItems.length + 1;
+
+            let totalPhotos = 0;
+            let activeItemsWithPhotos = 0;
+
+            container.innerHTML = mealBuilderItems.map((slot, sIdx) => {
+                const count = slot.photos.length;
+                totalPhotos += count;
+                if (count > 0) activeItemsWithPhotos++;
+
+                const photosHtml = slot.photos.map((p, pIdx) => `
+                    <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-950 flex-shrink-0 group">
+                        <img src="${p.previewUrl}" class="w-full h-full object-cover">
+                        <button type="button" onclick="removeSlotPhoto(${sIdx}, ${pIdx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 hover:bg-rose-500 text-white flex items-center justify-center text-xs transition">
+                            <i class="ph-bold ph-x"></i>
+                        </button>
+                        <span class="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-center text-slate-300 py-0.5">
+                            ${pIdx === 0 ? 'หน้าซอง' : (pIdx === 1 ? 'ฉลาก' : '#' + (pIdx + 1))}
+                        </span>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="p-3.5 rounded-2xl bg-zinc-950 border ${count > 0 ? 'border-brand-500/40 bg-brand-500/5' : 'border-zinc-800/80'} space-y-2.5 transition">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-800 text-brand-400 font-bold text-xs flex items-center justify-center">
+                                    ${sIdx + 1}
+                                </span>
+                                <span class="text-xs font-bold text-white">${slot.label}</span>
+                                ${count > 0 ? `<span class="px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-[10px] font-bold">${count} รูป</span>` : ''}
+                            </div>
+                            ${mealBuilderItems.length > 1 ? `
+                                <button type="button" onclick="removeMealBuilderSlot(${sIdx})" class="text-slate-500 hover:text-rose-400 text-xs flex items-center gap-1 transition">
+                                    <i class="ph-bold ph-trash"></i> ลบช่อง
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <!-- Photo Thumbnails & Add Buttons -->
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                            ${photosHtml}
+
+                            <!-- Add Photo Trigger Buttons -->
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <button type="button" onclick="triggerSlotCamera(${sIdx})" class="h-16 px-3 rounded-xl border border-dashed border-zinc-700 hover:border-brand-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-brand-400 active:scale-95 transition">
+                                    <i class="ph-bold ph-camera text-base"></i>
+                                    <span class="text-[9px] font-bold">กล้อง</span>
+                                </button>
+                                <button type="button" onclick="triggerSlotGallery(${sIdx})" class="h-16 px-3 rounded-xl border border-dashed border-zinc-700 hover:border-sky-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-sky-400 active:scale-95 transition">
+                                    <i class="ph-bold ph-images text-base"></i>
+                                    <span class="text-[9px] font-bold">คลังภาพ</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-[10px] text-slate-500 flex items-center gap-1">
+                            <i class="ph-bold ph-lightbulb text-amber-400"></i>
+                            <span>แนะนำ: รูปที่ 1 ถ่ายหน้าซอง/ขวด | รูปที่ 2 ถ่ายตารางโภชนาการด้านหลัง</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const btn = document.getElementById('btnAnalyzeAll');
+            const btnText = document.getElementById('analyzeBtnText');
+
+            if (totalPhotos > 0) {
+                btn.removeAttribute('disabled');
+                btnText.innerText = `วิเคราะห์มื้ออาหาร (${activeItemsWithPhotos} รายการ / ${totalPhotos} รูป)`;
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btnText.innerText = 'กรุณาถ่ายรูปอย่างน้อย 1 รายการ';
+            }
+        }
+
+        function triggerSlotCamera(sIdx) {
+            activeSlotIndex = sIdx;
+            document.getElementById('slotCameraInput').click();
+        }
+
+        function triggerSlotGallery(sIdx) {
+            activeSlotIndex = sIdx;
+            document.getElementById('slotGalleryInput').click();
+        }
+
+        async function handleSlotPhotoCaptured(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.classList.remove('hidden');
+
+            try {
+                const compressed = await compressImage(file, 1280, 0.80);
+                const previewUrl = URL.createObjectURL(file);
+
+                mealBuilderItems[activeSlotIndex].photos.push({
+                    data: compressed.base64,
+                    mimeType: compressed.mimeType,
+                    previewUrl: previewUrl
+                });
+
+                loadingModal.classList.add('hidden');
+                renderMealBuilderSlots();
+            } catch (err) {
+                loadingModal.classList.add('hidden');
+                alert('เกิดข้อผิดพลาดในการโหลดรูป: ' + err.message);
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        function removeSlotPhoto(sIdx, pIdx) {
+            mealBuilderItems[sIdx].photos.splice(pIdx, 1);
+            renderMealBuilderSlots();
+        }
+
+        async function startMultiItemAnalysis() {
+            const itemsToAnalyze = mealBuilderItems.filter(item => item.photos.length > 0);
+            if (itemsToAnalyze.length === 0) return;
+
+            closeMealBuilderModal();
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.classList.remove('hidden');
+
+            multiAnalyzedResults = [];
+
+            for (let i = 0; i < itemsToAnalyze.length; i++) {
+                const item = itemsToAnalyze[i];
+                loadingModal.querySelector('.font-bold').innerText = `กำลังวิเคราะห์ ${item.label} (${i + 1}/${itemsToAnalyze.length})...`;
+
+                try {
+                    const payload = {
+                        images: item.photos.map(p => ({ data: p.data, mimeType: p.mimeType })),
+                        model: 'gemini-3.5-flash'
+                    };
+
+                    const res = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw new Error(data.error || 'Server error');
+                    }
+
+                    multiAnalyzedResults.push({
+                        id: 'item_' + Date.now() + '_' + i,
+                        name: data.name || item.label,
+                        calories: Number(data.calories) || 0,
+                        protein_g: Number(data.protein_g) || 0,
+                        carbs_g: Number(data.carbs_g) || 0,
+                        fat_g: Number(data.fat_g) || 0,
+                        sugar_g: Number(data.sugar_g) || 0,
+                        sodium_mg: Number(data.sodium_mg) || 0,
+                        portion: data.portion || '1 หน่วย',
+                        is_official: !!data.is_official,
+                        source: data.source || 'วิเคราะห์จากภาพหน้าซองและฉลาก'
+                    });
+                } catch (err) {
+                    console.error('Analysis failed for', item.label, err);
+                    multiAnalyzedResults.push({
+                        id: 'item_' + Date.now() + '_' + i,
+                        name: item.label,
+                        calories: 0,
+                        protein_g: 0,
+                        carbs_g: 0,
+                        fat_g: 0,
+                        sugar_g: 0,
+                        sodium_mg: 0,
+                        portion: '1 หน่วย',
+                        is_official: false,
+                        source: 'วิเคราะห์ไม่สำเร็จ (' + err.message + ')'
+                    });
+                }
+            }
+
+            loadingModal.classList.add('hidden');
+            loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
+
+            openMultiReviewModal();
+        }
+
+        function openMultiReviewModal() {
+            const modal = document.getElementById('multiReviewModal');
+            modal.classList.remove('hidden');
+            renderMultiReviewItems();
+        }
+
+        function closeMultiReviewModal() {
+            document.getElementById('multiReviewModal').classList.add('hidden');
+        }
+
+        function renderMultiReviewItems() {
+            const listEl = document.getElementById('multiReviewItemsList');
+            document.getElementById('multiSaveCount').innerText = multiAnalyzedResults.length;
+
+            listEl.innerHTML = multiAnalyzedResults.map((item, idx) => `
+                <div class="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 flex-1 mr-2">
+                            <input type="text" value="${item.name}" oninput="updateMultiItemProp(${idx}, 'name', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-1 text-xs text-white font-bold focus:outline-none focus:border-brand-500">
+                        </div>
+                        ${item.is_official ? `
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold flex items-center gap-1 flex-shrink-0">
+                                <i class="ph-bold ph-seal-check"></i> ทางการ
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[9px] text-slate-400">แคลอรี่ (kcal)</label>
+                            <input type="number" value="${item.calories}" oninput="updateMultiItemProp(${idx}, 'calories', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1.5 text-xs text-brand-400 font-black text-center">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400">โปรตีน (g)</label>
+                            <input type="number" value="${item.protein_g}" oninput="updateMultiItemProp(${idx}, 'protein_g', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1.5 text-xs text-white font-bold text-center">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400">คาร์บ (g)</label>
+                            <input type="number" value="${item.carbs_g}" oninput="updateMultiItemProp(${idx}, 'carbs_g', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1.5 text-xs text-white font-bold text-center">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-1 border-t border-zinc-800/60">
+                        <div>
+                            <label class="text-[9px] text-slate-400">ไขมัน (g)</label>
+                            <input type="number" value="${item.fat_g}" oninput="updateMultiItemProp(${idx}, 'fat_g', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1.5 text-xs text-white font-bold text-center">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400">น้ำตาล (g)</label>
+                            <input type="number" value="${item.sugar_g}" oninput="updateMultiItemProp(${idx}, 'sugar_g', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1.5 text-xs text-amber-400 font-bold text-center">
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400">โซเดียม (mg)</label>
+                            <input type="number" value="${item.sodium_mg}" oninput="updateMultiItemProp(${idx}, 'sodium_mg', this.value)" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1.5 text-xs text-cyan-400 font-bold text-center">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            recalcMultiGrandTotals();
+        }
+
+        function updateMultiItemProp(idx, prop, val) {
+            if (prop === 'name') {
+                multiAnalyzedResults[idx].name = val;
+            } else {
+                multiAnalyzedResults[idx][prop] = Number(val) || 0;
+            }
+            recalcMultiGrandTotals();
+        }
+
+        function recalcMultiGrandTotals() {
+            let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
+            multiAnalyzedResults.forEach(item => {
+                totalCal += Number(item.calories) || 0;
+                totalP += Number(item.protein_g) || 0;
+                totalC += Number(item.carbs_g) || 0;
+                totalF += Number(item.fat_g) || 0;
+                totalSugar += Number(item.sugar_g) || 0;
+                totalSodium += Number(item.sodium_mg) || 0;
+            });
+
+            document.getElementById('multiGrandCalories').innerText = `${Math.round(totalCal)} kcal`;
+            document.getElementById('multiGrandP').innerText = `${totalP.toFixed(1)}g`;
+            document.getElementById('multiGrandC').innerText = `${totalC.toFixed(1)}g`;
+            document.getElementById('multiGrandF').innerText = `${totalF.toFixed(1)}g`;
+            document.getElementById('multiGrandSugar').innerText = `${totalSugar.toFixed(1)}g`;
+            document.getElementById('multiGrandSodium').innerText = `${Math.round(totalSodium)}mg`;
+        }
+
+        function saveAllReviewedMeals() {
+            const today = new Date().toISOString().split('T')[0];
+            const nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+            multiAnalyzedResults.forEach(item => {
+                const newMeal = {
+                    id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                    date: today,
+                    time: nowTime,
+                    name: item.name.trim() || 'อาหาร',
+                    meal_type: builderMealType,
+                    calories: Number(item.calories) || 0,
+                    protein_g: Number(item.protein_g) || 0,
+                    carbs_g: Number(item.carbs_g) || 0,
+                    fat_g: Number(item.fat_g) || 0,
+                    sugar_g: Number(item.sugar_g) || 0,
+                    sodium_mg: Number(item.sodium_mg) || 0,
+                    is_official: !!item.is_official,
+                    source: item.source || ''
+                };
+
+                meals.unshift(newMeal);
+
+                // Auto-Save Crowdsource Database ในพื้นหลัง
+                if (newMeal.is_official) {
+                    fetch('/api/products', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newMeal)
+                    }).catch(() => {});
+                }
+            });
+
+            localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
+            renderHomeDashboard();
+            closeMultiReviewModal();
+
+            // รีเซ็ตตัวสร้างมื้ออาหาร
+            mealBuilderItems = [
+                { id: 1, label: 'สินค้า / อาหาร 1', photos: [] }
+            ];
         }
 
         window.onload = initApp;

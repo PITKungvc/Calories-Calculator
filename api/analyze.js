@@ -12,23 +12,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, mimeType = 'image/jpeg', model = 'gemini-3.5-flash' } = req.body;
-    if (!image) {
+    const { model = 'gemini-3.5-flash' } = req.body;
+
+    // รองรับทั้งภาพเดี่ยว (image, mimeType) และหลายภาพต่อสินค้า (images: [{ data, mimeType }]) เช่น ภาพหน้าซอง + ฉลากโภชนาการ
+    let inputImages = [];
+    if (Array.isArray(req.body.images) && req.body.images.length > 0) {
+      inputImages = req.body.images;
+    } else if (req.body.image) {
+      inputImages = [{ data: req.body.image, mimeType: req.body.mimeType || 'image/jpeg' }];
+    }
+
+    if (inputImages.length === 0) {
       return res.status(400).json({ error: 'Image data is required' });
     }
 
     const prompt = `คุณคือ AI ผู้เชี่ยวชาญด้านโภชนาการและฐานข้อมูลสินค้าอาหารไทย/สากล
-วิเคราะห์ภาพอาหารหรือสินค้าในภาพนี้อย่างละเอียด:
+วิเคราะห์ภาพอาหารหรือสินค้าในชุดภาพนี้อย่างละเอียด:
+(ผู้ใช้อาจส่งภาพของสินค้าเดียวกันหลายมุม เช่น ภาพที่ 1 เป็นหน้าซอง/ขวด และภาพที่ 2+ เป็นตารางโภชนาการ Nutrition Facts หรือฉลาก GDA หวานมันเค็ม ด้านหลังหรือด้านข้าง)
 
 กฎสำคัญในการประมวลผล:
-1. หากเป็น "สินค้าสำเร็จรูป / ขนม / เครื่องดื่ม / อาหารกล่องในร้านสะดวกซื้อ" (เช่น 7-Eleven, Lawson, Big C, Lotus's, CP, Betagro, Meiji, ดัชมิลล์, เลย์, มาม่า, อิชิตัน ฯลฯ):
-   - หากเห็น "ตารางโภชนาการ (Nutrition Facts)" หรือ "ฉลากหวานมันเค็ม (GDA)" ให้ดึงตัวเลข แคลอรี่, โปรตีน, คาร์บ, ไขมัน, น้ำตาล (sugar_g), โซเดียม (sodium_mg) ตามฉลากทางการ 100%
-   - หากเห็นเฉพาะหน้าซอง/แพ็กเกจ ให้ระบุชื่อสินค้าพร้อมแบรนด์ทางการ และดึงตัวเลขโภชนาการตามฐานข้อมูลทางการของผู้ผลิต
-   - กำหนดค่า is_official: true และระบุ source เช่น "ฐานข้อมูลทางการ 7-Eleven / CP"
-2. ระวังเป็นพิเศษกับกลุ่ม "เครื่องดื่ม 0 แคลอรี / 0% น้ำตาล / ไม่มีน้ำตาล (Zero Sugar / 0 Calorie)" เช่น Cielo (เซียโล่ สปาร์คกลิ้งโซดา 0 แคล), Singha Lemon Soda 0 Cal, Coke Zero, Pepsi No Sugar, Mansome 0% Sugar:
-   - เครื่องดื่มกลุ่มนี้ แคลอรี่ต้องเป็น 0, โปรตีน 0, ไขมัน 0, คาร์บ 0, น้ำตาล (sugar_g) 0 (โซเดียมประมาณ 15-35 mg ตามฉลาก)
-   - ห้ามประเมินเป็นเครื่องดื่มหวานหรือน้ำอัดลมปกติเด็ดขาด ให้ใช้ตัวเลขทางการ 0 แคล และ 0 น้ำตาล
-3. หากเป็น "อาหารปรุงสด / อาหารตามสั่ง / สตรีทฟู้ด":
+1. หากมีภาพ "ตารางโภชนาการ (Nutrition Facts)" หรือ "ฉลากหวานมันเค็ม (GDA)" ให้ดึงตัวเลข แคลอรี่, โปรตีน, คาร์บ, ไขมัน, น้ำตาล (sugar_g), โซเดียม (sodium_mg) ตามที่พิมพ์อยู่บนตารางจริง 100%
+2. ใช้ภาพหน้าซอง/ขวดประกอบเพื่อระบุชื่อสินค้าพร้อมแบรนด์ทางการ (เช่น เครื่องดื่ม Cielo สปาร์คกลิ้ง, อกไก่นุ่ม CP, แซนวิช 7-Eleven) และระบุ portion ตามขนาดบรรจุจริง
+3. ระวังเป็นพิเศษกับกลุ่ม "เครื่องดื่ม 0 แคลอรี / 0% น้ำตาล / ไม่มีน้ำตาล (Zero Sugar / 0 Calorie)" เช่น Cielo (เซียโล่ สปาร์คกลิ้งโซดา 0 แคล), Singha Lemon Soda 0 Cal, Coke Zero, Pepsi No Sugar, Mansome 0% Sugar:
+   - เครื่องดื่มกลุ่มนี้ แคลอรี่ต้องเป็น 0, โปรตีน 0, ไขมัน 0, คาร์บ 0, น้ำตาล (sugar_g) 0 (โซเดียมอิงตามที่อ่านได้จากตารางฉลากหลังขวด เช่น 160 mg สำหรับ Cielo แอปเปิ้ล)
+   - ห้ามประเมินเป็นเครื่องดื่มหวานหรือน้ำอัดลมปกติเด็ดขาด
+4. หากเป็น "อาหารปรุงสด / อาหารตามสั่ง / สตรีทฟู้ด":
    - ประเมินปริมาณ แคลอรี่ Macro พร้อมประเมิน น้ำตาล (sugar_g) และ โซเดียม (sodium_mg) ตามสูตรมาตรฐาน
    - กำหนดค่า is_official: false และระบุ source: "ประมาณการโดย AI"
 
@@ -42,9 +50,9 @@ export default async function handler(req, res) {
   "carbs_g": 0.0,
   "fat_g": 0.0,
   "sugar_g": 0.0,
-  "sodium_mg": 25,
+  "sodium_mg": 160,
   "is_official": true,
-  "source": "ฐานข้อมูลทางการ 7-Eleven / AJE Thai"
+  "source": "ฉลากทางการ 7-Eleven / AJE Thai"
 }`;
 
     const candidateModels = [model, 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
@@ -56,7 +64,18 @@ export default async function handler(req, res) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3800);
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+      // สร้าง content parts รวมข้อความและรูปภาพทั้งหมดในชุด
+      const contentParts = [{ text: prompt }];
+      for (const img of inputImages) {
+        contentParts.push({
+          inline_data: {
+            mime_type: img.mimeType || 'image/jpeg',
+            data: img.data
+          }
+        });
+      }
 
       try {
         const response = await fetch(endpoint, {
@@ -66,10 +85,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             contents: [
               {
-                parts: [
-                  { text: prompt },
-                  { inline_data: { mime_type: mimeType, data: image } }
-                ]
+                parts: contentParts
               }
             ],
             generationConfig: {
