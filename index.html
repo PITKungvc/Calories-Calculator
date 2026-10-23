@@ -203,6 +203,30 @@
                 </div>
             </div>
 
+            <!-- Next Meal Smart Recommendation Banner (คำแนะนำสำหรับมื้อถัดไป) -->
+            <div id="nextMealAdviceCard" class="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 space-y-2 transition">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div id="nextMealIconBox" class="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-sm">
+                            <i id="nextMealIcon" class="ph-bold ph-sparkle"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">คำแนะนำสำหรับมื้อถัดไป</span>
+                            <span id="nextMealTitle" class="text-xs font-extrabold text-white">มื้อกลางวัน</span>
+                        </div>
+                    </div>
+                    <span id="nextMealBudgetBadge" class="px-2.5 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 font-bold text-[10px]">
+                        โควต้า ~550 kcal
+                    </span>
+                </div>
+                <p id="nextMealAdviceText" class="text-xs text-slate-300 leading-relaxed font-medium">
+                    กำลังคำนวณคำแนะนำโภชนาการ...
+                </p>
+                <div id="nextMealTags" class="flex flex-wrap gap-1.5 pt-0.5">
+                    <!-- Dynamic Recommendation Chips -->
+                </div>
+            </div>
+
             <!-- Today Food Items List -->
             <div class="space-y-3 pt-1">
                 <div class="flex justify-between items-center px-1">
@@ -978,7 +1002,7 @@
         <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
-                    <i class="ph-bold ph-sparkle"></i> ผลการประเมินสารอาหาร
+                    <i class="ph-bold ph-sparkle"></i> <span id="reviewModalTitle">ผลการประเมินสารอาหาร</span>
                 </span>
                 <button onclick="closeReviewModal()" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
@@ -1038,7 +1062,7 @@
                 </div>
             </div>
 
-            <button onclick="confirmSaveMeal()" class="w-full py-4 bg-brand-500 hover:bg-brand-400 text-zinc-950 font-black rounded-2xl active:scale-95 transition shadow-lg text-sm">
+            <button id="btnConfirmSaveMeal" onclick="confirmSaveMeal()" class="w-full py-4 bg-brand-500 hover:bg-brand-400 text-zinc-950 font-black rounded-2xl active:scale-95 transition shadow-lg text-sm">
                 ✅ ยืนยันบันทึกมื้ออาหารนี้
             </button>
         </div>
@@ -1229,12 +1253,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
                         <div class="text-right">
                             <span class="font-extrabold text-sm text-brand-400">${cal}</span>
                             <span class="text-[10px] text-slate-500 block">kcal</span>
                         </div>
-                        <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition">
+                        <button onclick="openEditMealModal('${m.id}')" class="p-2 text-slate-400 hover:text-brand-400 active:scale-90 transition" title="แก้ไขมื้อนี้">
+                            <i class="ph-bold ph-pencil-simple text-base"></i>
+                        </button>
+                        <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition" title="ลบรายการ">
                             <i class="ph-bold ph-trash text-base"></i>
                         </button>
                     </div>
@@ -1312,6 +1339,111 @@
             const circumference = 251.2;
             const offset = circumference - (circumference * percent / 100);
             document.getElementById('progressCircle').style.strokeDashoffset = offset;
+
+            // คำนวณคำแนะนำสำหรับมื้อถัดไป
+            renderNextMealAdvice(totalCal, totalP, totalC, totalF, totalSugar, totalSodium, mealBreakdown, targets, remaining);
+        }
+
+        // ==========================================
+        // NEXT MEAL SMART RECOMMENDATION LOGIC
+        // ==========================================
+        function renderNextMealAdvice(totalCal, totalP, totalC, totalF, totalSugar, totalSodium, mealBreakdown, targets, remainingCal) {
+            const adviceCard = document.getElementById('nextMealAdviceCard');
+            const titleEl = document.getElementById('nextMealTitle');
+            const badgeEl = document.getElementById('nextMealBudgetBadge');
+            const textEl = document.getElementById('nextMealAdviceText');
+            const tagsEl = document.getElementById('nextMealTags');
+            const iconEl = document.getElementById('nextMealIcon');
+            const iconBox = document.getElementById('nextMealIconBox');
+
+            if (!adviceCard || !titleEl) return;
+
+            const hour = new Date().getHours();
+            const minute = new Date().getMinutes();
+            const timeVal = hour + minute / 60;
+
+            const remainingP = Math.max(0, targets.protein - totalP);
+            const remainingSodium = Math.max(0, targets.sodium - totalSodium);
+
+            let nextMealKey = 'lunch';
+            let mealName = 'มื้อกลางวัน';
+            let iconClass = 'ph-bold ph-sun';
+            let budget = 0;
+            let adviceMsg = '';
+            let tags = [];
+
+            // 1. ตรวจสอบว่าแคลอรี่เกินหรือครบแล้วหรือไม่
+            if (remainingCal <= 0) {
+                titleEl.innerText = 'ครบโควต้าพลังงานวันนี้แล้ว';
+                badgeEl.innerText = `เกินเป้า ${Math.abs(remainingCal).toLocaleString()} kcal`;
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-[10px]';
+                iconEl.className = 'ph-bold ph-warning-circle text-rose-400';
+                iconBox.className = 'w-7 h-7 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-sm';
+                textEl.innerText = `วันนี้ได้รับพลังงานครบตามเป้าหมาย ${config.goal} kcal แล้ว แนะนำงดอาหารมื้อหนัก หากยังหิวแนะนำดื่มน้ำเปล่า, ชาอุ่นไม่ใส่น้ำตาล หรือเครื่องดื่ม 0 แคลอรี`;
+                tags = ['💧 ดื่มน้ำเปล่า 1 แก้ว', '🍵 ชาเขียวอุ่น 0 Cal', '🫧 เครื่องดื่ม 0 Cal'];
+                tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
+                return;
+            }
+
+            // 2. เลือกมื้อถัดไปตามเวลาและประวัติการกินจริงของวันนี้
+            if (timeVal < 10.5 && mealBreakdown.breakfast === 0) {
+                nextMealKey = 'breakfast';
+                mealName = 'มื้อเช้า (Breakfast)';
+                iconClass = 'ph-bold ph-egg';
+                budget = Math.min(remainingCal, Math.round(config.goal * 0.30));
+                adviceMsg = `มื้อเช้าควรเน้นโปรตีนและคาร์บเชิงซ้อนเพื่อให้พลังงานยาวนาน แนะนำไข่ต้ม, ข้าวกล้อง หรือแซนวิชโฮลวีท (โควต้า ~${budget} kcal)`;
+                tags = ['🥚 ไข่ต้ม 2 ฟอง', '🍞 ขนมปังโฮลวีท', '🥣 ข้าวต้มอกไก่', '☕ กาแฟดำไม่หวาน'];
+            } else if ((timeVal < 14.5 || mealBreakdown.breakfast > 0) && mealBreakdown.lunch === 0) {
+                nextMealKey = 'lunch';
+                mealName = 'มื้อกลางวัน (Lunch)';
+                iconClass = 'ph-bold ph-sun';
+                budget = Math.min(remainingCal, Math.round(remainingCal * 0.55));
+
+                if (totalSodium > 1200) {
+                    adviceMsg = `มื้อเช้าโซเดียมสะสมสูง (${Math.round(totalSodium)}mg) มื้อกลางวันควรเลี่ยงน้ำซุป/แกงจืด เน้นโปรตีนย่างหรือต้ม (โควต้า ~${budget} kcal)`;
+                    tags = ['🍗 ข้าวอกไก่ย่าง', '🥩 เกาเหลาแห้ง', '🐟 ข้าวปลาซาบะ', '🥗 สลัดผัก'];
+                } else if (remainingP > 30) {
+                    adviceMsg = `ร่างกายต้องการโปรตีนอีก ${Math.round(remainingP)}g แนะนำเลือกมื้อโปรตีนสูง เช่น อกไก่, สเต๊กเนื้อไม่ติดมัน (โควต้า ~${budget} kcal)`;
+                    tags = ['🍗 ข้าวอกไก่นุ่ม', '🥩 สเต๊กสันใน', '🍲 สุกี้อกไก่', '🍳 ไข่เจียวไร้น้ำมัน'];
+                } else {
+                    adviceMsg = `มื้อกลางวันเน้นอาหารจานเดียวที่สมดุล แป้งปานกลาง โปรตีนแน่น ผักเยอะ (โควต้า ~${budget} kcal)`;
+                    tags = ['🍛 กะเพราไก่ไม่มัน', '🍲 ก๋วยเตี๋ยวน้ำใส', '🥩 ข้าวหน้าเนื้อย่าง', '🥗 สลัดปลา'];
+                }
+            } else if (timeVal < 17.5 && mealBreakdown.lunch > 0 && mealBreakdown.snack === 0 && remainingCal > 350) {
+                nextMealKey = 'snack';
+                mealName = 'ของว่างยามบ่าย (Afternoon Snack)';
+                iconClass = 'ph-bold ph-coffee';
+                budget = Math.min(remainingCal, Math.round(remainingCal * 0.30));
+                adviceMsg = `เติมพลังช่วงบ่ายด้วยของว่างโปรตีนสูง/น้ำตาลต่ำ ป้องกันหิวจัดในมื้อเย็น (โควต้า ~${budget} kcal)`;
+                tags = ['🥛 เมจิ ไฮโปรตีน', '🥣 กรีกโยเกิร์ต 0%', '🍎 แอปเปิ้ล 1 ลูก', '🥜 อัลมอนด์ 10 เม็ด'];
+            } else if (mealBreakdown.dinner === 0) {
+                nextMealKey = 'dinner';
+                mealName = 'มื้อเย็น (Dinner)';
+                iconClass = 'ph-bold ph-moon-stars';
+                budget = remainingCal;
+
+                if (totalSugar > targets.sugar * 0.8) {
+                    adviceMsg = `น้ำตาลวันนี้ใกล้เต็มเกณฑ์แล้ว มื้อเย็นควรงดของหวาน/น้ำหวาน เน้นโปรตีนย่อยง่ายและผักใบเขียว (โควต้า ~${budget} kcal)`;
+                } else {
+                    adviceMsg = `มื้อเย็นควรลดแป้ง เน้นโปรตีนและผักเพื่อการเผาผลาญที่ดีช่วงนอนหลับ โซเดียมเหลืออีก ${Math.round(remainingSodium)}mg (โควต้า ~${budget} kcal)`;
+                }
+                tags = ['🐟 ปลานึ่งมะนาว', '🍲 สุกี้น้ำอกไก่', '🥗 สลัดผักอกไก่', '🍳 ไข่ตุ๋นกุ้งสด'];
+            } else {
+                nextMealKey = 'snack';
+                mealName = 'ของว่างเบาๆ ก่อนนอน (Light Snack)';
+                iconClass = 'ph-bold ph-sparkle';
+                budget = remainingCal;
+                adviceMsg = `บันทึกมื้อหลักครบทุกมื้อแล้ว หากยังรู้สึกหิว แนะนำของว่างเบาๆ ย่อยง่าย เช่น นมอุ่น หรือผลไม้สด (เหลือโควต้า ~${budget} kcal)`;
+                tags = ['🥛 นมอุ่น 1 แก้ว', '💧 น้ำเปล่า', '🍵 ชาคาโมมายล์', '🍌 กล้วยหอมครึ่งลูก'];
+            }
+
+            titleEl.innerText = mealName;
+            badgeEl.innerText = `โควต้า ~${budget} kcal`;
+            badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 font-bold text-[10px]';
+            iconEl.className = `${iconClass} text-brand-400`;
+            iconBox.className = 'w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-sm';
+            textEl.innerText = adviceMsg;
+            tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
         }
 
         // ==========================================
@@ -1377,7 +1509,10 @@
                                 <span class="font-extrabold text-sm text-brand-400">${cal}</span>
                                 <span class="text-[10px] text-slate-500 block">kcal</span>
                             </div>
-                            <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition">
+                            <button onclick="openEditMealModal('${m.id}')" class="p-2 text-slate-400 hover:text-brand-400 active:scale-90 transition" title="แก้ไขมื้อนี้">
+                                <i class="ph-bold ph-pencil-simple text-base"></i>
+                            </button>
+                            <button onclick="deleteMeal('${m.id}')" class="p-2 text-slate-500 hover:text-rose-500 active:scale-90 transition" title="ลบรายการ">
                                 <i class="ph-bold ph-trash text-base"></i>
                             </button>
                         </div>
@@ -1876,40 +2011,108 @@
             }
         }
 
+        let currentEditingMealId = null;
+
+        function openEditMealModal(mealId) {
+            const meal = meals.find(m => m.id === mealId);
+            if (!meal) return;
+
+            currentEditingMealId = mealId;
+
+            document.getElementById('editName').value = meal.name || '';
+            document.getElementById('editMealType').value = meal.meal_type || 'lunch';
+            document.getElementById('editCal').value = Number(meal.calories) || 0;
+            document.getElementById('editP').value = Number(meal.protein_g) || 0;
+            document.getElementById('editC').value = Number(meal.carbs_g) || 0;
+            document.getElementById('editF').value = Number(meal.fat_g) || 0;
+            document.getElementById('editSugar').value = Number(meal.sugar_g) || 0;
+            document.getElementById('editSodium').value = Number(meal.sodium_mg) || 0;
+
+            const modalTitle = document.getElementById('reviewModalTitle');
+            if (modalTitle) modalTitle.innerText = 'แก้ไขข้อมูลมื้ออาหาร';
+
+            const saveBtn = document.getElementById('btnConfirmSaveMeal');
+            if (saveBtn) saveBtn.innerHTML = '💾 บันทึกการแก้ไข';
+
+            const officialBadge = document.getElementById('officialBadge');
+            if (meal.is_official) {
+                document.getElementById('sourceText').innerText = meal.source || 'ข้อมูลทางการ';
+                officialBadge?.classList.remove('hidden');
+            } else {
+                officialBadge?.classList.add('hidden');
+            }
+
+            document.getElementById('reviewModal').classList.remove('hidden');
+        }
+
         function closeReviewModal() {
             document.getElementById('reviewModal').classList.add('hidden');
+            currentEditingMealId = null;
+            const modalTitle = document.getElementById('reviewModalTitle');
+            if (modalTitle) modalTitle.innerText = 'ผลการประเมินสารอาหาร';
+            const saveBtn = document.getElementById('btnConfirmSaveMeal');
+            if (saveBtn) saveBtn.innerHTML = '✅ ยืนยันบันทึกมื้ออาหารนี้';
         }
 
         function confirmSaveMeal() {
-            const newMeal = {
-                id: 'meal_' + Date.now(),
-                date: new Date().toISOString().split('T')[0],
-                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-                name: document.getElementById('editName').value.trim() || 'อาหาร',
-                meal_type: document.getElementById('editMealType').value,
-                calories: Number(document.getElementById('editCal').value) || 0,
-                protein_g: Number(document.getElementById('editP').value) || 0,
-                carbs_g: Number(document.getElementById('editC').value) || 0,
-                fat_g: Number(document.getElementById('editF').value) || 0,
-                sugar_g: Number(document.getElementById('editSugar').value) || 0,
-                sodium_mg: Number(document.getElementById('editSodium').value) || 0,
-                is_official: currentScanMeta.is_official,
-                source: currentScanMeta.source
-            };
+            const name = document.getElementById('editName').value.trim() || 'อาหาร';
+            const mealType = document.getElementById('editMealType').value;
+            const cal = Number(document.getElementById('editCal').value) || 0;
+            const p = Number(document.getElementById('editP').value) || 0;
+            const c = Number(document.getElementById('editC').value) || 0;
+            const f = Number(document.getElementById('editF').value) || 0;
+            const sugar = Number(document.getElementById('editSugar').value) || 0;
+            const sodium = Number(document.getElementById('editSodium').value) || 0;
 
-            meals.unshift(newMeal);
+            if (currentEditingMealId) {
+                // อัปเดตรายการมื้ออาหารเดิมที่ถูกแก้ไข
+                const idx = meals.findIndex(m => m.id === currentEditingMealId);
+                if (idx !== -1) {
+                    meals[idx].name = name;
+                    meals[idx].meal_type = mealType;
+                    meals[idx].calories = cal;
+                    meals[idx].protein_g = p;
+                    meals[idx].carbs_g = c;
+                    meals[idx].fat_g = f;
+                    meals[idx].sugar_g = sugar;
+                    meals[idx].sodium_mg = sodium;
+                }
+            } else {
+                // บันทึกมื้ออาหารใหม่
+                const newMeal = {
+                    id: 'meal_' + Date.now(),
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                    name: name,
+                    meal_type: mealType,
+                    calories: cal,
+                    protein_g: p,
+                    carbs_g: c,
+                    fat_g: f,
+                    sugar_g: sugar,
+                    sodium_mg: sodium,
+                    is_official: currentScanMeta.is_official,
+                    source: currentScanMeta.source
+                };
+
+                meals.unshift(newMeal);
+
+                // Auto-Save Crowdsource Database (ถ้าเป็นสินค้าทางการ หรือตรวจจากฉลาก จะซิงค์ไปยังฐานข้อมูลกลาง)
+                if (newMeal.is_official) {
+                    fetch('/api/products', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newMeal)
+                    }).catch(() => {});
+                }
+            }
+
             localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
             renderHomeDashboard();
-            closeReviewModal();
-
-            // Auto-Save Crowdsource Database (ถ้าเป็นสินค้าทางการ หรือตรวจจากฉลาก จะซิงค์ไปยังฐานข้อมูลกลาง)
-            if (newMeal.is_official) {
-                fetch('/api/products', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newMeal)
-                }).catch(() => {});
+            if (!document.getElementById('viewHistory').classList.contains('hidden')) {
+                renderHistoryView();
             }
+            closeReviewModal();
         }
 
         function deleteMeal(id) {
@@ -2119,12 +2322,35 @@
         let activeSlotTag = 'product';
         let currentNormalPhoto = null;
 
+        function getAutoMealTypeByCurrentTime() {
+            const hour = new Date().getHours();
+            const minute = new Date().getMinutes();
+            const timeVal = hour + minute / 60;
+
+            if (timeVal >= 4.0 && timeVal < 10.5) {
+                return 'breakfast'; // 04:00 - 10:29 -> มื้อเช้า
+            } else if (timeVal >= 10.5 && timeVal < 14.5) {
+                return 'lunch'; // 10:30 - 14:29 -> มื้อกลางวัน
+            } else if (timeVal >= 14.5 && timeVal < 17.5) {
+                return 'snack'; // 14:30 - 17:29 -> ของว่างบ่าย
+            } else if (timeVal >= 17.5 && timeVal < 21.5) {
+                return 'dinner'; // 17:30 - 21:29 -> มื้อเย็น
+            } else {
+                return 'snack'; // 21:30 - 03:59 -> ของว่าง/มื้อดึก
+            }
+        }
+
         function openMealBuilderModal() {
             if (mealBuilderItems.length === 0) {
                 mealBuilderItems = [
                     { id: 1, label: 'สินค้า / อาหาร 1', photos: [] }
                 ];
             }
+
+            // ตรวจสอบเวลาปัจจุบันและเลือกช่วงเวลามื้ออาหารอัตโนมัติ
+            const autoMeal = getAutoMealTypeByCurrentTime();
+            setBuilderMealType(autoMeal);
+
             document.getElementById('mealBuilderModal').classList.remove('hidden');
             switchBuilderMode('normal');
         }
