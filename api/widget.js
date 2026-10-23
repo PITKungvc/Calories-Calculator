@@ -76,6 +76,9 @@ export default async function handler(req, res) {
     widgetCache.totalCal = 0;
     widgetCache.remainingCal = widgetCache.goalCal;
     widgetCache.percent = 0;
+    widgetCache.protein = 0;
+    widgetCache.carbs = 0;
+    widgetCache.fat = 0;
     widgetCache.date = todayBkk;
     widgetCache.advice = "พร้อมบันทึกอาหารมื้อแรกของวัน";
     widgetCache.nextMeal = "มื้อเช้า (Breakfast)";

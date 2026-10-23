@@ -1924,6 +1924,9 @@
                 const todayStr = getLocalDateString();
                 const todayMeals = meals.filter(m => m.date === todayStr);
                 const totalCal = todayMeals.reduce((acc, cur) => acc + (Number(cur.calories) || 0), 0);
+                const totalP = todayMeals.reduce((acc, cur) => acc + (Number(cur.protein_g) || 0), 0);
+                const totalC = todayMeals.reduce((acc, cur) => acc + (Number(cur.carbs_g) || 0), 0);
+                const totalF = todayMeals.reduce((acc, cur) => acc + (Number(cur.fat_g) || 0), 0);
                 const goal = Number(config.goal) || 2000;
                 const remaining = goal - totalCal;
                 const percent = goal > 0 ? Math.round((totalCal / goal) * 100) : 0;
@@ -1942,9 +1945,9 @@
                     date: dateStr,
                     nextMeal: overrides.nextMeal || 'มื้อถัดไป',
                     advice: overrides.advice || (remaining <= 0 ? `วันนี้ครบเป้าหมาย ${goal} kcal แล้ว` : `เหลืออีก ${remaining} kcal`),
-                    protein: overrides.protein || 0,
-                    carbs: overrides.carbs || 0,
-                    fat: overrides.fat || 0,
+                    protein: overrides.protein !== undefined ? overrides.protein : Math.round(totalP),
+                    carbs: overrides.carbs !== undefined ? overrides.carbs : Math.round(totalC),
+                    fat: overrides.fat !== undefined ? overrides.fat : Math.round(totalF),
                     ...overrides
                 };
 
@@ -3774,6 +3777,9 @@ async function createWidget() {
     goalCal: ${userGoal},
     remainingCal: ${userGoal},
     percent: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
     date: getTodayThaiDate(),
     nextMeal: "มื้อถัดไป",
     advice: "กำลังรอข้อมูลมื้อแรกของวัน..."
@@ -3842,13 +3848,43 @@ async function createWidget() {
   statusLabel.textColor = isOver ? new Color("#fb7185") : new Color("#fdba74");
   statusLabel.font = Font.boldSystemFont(11);
 
-  rightCol.addSpacer(5);
+  rightCol.addSpacer(3);
+
+  // Macro Badges (Protein, Carbs, Fat)
+  const macroRow = rightCol.addStack();
+  macroRow.centerAlignContent();
+
+  const pText = macroRow.addText(\`P: \${Math.round(Number(data.protein) || 0)}g\`);
+  pText.textColor = new Color("#38bdf8");
+  pText.font = Font.boldSystemFont(10);
+
+  macroRow.addSpacer(5);
+  const dot1 = macroRow.addText("•");
+  dot1.textColor = new Color("#52525b");
+  dot1.font = Font.boldSystemFont(9);
+  macroRow.addSpacer(5);
+
+  const cText = macroRow.addText(\`C: \${Math.round(Number(data.carbs) || 0)}g\`);
+  cText.textColor = new Color("#fbbf24");
+  cText.font = Font.boldSystemFont(10);
+
+  macroRow.addSpacer(5);
+  const dot2 = macroRow.addText("•");
+  dot2.textColor = new Color("#52525b");
+  dot2.font = Font.boldSystemFont(9);
+  macroRow.addSpacer(5);
+
+  const fText = macroRow.addText(\`F: \${Math.round(Number(data.fat) || 0)}g\`);
+  fText.textColor = new Color("#f472b6");
+  fText.font = Font.boldSystemFont(10);
+
+  rightCol.addSpacer(4);
 
   // Advice Card Box
   const adviceBox = rightCol.addStack();
   adviceBox.backgroundColor = new Color("#18181b");
   adviceBox.cornerRadius = 8;
-  adviceBox.setPadding(5, 8, 5, 8);
+  adviceBox.setPadding(4, 8, 4, 8);
   adviceBox.layoutVertically();
 
   const mealTitle = adviceBox.addText(\`🥗 แนะนำ \${data.nextMeal}:\`);
@@ -3859,7 +3895,7 @@ async function createWidget() {
 
   const adviceDesc = adviceBox.addText(data.advice || "พร้อมบันทึกอาหารมื้อแรกของวัน");
   adviceDesc.textColor = new Color("#d4d4d8");
-  adviceDesc.font = Font.systemFont(10);
+  adviceDesc.font = Font.systemFont(9.5);
   adviceDesc.lineLimit = 2;
 
   return widget;
