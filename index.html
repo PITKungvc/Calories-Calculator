@@ -579,18 +579,17 @@
                         <span class="text-[10px] text-brand-400 font-semibold">เลือกโมเดลที่ต้องการ</span>
                     </div>
                     <select id="modelPresetSelect" onchange="onModelPresetChange()" class="w-full p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white font-medium">
-                        <option value="gemini-3.0-flash">⚡ Gemini 3.0 Flash (แนะนำ - เร็ว ฉลาด โภชนาการแม่นยำ)</option>
-                        <option value="gemini-3.5-flash">🚀 Gemini 3.5 Flash (ฉลาด รวดเร็ว)</option>
-                        <option value="gemini-3.8-flash">🧠 Gemini 3.8 Flash (High Intelligence)</option>
-                        <option value="gemini-3.0-pro">🔬 Gemini 3.0 Pro (วิเคราะห์ระดับลึก)</option>
-                        <option value="gemini-2.0-flash">⚡ Gemini 2.0 Flash (Next-Gen)</option>
-                        <option value="gemini-1.5-flash">📦 Gemini 1.5 Flash (เสถียร)</option>
+                        <option value="gemini-3-flash-preview">⚡ Gemini 3 Flash (แนะนำ - เร็ว ฉลาด แม่นยำ)</option>
+                        <option value="gemini-3.5-flash">🚀 Gemini 3.5 Flash (ฉลาด เสถียร)</option>
+                        <option value="gemini-3.6-flash">🧠 Gemini 3.6 Flash (High Intelligence)</option>
+                        <option value="gemini-3.5-flash-lite">🏎️ Gemini 3.5 Flash-Lite (รุ่นประหยัด)</option>
+                        <option value="gemini-3.8-flash">🔬 Gemini 3.8 Flash</option>
                         <option value="custom">⚙️ กำหนดชื่อโมเดลเอง (Custom Model)...</option>
                     </select>
 
                     <div id="customModelBox" class="hidden mt-2">
                         <label class="text-[10px] text-slate-400 block mb-1">ระบุรหัสโมเดล</label>
-                        <input id="modelNameInput" type="text" placeholder="เช่น gemini-3.0-flash" class="w-full p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
+                        <input id="modelNameInput" type="text" placeholder="เช่น gemini-3-flash-preview" class="w-full p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
                     </div>
                 </div>
                 <button onclick="saveAppSettings()" class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-xs text-zinc-950 active:scale-95 transition">
@@ -1029,7 +1028,7 @@
         const STORAGE_MEALS = 'calsnap_v1_meals';
         const STORAGE_PROFILE = 'calsnap_user_profile';
 
-        let config = { apiKey: '', model: 'gemini-3.0-flash', goal: 2000 };
+        let config = { apiKey: '', model: 'gemini-3-flash-preview', goal: 2000 };
         let meals = [];
         let currentScanMeta = { is_official: false, source: '' };
         let selectedHistoryDate = new Date().toISOString().split('T')[0];
@@ -1043,9 +1042,9 @@
             const savedConfig = localStorage.getItem(STORAGE_CONFIG) || localStorage.getItem('kalguroo_v3_config');
             if (savedConfig) config = JSON.parse(savedConfig);
 
-            // Auto-migrate from deprecated gemini-2.5 to gemini-3.0-flash
-            if (!config.model || config.model.includes('2.5')) {
-                config.model = 'gemini-3.0-flash';
+            // Auto-migrate from deprecated gemini-2.5 or non-existent 3.0 to gemini-3-flash-preview
+            if (!config.model || config.model.includes('2.5') || config.model.includes('3.0')) {
+                config.model = 'gemini-3-flash-preview';
                 localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
             }
 
@@ -1053,7 +1052,7 @@
             document.getElementById('calorieGoalInput').value = config.goal || 2000;
             document.getElementById('goalDisplay').innerText = config.goal || 2000;
             const badge = document.getElementById('modelBadge');
-            if (badge) badge.innerText = config.model || 'gemini-3.0-flash';
+            if (badge) badge.innerText = config.model || 'gemini-3-flash-preview';
 
             const savedMeals = localStorage.getItem(STORAGE_MEALS) || localStorage.getItem('kalguroo_v3_meals');
             if (savedMeals) meals = JSON.parse(savedMeals);
@@ -1685,13 +1684,13 @@
         }
 
         function initModelSelector() {
-            const currentModel = config.model || 'gemini-3.0-flash';
+            const currentModel = config.model || 'gemini-3-flash-preview';
             const modelSelect = document.getElementById('modelPresetSelect');
             const customBox = document.getElementById('customModelBox');
             const modelInput = document.getElementById('modelNameInput');
             if (!modelSelect) return;
 
-            const knownOptions = ['gemini-3.0-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.0-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+            const knownOptions = ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'];
             if (knownOptions.includes(currentModel)) {
                 modelSelect.value = currentModel;
                 if (customBox) customBox.classList.add('hidden');
@@ -1720,13 +1719,13 @@
 
         function saveAppSettings() {
             const modelSelect = document.getElementById('modelPresetSelect');
-            let chosenModel = 'gemini-3.0-flash';
+            let chosenModel = 'gemini-3-flash-preview';
             if (modelSelect && modelSelect.value === 'custom') {
-                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-3.0-flash';
+                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-3-flash-preview';
             } else if (modelSelect) {
                 chosenModel = modelSelect.value;
             } else {
-                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-3.0-flash';
+                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-3-flash-preview';
             }
 
             config.model = chosenModel;
@@ -1807,7 +1806,7 @@
 
             try {
                 const { data: base64Data, mimeType } = await compressImage(file, 1280, 0.80);
-                const activeModel = config.model || 'gemini-3.0-flash';
+                const activeModel = config.model || 'gemini-3-flash-preview';
                 
                 const res = await fetch('/api/analyze', {
                     method: 'POST',
@@ -2184,7 +2183,7 @@
             try {
                 const payload = {
                     images: [{ data: currentNormalPhoto.data, mimeType: currentNormalPhoto.mimeType }],
-                    model: config.model || 'gemini-3.0-flash',
+                    model: config.model || 'gemini-3-flash-preview',
                     meal_type: builderMealType
                 };
 
@@ -2417,7 +2416,7 @@
                 try {
                     const payload = {
                         images: item.photos.map(p => ({ data: p.data, mimeType: p.mimeType })),
-                        model: config.model || 'gemini-3.0-flash',
+                        model: config.model || 'gemini-3-flash-preview',
                         meal_type: builderMealType
                     };
 
@@ -2670,7 +2669,7 @@
                     body: JSON.stringify({
                         text: text,
                         meal_type: builderMealType,
-                        model: config.model || 'gemini-3.0-flash'
+                        model: config.model || 'gemini-3-flash-preview'
                     })
                 });
 

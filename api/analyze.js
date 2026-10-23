@@ -1,6 +1,10 @@
 // ฐานข้อมูลสินค้าทางการร้านสะดวกซื้อ (7-Eleven, Lawson, Supermarket ในประเทศไทย)
 import { matchOfficialProduct } from '../data/products.js';
 
+export const config = {
+  maxDuration: 30
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -12,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { model = 'gemini-3.0-flash', text = '', meal_type = 'lunch' } = req.body;
+    const { model = 'gemini-3-flash-preview', text = '', meal_type = 'lunch' } = req.body;
 
     // รองรับทั้งภาพเดี่ยว (image, mimeType), หลายภาพต่อสินค้า (images) และโหมดข้อความ (text)
     let inputImages = [];
@@ -88,7 +92,19 @@ export default async function handler(req, res) {
   "source": "ฉลากทางการ 7-Eleven / AJE Thai"
 }`;
 
-    const candidateModels = [model, 'gemini-3.0-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.0-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter(Boolean);
+    let cleanModel = (model || '').trim();
+    if (!cleanModel || cleanModel.includes('2.5') || cleanModel.includes('3.0')) {
+      cleanModel = 'gemini-3-flash-preview';
+    }
+
+    const candidateModels = [
+      cleanModel,
+      'gemini-3-flash-preview',
+      'gemini-3.5-flash',
+      'gemini-3.6-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-flash-lite-latest'
+    ].filter(Boolean);
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
@@ -97,7 +113,7 @@ export default async function handler(req, res) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       // สร้าง content parts รวมข้อความและรูปภาพทั้งหมดในชุด
       const contentParts = [{ text: prompt }];
@@ -132,10 +148,8 @@ export default async function handler(req, res) {
         const data = await response.json();
         if (!response.ok) {
           lastError = data.error?.message || `HTTP ${response.status}`;
-          if (response.status === 503 || response.status === 429) {
-            continue;
-          }
-          return res.status(response.status).json({ error: lastError });
+          console.warn(`[Gemini API] ${currentModel} error (${response.status}): ${lastError}. Trying fallback model...`);
+          continue;
         }
 
         const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -196,7 +210,8 @@ export default async function handler(req, res) {
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        lastError = err.name === 'AbortError' ? `${currentModel} timed out after 3.8s` : err.message;
+        lastError = err.name === 'AbortError' ? `${currentModel} timed out after 12s` : err.message;
+        console.warn(`[Gemini API] ${currentModel} exception: ${lastError}. Trying fallback model...`);
       }
     }
 
