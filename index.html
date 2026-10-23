@@ -579,18 +579,18 @@
                         <span class="text-[10px] text-brand-400 font-semibold">เลือกโมเดลที่ต้องการ</span>
                     </div>
                     <select id="modelPresetSelect" onchange="onModelPresetChange()" class="w-full p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white font-medium">
-                        <option value="gemini-2.5-flash">⚡ Gemini 2.5 Flash (แนะนำ - เร็ว แม่นยำ)</option>
-                        <option value="gemini-2.5-pro">🧠 Gemini 2.5 Pro (ฉลาด ละเอียด โภชนาการเป๊ะ)</option>
-                        <option value="gemini-2.0-flash">🚀 Gemini 2.0 Flash (Next-Gen)</option>
-                        <option value="gemini-1.5-flash">⚡ Gemini 1.5 Flash (เสถียร ประหยัดโควต้า)</option>
-                        <option value="gemini-1.5-pro">🔍 Gemini 1.5 Pro (วิเคราะห์ระดับลึก)</option>
-                        <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash</option>
+                        <option value="gemini-3.0-flash">⚡ Gemini 3.0 Flash (แนะนำ - เร็ว ฉลาด โภชนาการแม่นยำ)</option>
+                        <option value="gemini-3.5-flash">🚀 Gemini 3.5 Flash (ฉลาด รวดเร็ว)</option>
+                        <option value="gemini-3.8-flash">🧠 Gemini 3.8 Flash (High Intelligence)</option>
+                        <option value="gemini-3.0-pro">🔬 Gemini 3.0 Pro (วิเคราะห์ระดับลึก)</option>
+                        <option value="gemini-2.0-flash">⚡ Gemini 2.0 Flash (Next-Gen)</option>
+                        <option value="gemini-1.5-flash">📦 Gemini 1.5 Flash (เสถียร)</option>
                         <option value="custom">⚙️ กำหนดชื่อโมเดลเอง (Custom Model)...</option>
                     </select>
 
                     <div id="customModelBox" class="hidden mt-2">
                         <label class="text-[10px] text-slate-400 block mb-1">ระบุรหัสโมเดล</label>
-                        <input id="modelNameInput" type="text" placeholder="เช่น gemini-2.5-flash" class="w-full p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
+                        <input id="modelNameInput" type="text" placeholder="เช่น gemini-3.0-flash" class="w-full p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-brand-400 font-mono">
                     </div>
                 </div>
                 <button onclick="saveAppSettings()" class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 rounded-xl font-bold text-xs text-zinc-950 active:scale-95 transition">
@@ -644,7 +644,9 @@
     <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleFoodScan(event)">
     <input id="galleryInput" type="file" accept="image/*" class="hidden" onchange="handleFoodScan(event)">
     
-    <!-- Hidden File Inputs for Multi-Item Slot Photos -->
+    <!-- Hidden File Inputs for Normal Mode & Multi-Item Slot Photos -->
+    <input id="normalCameraInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleNormalPhotoCaptured(event)">
+    <input id="normalGalleryInput" type="file" accept="image/*" class="hidden" onchange="handleNormalPhotoCaptured(event)">
     <input id="slotCameraInput" type="file" accept="image/*" capture="environment" class="hidden" onchange="handleSlotPhotoCaptured(event)">
     <input id="slotGalleryInput" type="file" accept="image/*" class="hidden" onchange="handleSlotPhotoCaptured(event)">
 
@@ -658,8 +660,8 @@
                         <i class="ph-bold ph-camera-plus text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-white">บันทึกมื้ออาหาร (หลายสินค้า)</h3>
-                        <p class="text-[10px] text-slate-400">ถ่ายรูปสินค้า + ฉลากโภชนาการได้หลายรูปต่อช่อง</p>
+                        <h3 class="text-sm font-bold text-white">บันทึกมื้ออาหารด้วย AI</h3>
+                        <p class="text-[10px] text-slate-400">เลือกโหมดถ่ายปกติ, ถ่ายฉลากสินค้า (Advance) หรือพิมพ์ข้อความ</p>
                     </div>
                 </div>
                 <button onclick="closeMealBuilderModal()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-slate-400 hover:text-white transition">
@@ -667,13 +669,16 @@
                 </button>
             </div>
 
-            <!-- Mode Switcher: Photo Slots vs Text Input -->
-            <div class="grid grid-cols-2 gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
-                <button type="button" onclick="switchBuilderMode('photo')" id="modeBtn-photo" class="py-2 text-xs font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1.5 shadow-md">
-                    <i class="ph-bold ph-camera"></i> สแกนจากรูปภาพ
+            <!-- Mode Switcher: 1. Normal (ทั่วไป) | 2. Advance (สินค้า+ฉลาก) | 3. Text (พิมพ์ข้อความ) -->
+            <div class="grid grid-cols-3 gap-1 p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
+                <button type="button" onclick="switchBuilderMode('normal')" id="modeBtn-normal" class="py-2 text-[11px] font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1 shadow-md">
+                    <i class="ph-bold ph-camera"></i> <span>ปกติ (ทั่วไป)</span>
                 </button>
-                <button type="button" onclick="switchBuilderMode('text')" id="modeBtn-text" class="py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
-                    <i class="ph-bold ph-pencil-simple-line"></i> พิมพ์บอก AI (กินหมดแล้ว)
+                <button type="button" onclick="switchBuilderMode('advance')" id="modeBtn-advance" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
+                    <i class="ph-bold ph-seal-check"></i> <span>Advance (ฉลาก)</span>
+                </button>
+                <button type="button" onclick="switchBuilderMode('text')" id="modeBtn-text" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1">
+                    <i class="ph-bold ph-pencil-simple-line"></i> <span>พิมพ์บอก AI</span>
                 </button>
             </div>
 
@@ -688,10 +693,60 @@
                 </div>
             </div>
 
-            <!-- 1. PHOTO SLOTS SECTION -->
-            <div id="builderPhotoSection" class="flex-1 flex flex-col space-y-3 min-h-0">
+            <!-- 1. NORMAL MODE SECTION (ถ่ายรูปอาหารทั่วไปแบบปกติ) -->
+            <div id="builderNormalSection" class="flex-1 flex flex-col space-y-3 min-h-0">
+                <div class="p-2.5 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 text-[11px] text-slate-300 flex items-center gap-2">
+                    <i class="ph-bold ph-camera text-brand-400 text-base flex-shrink-0"></i>
+                    <span>ถ่ายรูปอาหารมื้อโปรดของคุณ (อาหารจานเดียว, สตรีทฟู้ด, กับข้าว) ให้ AI ช่วยประเมินแคลอรี่และสารอาหาร</span>
+                </div>
+
+                <!-- Empty Photo Dropzone -->
+                <div id="normalEmptyBox" class="flex-1 min-h-[190px] border-2 border-dashed border-zinc-800 rounded-3xl bg-zinc-950/40 p-5 flex flex-col items-center justify-center text-center space-y-3">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 text-2xl">
+                        <i class="ph-bold ph-camera"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-white">ถ่ายรูปอาหารจานนี้</div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">แตะเปิดกล้องถ่ายสด หรือเลือกภาพจากมือถือ</p>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1 w-full max-w-xs">
+                        <button type="button" onclick="triggerNormalCamera()" class="flex-1 py-2.5 px-3 rounded-xl bg-brand-500 hover:bg-brand-400 text-zinc-950 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-md">
+                            <i class="ph-bold ph-camera text-base"></i> ถ่ายรูปด้วยกล้อง
+                        </button>
+                        <button type="button" onclick="triggerNormalGallery()" class="flex-1 py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="ph-bold ph-image text-base"></i> เลือกจากคลังภาพ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Photo Preview Box (Shown after photo captured) -->
+                <div id="normalPreviewBox" class="hidden flex-1 min-h-[190px] flex flex-col space-y-3">
+                    <div class="relative w-full h-44 rounded-2xl overflow-hidden border border-zinc-800 bg-black">
+                        <img id="normalPreviewImg" class="w-full h-full object-cover" alt="รูปอาหาร">
+                        <button type="button" onclick="resetNormalPhoto()" class="absolute top-2 right-2 px-2.5 py-1 rounded-xl bg-black/75 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1 border border-white/20 active:scale-90 transition">
+                            <i class="ph-bold ph-arrows-counter-clockwise"></i> ถ่ายใหม่
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analyze Action Button for Normal Mode -->
+                <div class="pt-1">
+                    <button id="btnAnalyzeNormal" type="button" onclick="startNormalAnalysis()" disabled class="w-full py-3.5 rounded-2xl bg-zinc-800 text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-none cursor-not-allowed active:scale-98 transition">
+                        <i class="ph-bold ph-sparkle text-lg"></i>
+                        <span>ถ่ายรูปอาหารเพื่อเริ่มวิเคราะห์</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. ADVANCE MODE SECTION (ถ่ายทั้งรูปสินค้าและฉลากโภชนาการ) -->
+            <div id="builderAdvanceSection" class="hidden flex-1 flex flex-col space-y-3 min-h-0">
+                <div class="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 flex items-center gap-2">
+                    <i class="ph-bold ph-seal-check text-emerald-400 text-base flex-shrink-0"></i>
+                    <span><b>Advance:</b> ถ่ายคู่กันทั้ง <b>รูปสินค้า</b> และ <b>ฉลากโภชนาการ</b> เพื่อให้ AI ดึงตัวเลขจริง 100%</span>
+                </div>
+
                 <!-- Item Slots List (Scrollable) -->
-                <div id="mealBuilderSlots" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar min-h-[190px]">
+                <div id="mealBuilderSlots" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar min-h-[180px]">
                     <!-- Dynamic Slots injected by JS -->
                 </div>
 
@@ -699,18 +754,18 @@
                 <div class="space-y-2 pt-1 border-t border-zinc-800/80">
                     <button type="button" onclick="addMealBuilderSlot()" class="w-full py-2.5 rounded-2xl border-2 border-dashed border-zinc-800 hover:border-brand-500/50 bg-zinc-950/60 hover:bg-zinc-950 text-xs font-bold text-slate-300 hover:text-brand-400 flex items-center justify-center gap-2 transition active:scale-98">
                         <i class="ph-bold ph-plus-circle text-base"></i>
-                        <span>+ เพิ่มสินค้า/อาหารอีกรายการ (ช่องที่ <span id="nextSlotNumber">2</span>)</span>
+                        <span>+ เพิ่มสินค้าอีกชิ้น (ช่องที่ <span id="nextSlotNumber">2</span>)</span>
                     </button>
 
                     <div class="flex items-center justify-between text-[11px] px-1 text-slate-400">
-                        <span>หรือเลือกจากสินค้าสะดวกซื้อ:</span>
+                        <span>หรือดึงจากสินค้าสะดวกซื้อ:</span>
                         <button type="button" onclick="openOfficialSearchModal()" class="text-emerald-400 hover:underline font-semibold flex items-center gap-1">
                             <i class="ph-bold ph-magnifying-glass"></i> ค้นหาฐานข้อมูล 7-Eleven
                         </button>
                     </div>
                 </div>
 
-                <!-- Analyze Photos Action Button -->
+                <!-- Analyze Photos Action Button for Advance Mode -->
                 <div class="pt-1">
                     <button id="btnAnalyzeAll" type="button" onclick="startMultiItemAnalysis()" disabled class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 disabled:from-zinc-800 disabled:to-zinc-800 text-zinc-950 disabled:text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-lg disabled:shadow-none active:scale-98 transition">
                         <i class="ph-bold ph-sparkle text-lg"></i>
@@ -893,7 +948,7 @@
         <div class="w-16 h-16 rounded-full border-4 border-brand-500/20 border-t-brand-500 animate-spin"></div>
         <div class="text-center">
             <div class="font-bold text-base text-white">กำลังวิเคราะห์อาหาร...</div>
-            <div class="text-xs text-brand-400 mt-1 font-mono">Powered by Gemini 3.8 Flash</div>
+            <div class="text-xs text-brand-400 mt-1 font-mono">CalSnap AI Nutrition Analysis</div>
         </div>
     </div>
 
@@ -974,7 +1029,7 @@
         const STORAGE_MEALS = 'calsnap_v1_meals';
         const STORAGE_PROFILE = 'calsnap_user_profile';
 
-        let config = { apiKey: '', model: 'gemini-3.8-flash', goal: 2000 };
+        let config = { apiKey: '', model: 'gemini-3.0-flash', goal: 2000 };
         let meals = [];
         let currentScanMeta = { is_official: false, source: '' };
         let selectedHistoryDate = new Date().toISOString().split('T')[0];
@@ -988,11 +1043,17 @@
             const savedConfig = localStorage.getItem(STORAGE_CONFIG) || localStorage.getItem('kalguroo_v3_config');
             if (savedConfig) config = JSON.parse(savedConfig);
 
+            // Auto-migrate from deprecated gemini-2.5 to gemini-3.0-flash
+            if (!config.model || config.model.includes('2.5')) {
+                config.model = 'gemini-3.0-flash';
+                localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+            }
+
             initModelSelector();
             document.getElementById('calorieGoalInput').value = config.goal || 2000;
             document.getElementById('goalDisplay').innerText = config.goal || 2000;
             const badge = document.getElementById('modelBadge');
-            if (badge) badge.innerText = config.model || 'gemini-2.5-flash';
+            if (badge) badge.innerText = config.model || 'gemini-3.0-flash';
 
             const savedMeals = localStorage.getItem(STORAGE_MEALS) || localStorage.getItem('kalguroo_v3_meals');
             if (savedMeals) meals = JSON.parse(savedMeals);
@@ -1624,13 +1685,13 @@
         }
 
         function initModelSelector() {
-            const currentModel = config.model || 'gemini-2.5-flash';
+            const currentModel = config.model || 'gemini-3.0-flash';
             const modelSelect = document.getElementById('modelPresetSelect');
             const customBox = document.getElementById('customModelBox');
             const modelInput = document.getElementById('modelNameInput');
             if (!modelSelect) return;
 
-            const knownOptions = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-3.8-flash'];
+            const knownOptions = ['gemini-3.0-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.0-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'];
             if (knownOptions.includes(currentModel)) {
                 modelSelect.value = currentModel;
                 if (customBox) customBox.classList.add('hidden');
@@ -1659,13 +1720,13 @@
 
         function saveAppSettings() {
             const modelSelect = document.getElementById('modelPresetSelect');
-            let chosenModel = 'gemini-2.5-flash';
+            let chosenModel = 'gemini-3.0-flash';
             if (modelSelect && modelSelect.value === 'custom') {
-                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-2.5-flash';
+                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-3.0-flash';
             } else if (modelSelect) {
                 chosenModel = modelSelect.value;
             } else {
-                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-2.5-flash';
+                chosenModel = document.getElementById('modelNameInput')?.value.trim() || 'gemini-3.0-flash';
             }
 
             config.model = chosenModel;
@@ -1746,7 +1807,7 @@
 
             try {
                 const { data: base64Data, mimeType } = await compressImage(file, 1280, 0.80);
-                const activeModel = config.model || 'gemini-3.8-flash';
+                const activeModel = config.model || 'gemini-3.0-flash';
                 
                 const res = await fetch('/api/analyze', {
                     method: 'POST',
@@ -2030,6 +2091,9 @@
         let activeSlotIndex = 0;
         let multiAnalyzedResults = [];
 
+        let activeSlotTag = 'product';
+        let currentNormalPhoto = null;
+
         function openMealBuilderModal() {
             if (mealBuilderItems.length === 0) {
                 mealBuilderItems = [
@@ -2037,13 +2101,140 @@
                 ];
             }
             document.getElementById('mealBuilderModal').classList.remove('hidden');
-            renderMealBuilderSlots();
+            switchBuilderMode('normal');
         }
 
         function closeMealBuilderModal() {
             document.getElementById('mealBuilderModal').classList.add('hidden');
         }
 
+        // ==========================================
+        // 1. NORMAL MODE (ถ่ายรูปมื้ออาหารทั่วไป 1 รูป)
+        // ==========================================
+        function triggerNormalCamera() {
+            document.getElementById('normalCameraInput').click();
+        }
+
+        function triggerNormalGallery() {
+            document.getElementById('normalGalleryInput').click();
+        }
+
+        async function handleNormalPhotoCaptured(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.classList.remove('hidden');
+
+            try {
+                const compressed = await compressImage(file, 1280, 0.80);
+                const previewUrl = URL.createObjectURL(file);
+
+                currentNormalPhoto = {
+                    data: compressed.base64,
+                    mimeType: compressed.mimeType,
+                    previewUrl: previewUrl
+                };
+
+                const previewImg = document.getElementById('normalPreviewImg');
+                if (previewImg) previewImg.src = previewUrl;
+
+                document.getElementById('normalEmptyBox')?.classList.add('hidden');
+                document.getElementById('normalPreviewBox')?.classList.remove('hidden');
+
+                const btn = document.getElementById('btnAnalyzeNormal');
+                if (btn) {
+                    btn.removeAttribute('disabled');
+                    btn.className = 'w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 text-zinc-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-98 transition cursor-pointer';
+                    btn.innerHTML = '<i class="ph-bold ph-sparkle text-lg"></i><span>เริ่มวิเคราะห์อาหารจานนี้</span>';
+                }
+
+                loadingModal.classList.add('hidden');
+            } catch (err) {
+                loadingModal.classList.add('hidden');
+                alert('เกิดข้อผิดพลาดในการโหลดรูป: ' + err.message);
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        function resetNormalPhoto() {
+            currentNormalPhoto = null;
+            const previewImg = document.getElementById('normalPreviewImg');
+            if (previewImg) previewImg.src = '';
+            document.getElementById('normalPreviewBox')?.classList.add('hidden');
+            document.getElementById('normalEmptyBox')?.classList.remove('hidden');
+
+            const btn = document.getElementById('btnAnalyzeNormal');
+            if (btn) {
+                btn.setAttribute('disabled', 'true');
+                btn.className = 'w-full py-3.5 rounded-2xl bg-zinc-800 text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-none cursor-not-allowed active:scale-98 transition';
+                btn.innerHTML = '<i class="ph-bold ph-sparkle text-lg"></i><span>ถ่ายรูปอาหารเพื่อเริ่มวิเคราะห์</span>';
+            }
+        }
+
+        async function startNormalAnalysis() {
+            if (!currentNormalPhoto) return;
+
+            closeMealBuilderModal();
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.classList.remove('hidden');
+            loadingModal.querySelector('.font-bold').innerText = 'AI กำลังวิเคราะห์รูปอาหาร...';
+
+            try {
+                const payload = {
+                    images: [{ data: currentNormalPhoto.data, mimeType: currentNormalPhoto.mimeType }],
+                    model: config.model || 'gemini-3.0-flash',
+                    meal_type: builderMealType
+                };
+
+                const res = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Server error');
+
+                loadingModal.classList.add('hidden');
+                loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
+
+                document.getElementById('editName').value = data.name || 'อาหารจานนี้';
+                document.getElementById('editMealType').value = data.meal_type || builderMealType;
+                document.getElementById('editCal').value = Number(data.calories) || 0;
+                document.getElementById('editP').value = Number(data.protein_g) || 0;
+                document.getElementById('editC').value = Number(data.carbs_g) || 0;
+                document.getElementById('editF').value = Number(data.fat_g) || 0;
+                document.getElementById('editSugar').value = Number(data.sugar_g) || 0;
+                document.getElementById('editSodium').value = Number(data.sodium_mg) || 0;
+
+                currentScanMeta = {
+                    is_official: !!data.is_official,
+                    source: data.source || 'วิเคราะห์โดย AI จากรูปถ่ายปกติ'
+                };
+
+                const officialBadge = document.getElementById('officialBadge');
+                const sourceText = document.getElementById('sourceText');
+                if (currentScanMeta.is_official) {
+                    sourceText.innerText = currentScanMeta.source;
+                    officialBadge?.classList.remove('hidden');
+                } else {
+                    officialBadge?.classList.add('hidden');
+                }
+
+                document.getElementById('reviewModal').classList.remove('hidden');
+                resetNormalPhoto();
+            } catch (err) {
+                loadingModal.classList.add('hidden');
+                loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
+                alert('เกิดข้อผิดพลาดในการวิเคราะห์: ' + err.message);
+            }
+        }
+
+        // ==========================================
+        // 2. ADVANCE MODE (สินค้า + ฉลากโภชนาการ แยกช่อง)
+        // ==========================================
         function setBuilderMealType(type) {
             builderMealType = type;
             ['breakfast', 'lunch', 'dinner', 'snack'].forEach(t => {
@@ -2080,6 +2271,7 @@
 
         function renderMealBuilderSlots() {
             const container = document.getElementById('mealBuilderSlots');
+            if (!container) return;
             document.getElementById('nextSlotNumber').innerText = mealBuilderItems.length + 1;
 
             let totalPhotos = 0;
@@ -2090,17 +2282,20 @@
                 totalPhotos += count;
                 if (count > 0) activeItemsWithPhotos++;
 
-                const photosHtml = slot.photos.map((p, pIdx) => `
+                const photosHtml = slot.photos.map((p, pIdx) => {
+                    const tagLabel = p.tag === 'product' ? '📸 สินค้า' : (p.tag === 'label' ? '🏷️ ฉลาก' : (pIdx === 0 ? 'สินค้า' : 'ฉลาก'));
+                    return `
                     <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-950 flex-shrink-0 group">
                         <img src="${p.previewUrl}" class="w-full h-full object-cover">
                         <button type="button" onclick="removeSlotPhoto(${sIdx}, ${pIdx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 hover:bg-rose-500 text-white flex items-center justify-center text-xs transition">
                             <i class="ph-bold ph-x"></i>
                         </button>
-                        <span class="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-center text-slate-300 py-0.5">
-                            ${pIdx === 0 ? 'หน้าซอง' : (pIdx === 1 ? 'ฉลาก' : '#' + (pIdx + 1))}
+                        <span class="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] font-semibold text-center text-slate-200 py-0.5">
+                            ${tagLabel}
                         </span>
                     </div>
-                `).join('');
+                `;
+                }).join('');
 
                 return `
                     <div class="p-3.5 rounded-2xl bg-zinc-950 border ${count > 0 ? 'border-brand-500/40 bg-brand-500/5' : 'border-zinc-800/80'} space-y-2.5 transition">
@@ -2119,26 +2314,30 @@
                             ` : ''}
                         </div>
 
-                        <!-- Photo Thumbnails & Add Buttons -->
+                        <!-- Photo Thumbnails & Dedicated Add Buttons -->
                         <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
                             ${photosHtml}
 
-                            <!-- Add Photo Trigger Buttons -->
+                            <!-- Advance Tagged Trigger Buttons -->
                             <div class="flex items-center gap-1.5 flex-shrink-0">
-                                <button type="button" onclick="triggerSlotCamera(${sIdx})" class="h-16 px-3 rounded-xl border border-dashed border-zinc-700 hover:border-brand-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-brand-400 active:scale-95 transition">
-                                    <i class="ph-bold ph-camera text-base"></i>
-                                    <span class="text-[9px] font-bold">กล้อง</span>
+                                <button type="button" onclick="triggerSlotCamera(${sIdx}, 'product')" class="h-16 px-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-brand-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-brand-400 active:scale-95 transition" title="ถ่ายภาพหน้าสินค้า">
+                                    <i class="ph-bold ph-camera text-base text-brand-400"></i>
+                                    <span class="text-[9px] font-bold">+ ถ่ายสินค้า</span>
                                 </button>
-                                <button type="button" onclick="triggerSlotGallery(${sIdx})" class="h-16 px-3 rounded-xl border border-dashed border-zinc-700 hover:border-sky-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-sky-400 active:scale-95 transition">
+                                <button type="button" onclick="triggerSlotCamera(${sIdx}, 'label')" class="h-16 px-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-emerald-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-emerald-400 active:scale-95 transition" title="ถ่ายภาพตารางฉลากโภชนาการ">
+                                    <i class="ph-bold ph-barcode text-base text-emerald-400"></i>
+                                    <span class="text-[9px] font-bold">+ ถ่ายฉลาก</span>
+                                </button>
+                                <button type="button" onclick="triggerSlotGallery(${sIdx}, 'product')" class="h-16 px-2 rounded-xl border border-dashed border-zinc-700 hover:border-sky-500 bg-zinc-900/60 hover:bg-zinc-800/80 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-sky-400 active:scale-95 transition" title="เลือกจากคลังภาพ">
                                     <i class="ph-bold ph-images text-base"></i>
                                     <span class="text-[9px] font-bold">คลังภาพ</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="text-[10px] text-slate-500 flex items-center gap-1">
-                            <i class="ph-bold ph-lightbulb text-amber-400"></i>
-                            <span>แนะนำ: รูปที่ 1 ถ่ายหน้าซอง/ขวด | รูปที่ 2 ถ่ายตารางโภชนาการด้านหลัง</span>
+                        <div class="text-[10px] text-slate-500 flex items-center gap-1.5">
+                            <i class="ph-bold ph-check-circle text-emerald-400"></i>
+                            <span>แนะนำ: ถ่าย <b>รูปสินค้า</b> เพื่อระบุแบรนด์ + ถ่าย <b>ฉลากโภชนาการ</b> เพื่อดึงตัวเลขจริง 100%</span>
                         </div>
                     </div>
                 `;
@@ -2156,13 +2355,15 @@
             }
         }
 
-        function triggerSlotCamera(sIdx) {
+        function triggerSlotCamera(sIdx, tag = 'product') {
             activeSlotIndex = sIdx;
+            activeSlotTag = tag;
             document.getElementById('slotCameraInput').click();
         }
 
-        function triggerSlotGallery(sIdx) {
+        function triggerSlotGallery(sIdx, tag = 'product') {
             activeSlotIndex = sIdx;
+            activeSlotTag = tag;
             document.getElementById('slotGalleryInput').click();
         }
 
@@ -2180,7 +2381,8 @@
                 mealBuilderItems[activeSlotIndex].photos.push({
                     data: compressed.base64,
                     mimeType: compressed.mimeType,
-                    previewUrl: previewUrl
+                    previewUrl: previewUrl,
+                    tag: activeSlotTag || 'product'
                 });
 
                 loadingModal.classList.add('hidden');
@@ -2215,7 +2417,8 @@
                 try {
                     const payload = {
                         images: item.photos.map(p => ({ data: p.data, mimeType: p.mimeType })),
-                        model: 'gemini-3.5-flash'
+                        model: config.model || 'gemini-3.0-flash',
+                        meal_type: builderMealType
                     };
 
                     const res = await fetch('/api/analyze', {
@@ -2400,25 +2603,41 @@
         }
 
         // ==========================================
-        // BUILDER MODE SWITCHER (PHOTO VS TEXT)
+        // 3-WAY BUILDER MODE SWITCHER (NORMAL, ADVANCE, TEXT)
         // ==========================================
         function switchBuilderMode(mode) {
-            const photoBtn = document.getElementById('modeBtn-photo');
+            const normalBtn = document.getElementById('modeBtn-normal');
+            const advanceBtn = document.getElementById('modeBtn-advance');
             const textBtn = document.getElementById('modeBtn-text');
-            const photoSection = document.getElementById('builderPhotoSection');
+
+            const normalSection = document.getElementById('builderNormalSection');
+            const advanceSection = document.getElementById('builderAdvanceSection');
             const textSection = document.getElementById('builderTextSection');
 
-            if (mode === 'photo') {
-                photoBtn.className = 'py-2 text-xs font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1.5 shadow-md';
-                textBtn.className = 'py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
-                photoSection.classList.remove('hidden');
-                textSection.classList.add('hidden');
-            } else {
-                textBtn.className = 'py-2 text-xs font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1.5 shadow-md';
-                photoBtn.className = 'py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
-                photoSection.classList.add('hidden');
-                textSection.classList.remove('hidden');
-                document.getElementById('builderTextInput').focus();
+            // Reset all tab button styles
+            [normalBtn, advanceBtn, textBtn].forEach(btn => {
+                if (btn) btn.className = 'py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1';
+            });
+
+            // Hide all sections
+            [normalSection, advanceSection, textSection].forEach(sec => {
+                if (sec) sec.classList.add('hidden');
+            });
+
+            if (mode === 'normal') {
+                if (normalBtn) normalBtn.className = 'py-2 text-[11px] font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1 shadow-md';
+                if (normalSection) normalSection.classList.remove('hidden');
+            } else if (mode === 'advance') {
+                if (advanceBtn) advanceBtn.className = 'py-2 text-[11px] font-bold rounded-xl transition bg-emerald-500 text-zinc-950 flex items-center justify-center gap-1 shadow-md';
+                if (advanceSection) advanceSection.classList.remove('hidden');
+                renderMealBuilderSlots();
+            } else if (mode === 'text') {
+                if (textBtn) textBtn.className = 'py-2 text-[11px] font-bold rounded-xl transition bg-amber-400 text-zinc-950 flex items-center justify-center gap-1 shadow-md';
+                if (textSection) {
+                    textSection.classList.remove('hidden');
+                    const textInput = document.getElementById('builderTextInput');
+                    if (textInput) setTimeout(() => textInput.focus(), 100);
+                }
             }
         }
 
@@ -2451,7 +2670,7 @@
                     body: JSON.stringify({
                         text: text,
                         meal_type: builderMealType,
-                        model: 'gemini-3.5-flash'
+                        model: config.model || 'gemini-3.0-flash'
                     })
                 });
 

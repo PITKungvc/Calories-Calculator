@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792746941.550743,
-    "seen": 1792746954.3827603,
-    "ast_hash": "6eaf35dc4b6f129f830437fba7b7bd4d",
+    "mtime": 1792765797.1217835,
+    "seen": 1792765833.3716877,
+    "ast_hash": "eb4b837d2a2f97d359a21bcfa572ced6",
     "semantic_hash": ""
   },
   "api/analyze.js": {
-    "mtime": 1792745889.4221518,
-    "seen": 1792745901.7839477,
-    "ast_hash": "63c4dafdc3ae460ba4fe626af14520e2",
+    "mtime": 1792765316.5023692,
+    "seen": 1792765833.3716877,
+    "ast_hash": "c5146f2a4377c2911b05c0e45b435eee",
     "semantic_hash": ""
   },
   "api/products.js": {

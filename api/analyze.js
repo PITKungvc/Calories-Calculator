@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { model = 'gemini-3.5-flash', text = '', meal_type = 'lunch' } = req.body;
+    const { model = 'gemini-3.0-flash', text = '', meal_type = 'lunch' } = req.body;
 
     // รองรับทั้งภาพเดี่ยว (image, mimeType), หลายภาพต่อสินค้า (images) และโหมดข้อความ (text)
     let inputImages = [];
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
   "source": "ฉลากทางการ 7-Eleven / AJE Thai"
 }`;
 
-    const candidateModels = [model, 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-3.5-flash', 'gemini-3.8-flash'].filter(Boolean);
+    const candidateModels = [model, 'gemini-3.0-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.0-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter(Boolean);
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
