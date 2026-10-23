@@ -120,7 +120,7 @@
                         <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                             <div id="pBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
-                        <div class="text-[9px] text-slate-500 text-right">เป้า 140g</div>
+                        <div id="targetProteinDisplay" class="text-[9px] text-slate-500 text-right">เป้า 150g</div>
                     </div>
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px]">
@@ -130,7 +130,7 @@
                         <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                             <div id="cBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
-                        <div class="text-[9px] text-slate-500 text-right">เป้า 250g</div>
+                        <div id="targetCarbsDisplay" class="text-[9px] text-slate-500 text-right">เป้า 225g</div>
                     </div>
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px]">
@@ -140,7 +140,7 @@
                         <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                             <div id="fBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
-                        <div class="text-[9px] text-slate-500 text-right">เป้า 70g</div>
+                        <div id="targetFatDisplay" class="text-[9px] text-slate-500 text-right">เป้า 56g</div>
                     </div>
                 </div>
 
@@ -314,8 +314,11 @@
 
             <!-- Macro Distribution & Nutrition Ratio -->
             <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-4">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">สัดส่วนสารอาหารหลัก (Macro Ratio)</span>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">สัดส่วนสารอาหารที่กินจริง (Macro Ratio)</span>
+                        <div id="targetMacroHint" class="text-[10px] text-brand-400 font-semibold mt-0.5">เป้าหมายตามแคลอรี่: P 30% : C 45% : F 25%</div>
+                    </div>
                     <span class="text-[10px] text-slate-500 font-medium">Protein / Carbs / Fat</span>
                 </div>
                 
@@ -328,15 +331,24 @@
                 <div class="grid grid-cols-3 gap-2 text-xs pt-1 border-b border-zinc-800/60 pb-3">
                     <div class="flex items-center gap-1.5 text-slate-300">
                         <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
-                        <span>โปรตีน: <b id="ratioPText" class="text-white">0%</b></span>
+                        <div>
+                            <div>โปรตีน: <b id="ratioPText" class="text-white">0%</b></div>
+                            <div id="ratioPCompare" class="text-[9px] text-slate-400">เป้า 30%</div>
+                        </div>
                     </div>
                     <div class="flex items-center gap-1.5 text-slate-300">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                        <span>คาร์บ: <b id="ratioCText" class="text-white">0%</b></span>
+                        <div>
+                            <div>คาร์บ: <b id="ratioCText" class="text-white">0%</b></div>
+                            <div id="ratioCCompare" class="text-[9px] text-slate-400">เป้า 45%</div>
+                        </div>
                     </div>
                     <div class="flex items-center gap-1.5 text-slate-300">
                         <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-                        <span>ไขมัน: <b id="ratioFText" class="text-white">0%</b></span>
+                        <div>
+                            <div>ไขมัน: <b id="ratioFText" class="text-white">0%</b></div>
+                            <div id="ratioFCompare" class="text-[9px] text-slate-400">เป้า 25%</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1045,6 +1057,52 @@
         }
 
         // ==========================================
+        // DYNAMIC MACRO & NUTRITION TARGET CALCULATOR
+        // คำนวณสัดส่วนสารอาหารแปรผันตามแคลอรี่เป้าหมายและ Goal Mode
+        // ==========================================
+        function getMacroTargets(calorieGoal) {
+            const goal = Number(calorieGoal) || Number(config.goal) || 2000;
+            const savedProfile = localStorage.getItem(STORAGE_PROFILE) || localStorage.getItem('kalguroo_user_profile');
+            let goalMode = 'maintain';
+            if (savedProfile) {
+                try { goalMode = JSON.parse(savedProfile).goalMode || 'maintain'; } catch(e) {}
+            }
+
+            let pRatio = 0.30, cRatio = 0.45, fRatio = 0.25;
+            if (goalMode && goalMode.startsWith('lose')) {
+                pRatio = 0.30;
+                cRatio = 0.45;
+                fRatio = 0.25;
+            } else if (goalMode && goalMode.startsWith('gain')) {
+                pRatio = 0.25;
+                cRatio = 0.50;
+                fRatio = 0.25;
+            } else {
+                pRatio = 0.25;
+                cRatio = 0.50;
+                fRatio = 0.25;
+            }
+
+            const targetProtein = Math.max(50, Math.round((goal * pRatio) / 4));
+            const targetCarbs   = Math.max(80, Math.round((goal * cRatio) / 4));
+            const targetFat     = Math.max(25, Math.round((goal * fRatio) / 9));
+            const targetSugar   = Math.max(15, Math.round((goal * 0.05) / 4));
+            const targetSodium  = 2000;
+
+            return {
+                goal,
+                protein: targetProtein,
+                carbs: targetCarbs,
+                fat: targetFat,
+                sugar: targetSugar,
+                sodium: targetSodium,
+                pRatio: Math.round(pRatio * 100),
+                cRatio: Math.round(cRatio * 100),
+                fRatio: Math.round(fRatio * 100)
+            };
+        }
+
+        // ==========================================
         // HOME DASHBOARD RENDER
         // ==========================================
         function renderHomeDashboard() {
@@ -1127,34 +1185,43 @@
                 remainingBadge.className = "mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold";
             }
 
-            document.getElementById('pBar').style.width = `${Math.min((totalP / 140) * 100, 100)}%`;
-            document.getElementById('cBar').style.width = `${Math.min((totalC / 250) * 100, 100)}%`;
-            document.getElementById('fBar').style.width = `${Math.min((totalF / 70) * 100, 100)}%`;
+            const targets = getMacroTargets(config.goal);
 
-            // Sugar & Sodium Limits Bar on Dashboard
-            const sugarPct = Math.min((totalSugar / 24) * 100, 100);
+            document.getElementById('pBar').style.width = `${Math.min((totalP / targets.protein) * 100, 100)}%`;
+            document.getElementById('cBar').style.width = `${Math.min((totalC / targets.carbs) * 100, 100)}%`;
+            document.getElementById('fBar').style.width = `${Math.min((totalF / targets.fat) * 100, 100)}%`;
+
+            const targetPEl = document.getElementById('targetProteinDisplay');
+            if (targetPEl) targetPEl.innerText = `เป้า ${targets.protein}g`;
+            const targetCEl = document.getElementById('targetCarbsDisplay');
+            if (targetCEl) targetCEl.innerText = `เป้า ${targets.carbs}g`;
+            const targetFEl = document.getElementById('targetFatDisplay');
+            if (targetFEl) targetFEl.innerText = `เป้า ${targets.fat}g`;
+
+            // Sugar & Sodium Limits Bar on Dashboard (คำนวณตามแคลเป้าหมาย)
+            const sugarPct = Math.min((totalSugar / targets.sugar) * 100, 100);
             const sugarBar = document.getElementById('sugarBar');
             if (sugarBar) {
                 sugarBar.style.width = `${sugarPct}%`;
-                if (totalSugar > 24) {
+                if (totalSugar > targets.sugar) {
                     sugarBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
-                    document.getElementById('sugarLimitText').innerHTML = `<span class="text-rose-400 font-bold">เกิน ${Math.round((totalSugar - 24) * 10) / 10}g ⚠️</span>`;
+                    document.getElementById('sugarLimitText').innerHTML = `<span class="text-rose-400 font-bold">เกิน ${Math.round((totalSugar - targets.sugar) * 10) / 10}g ⚠️</span>`;
                 } else {
                     sugarBar.className = "bg-purple-400 h-full rounded-full transition-all duration-500";
-                    document.getElementById('sugarLimitText').innerText = "ไม่เกิน 24g";
+                    document.getElementById('sugarLimitText').innerText = `ไม่เกิน ${targets.sugar}g`;
                 }
             }
 
-            const sodiumPct = Math.min((totalSodium / 2000) * 100, 100);
+            const sodiumPct = Math.min((totalSodium / targets.sodium) * 100, 100);
             const sodiumBar = document.getElementById('sodiumBar');
             if (sodiumBar) {
                 sodiumBar.style.width = `${sodiumPct}%`;
-                if (totalSodium > 2000) {
+                if (totalSodium > targets.sodium) {
                     sodiumBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
-                    document.getElementById('sodiumLimitText').innerHTML = `<span class="text-rose-400 font-bold">เกิน ${Math.round(totalSodium - 2000).toLocaleString()}mg ⚠️</span>`;
+                    document.getElementById('sodiumLimitText').innerHTML = `<span class="text-rose-400 font-bold">เกิน ${Math.round(totalSodium - targets.sodium).toLocaleString()}mg ⚠️</span>`;
                 } else {
                     sodiumBar.className = "bg-sky-400 h-full rounded-full transition-all duration-500";
-                    document.getElementById('sodiumLimitText').innerText = "ไม่เกิน 2,000mg";
+                    document.getElementById('sodiumLimitText').innerText = `ไม่เกิน ${targets.sodium.toLocaleString()}mg`;
                 }
             }
 
@@ -1369,9 +1436,20 @@
                 document.getElementById('ratioFText').innerText = '0%';
             }
 
-            // Sugar & Sodium Ratio in Insights
-            const sugarLimit = 24;
-            const sodiumLimit = 2000;
+            const targets = getMacroTargets(config.goal);
+            const targetHintEl = document.getElementById('targetMacroHint');
+            if (targetHintEl) targetHintEl.innerText = `เป้าหมายตามแคลอรี่ (${config.goal.toLocaleString()} kcal): P ${targets.pRatio}% : C ${targets.cRatio}% : F ${targets.fRatio}%`;
+
+            const pCompEl = document.getElementById('ratioPCompare');
+            if (pCompEl) pCompEl.innerText = `เป้า ${targets.pRatio}% (${targets.protein}g)`;
+            const cCompEl = document.getElementById('ratioCCompare');
+            if (cCompEl) cCompEl.innerText = `เป้า ${targets.cRatio}% (${targets.carbs}g)`;
+            const fCompEl = document.getElementById('ratioFCompare');
+            if (fCompEl) fCompEl.innerText = `เป้า ${targets.fRatio}% (${targets.fat}g)`;
+
+            // Sugar & Sodium Ratio in Insights (คำนวณตามเป้าหมายแคลอรี่)
+            const sugarLimit = targets.sugar;
+            const sodiumLimit = targets.sodium;
             const sugarRatio = Math.round((avgSugar / sugarLimit) * 100);
             const sodiumRatio = Math.round((avgSodium / sodiumLimit) * 100);
             const sugarInCarbs = totalCarbs > 0 ? Math.round((totalSugar / totalCarbs) * 100) : 0;
@@ -1379,7 +1457,7 @@
             const avgSugarEl = document.getElementById('avgSugarText');
             if (avgSugarEl) avgSugarEl.innerText = avgSugar;
             const sugarLimitEl = document.getElementById('sugarPctOfLimit');
-            if (sugarLimitEl) sugarLimitEl.innerText = `(${sugarRatio}% ของ 24g)`;
+            if (sugarLimitEl) sugarLimitEl.innerText = `(${sugarRatio}% ของเป้า ${sugarLimit}g)`;
             const sugarBarEl = document.getElementById('insightSugarBar');
             if (sugarBarEl) {
                 sugarBarEl.style.width = `${Math.min(sugarRatio, 100)}%`;
@@ -1387,7 +1465,7 @@
             }
             const sugarStatusEl = document.getElementById('sugarStatusText');
             if (sugarStatusEl) {
-                sugarStatusEl.innerHTML = avgSugar > sugarLimit ? '<span class="text-rose-400 font-bold">⚠️ เกินเกณฑ์มาตรฐาน</span>' : '<span class="text-emerald-400 font-semibold">✅ อยู่ในเกณฑ์ปลอดภัย</span>';
+                sugarStatusEl.innerHTML = avgSugar > sugarLimit ? `<span class="text-rose-400 font-bold">⚠️ เกินเป้าหมาย (${avgSugar}g / ${sugarLimit}g)</span>` : '<span class="text-emerald-400 font-semibold">✅ อยู่ในเกณฑ์ปลอดภัย</span>';
             }
             const sugarInCarbsEl = document.getElementById('sugarInCarbsText');
             if (sugarInCarbsEl) sugarInCarbsEl.innerText = `${sugarInCarbs}%`;
@@ -1415,9 +1493,9 @@
                 adviceEl.innerText = `ยังไม่มีข้อมูลอาหารในช่วง ${periodLabel} ลองเลือกช่วงเวลาอื่น หรือบันทึกมื้ออาหารเพิ่ม`;
             } else {
                 let healthNotes = [];
-                if (avgSugar > 24) healthNotes.push(`น้ำตาลเฉลี่ยค่อนข้างสูง (${avgSugar}g/วัน แนะนำลดของหวาน)`);
-                if (avgSodium > 2000) healthNotes.push(`โซเดียมเฉลี่ยเกินเกณฑ์ (${avgSodium.toLocaleString()}mg/วัน ควรลดน้ำซุป/ของหมักดอง)`);
-                const alertText = healthNotes.length > 0 ? ` • ⚠️ ข้อควรระวัง: ${healthNotes.join(' และ ')}` : ' • 🌟 สัดส่วนน้ำตาลและโซเดียมอยู่ในเกณฑ์ปลอดภัยดีมาก!';
+                if (avgSugar > targets.sugar) healthNotes.push(`น้ำตาลเฉลี่ยค่อนข้างสูง (${avgSugar}g/วัน เกินเป้า ${targets.sugar}g)`);
+                if (avgSodium > targets.sodium) healthNotes.push(`โซเดียมเฉลี่ยเกินเกณฑ์ (${avgSodium.toLocaleString()}mg/วัน ควรลดน้ำซุป/ของหมักดอง)`);
+                const alertText = healthNotes.length > 0 ? ` • ⚠️ ข้อควรระวัง: ${healthNotes.join(' และ ')}` : ' • 🌟 สัดส่วนสารอาหาร น้ำตาล และโซเดียมอยู่ในเกณฑ์ปลอดภัยดีมาก!';
                 
                 adviceEl.innerText = `วิเคราะห์ช่วง ${periodLabel} (${daysWithLogs} วัน / ${filteredMeals.length} มื้อ): พลังงานเฉลี่ย ${avgCal} kcal/วัน สัดส่วนโปรตีน ${totalProtein > 0 ? 'อยู่ในเกณฑ์เหมาะสม' : 'ควรเสริมเพิ่ม'}${alertText}`;
             }
