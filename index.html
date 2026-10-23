@@ -1891,6 +1891,25 @@
             iconBox.className = 'w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-sm';
             textEl.innerText = adviceMsg;
             tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
+
+            // Background sync widget data for iOS Scriptable / WidgetKit
+            try {
+                fetch('/api/widget', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        totalCal,
+                        goalCal: config.goal,
+                        remainingCal,
+                        percent: Math.round((totalCal / config.goal) * 100),
+                        nextMeal: mealName,
+                        advice: adviceMsg,
+                        protein: Math.round(totalP),
+                        carbs: Math.round(totalC),
+                        fat: Math.round(totalF)
+                    })
+                }).catch(() => {});
+            } catch (e) {}
         }
 
         // ==========================================

@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792772376.6580002,
-    "seen": 1792772414.4012158,
-    "ast_hash": "e069b000b96623efb7cdd2bafb020887",
+    "mtime": 1792777900.4671154,
+    "seen": 1792777937.538311,
+    "ast_hash": "49e0eee23d8e4891cadc86ee686fa3fc",
     "semantic_hash": ""
   },
   "api/analyze.js": {
@@ -57,6 +57,12 @@
     "mtime": 1792772052.5494037,
     "seen": 1792772414.4012158,
     "ast_hash": "9da92c1f7907b3cdf7472c2606875580",
+    "semantic_hash": ""
+  },
+  "api/widget.js": {
+    "mtime": 1792777850.1530182,
+    "seen": 1792777937.538311,
+    "ast_hash": "95f042a554ef5fe5c00d7f3191194043",
     "semantic_hash": ""
   }
 }

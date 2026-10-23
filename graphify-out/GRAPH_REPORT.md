@@ -1,17 +1,17 @@
-# Graph Report - kalguroo-app  (2026-10-23)
+# Graph Report - kalguroo-app  (2026-10-24)
 
 ## Corpus Check
-- 9 files · ~17,838 words
+- 10 files · ~18,092 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
 ## Summary
-- 36 nodes · 35 edges · 6 communities (3 shown, 3 thin omitted)
+- 39 nodes · 37 edges · 7 communities (3 shown, 4 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e5d66e6b`
+- Built from commit: `ecfdd52d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,6 +21,7 @@
 - api/products.js
 - scrape_7eleven.js
 - chat.js
+- widget.js
 
 ## God Nodes (most connected - your core abstractions)
 1. `matchOfficialProduct()` - 4 edges
@@ -30,9 +31,9 @@
 5. `main()` - 2 edges
 6. `config` - 1 edges
 7. `config` - 1 edges
-8. `short_name` - 1 edges
-9. `start_url` - 1 edges
-10. `scope` - 1 edges
+8. `widgetCache` - 1 edges
+9. `short_name` - 1 edges
+10. `start_url` - 1 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `handler()` --calls--> `matchOfficialProduct()`  [EXTRACTED]
@@ -41,7 +42,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (6 total, 3 thin omitted)
+## Communities (7 total, 4 thin omitted)
 
 ### Community 0 - "manifest.json"
 Cohesion: 0.17
@@ -56,7 +57,7 @@ Cohesion: 0.25
 Nodes (5): DATA_FILE, __dirname, __filename, main(), searchOpenFoodFacts()
 
 ## Knowledge Gaps
-- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Not enough signal to generate questions. This usually means the corpus has no AMBIGUOUS edges, no bridge nodes, no INFERRED relationships, and all communities are tightly cohesive. Add more files or run with --mode deep to extract richer edges._

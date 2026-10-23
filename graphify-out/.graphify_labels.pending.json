@@ -4,5 +4,6 @@
   "2": "api/products.js",
   "3": "scrape_7eleven.js",
   "4": "sw.js",
-  "5": "chat.js"
+  "5": "chat.js",
+  "6": "widget.js"
 }
