@@ -3677,68 +3677,90 @@ function getTodayThaiDate() {
   try {
     return d.toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short" });
   } catch (e) {
-    return d.getDate() + "/" + (d.getMonth() + 1);
+    try {
+      return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+    } catch (err) {
+      return d.getDate() + "/" + (d.getMonth() + 1);
+    }
   }
 }
 
 function createDonutImage(percent, totalCal, goalCal, isOver) {
-  const size = 200;
-  const strokeWidth = 20;
-  const dc = new DrawContext();
-  dc.size = new Size(size, size);
-  dc.opaque = false;
-  dc.respectScreenScale = true;
+  try {
+    const size = 200;
+    const strokeWidth = 20;
+    const dc = new DrawContext();
+    dc.size = new Size(size, size);
+    dc.opaque = false;
+    dc.respectScreenScale = true;
 
-  const center = size / 2;
-  const radius = (size - strokeWidth) / 2;
+    const center = size / 2;
+    const radius = (size - strokeWidth) / 2;
 
-  // 1. Background Track Ring
-  const trackPath = new Path();
-  trackPath.addEllipse(new Rect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2));
-  dc.addPath(trackPath);
-  dc.setStrokeColor(new Color("#27272a"));
-  dc.setLineWidth(strokeWidth);
-  dc.strokePath();
-
-  // 2. Progress Arc Ring
-  const clampedPercent = Math.max(0, percent);
-  let ringColor = new Color("#f97316"); // CalSnap Flame
-  if (isOver) {
-    ringColor = new Color("#f43f5e"); // Rose Red
-  } else if (percent >= 90) {
-    ringColor = new Color("#fb923c"); // Amber
-  }
-
-  if (clampedPercent >= 100) {
-    const fullPath = new Path();
-    fullPath.addEllipse(new Rect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2));
-    dc.addPath(fullPath);
-    dc.setStrokeColor(ringColor);
+    // 1. Background Track Ring
+    const trackPath = new Path();
+    trackPath.addEllipse(new Rect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2));
+    dc.addPath(trackPath);
+    dc.setStrokeColor(new Color("#27272a"));
     dc.setLineWidth(strokeWidth);
     dc.strokePath();
-  } else if (clampedPercent > 0) {
-    const startAngle = -Math.PI / 2;
-    const progressAngle = startAngle + (clampedPercent / 100) * (Math.PI * 2);
-    const progressPath = new Path();
-    progressPath.addArc(new Point(center, center), radius, startAngle, progressAngle, false);
-    dc.addPath(progressPath);
-    dc.setStrokeColor(ringColor);
-    dc.setLineWidth(strokeWidth);
-    dc.strokePath();
+
+    // 2. Progress Arc Ring (Trigonometric Path with move/addLine)
+    const numPercent = Number(percent) || 0;
+    const clampedPercent = Math.max(0, Math.min(100, numPercent));
+    let ringColor = new Color("#f97316"); // CalSnap Flame
+    if (isOver) {
+      ringColor = new Color("#f43f5e"); // Rose Red
+    } else if (numPercent >= 90) {
+      ringColor = new Color("#fb923c"); // Amber
+    }
+
+    if (clampedPercent >= 99.5) {
+      const fullPath = new Path();
+      fullPath.addEllipse(new Rect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2));
+      dc.addPath(fullPath);
+      dc.setStrokeColor(ringColor);
+      dc.setLineWidth(strokeWidth);
+      dc.strokePath();
+    } else if (clampedPercent > 0) {
+      const progressPath = new Path();
+      const startAngle = -Math.PI / 2;
+      const sweepAngle = (clampedPercent / 100) * (Math.PI * 2);
+      const steps = Math.max(8, Math.ceil(clampedPercent * 0.8));
+
+      for (let i = 0; i <= steps; i++) {
+        const angle = startAngle + sweepAngle * (i / steps);
+        const x = center + radius * Math.cos(angle);
+        const y = center + radius * Math.sin(angle);
+        const pt = new Point(x, y);
+        if (i === 0) {
+          progressPath.move(pt);
+        } else {
+          progressPath.addLine(pt);
+        }
+      }
+
+      dc.addPath(progressPath);
+      dc.setStrokeColor(ringColor);
+      dc.setLineWidth(strokeWidth);
+      dc.strokePath();
+    }
+
+    // 3. Center Text (Percentage & Status)
+    dc.setFont(Font.heavySystemFont(32));
+    dc.setTextColor(isOver ? new Color("#fb7185") : Color.white());
+    dc.setTextAlignedCenter();
+    dc.drawTextInRect(Math.round(numPercent) + "%", new Rect(0, center - 28, size, 38));
+
+    dc.setFont(Font.boldSystemFont(12));
+    dc.setTextColor(isOver ? new Color("#fda4af") : new Color("#a1a1aa"));
+    dc.setTextAlignedCenter();
+    dc.drawTextInRect(isOver ? "เกินเป้า" : "พลังงาน", new Rect(0, center + 10, size, 18));
+
+    return dc.getImage();
+  } catch (err) {
+    return null;
   }
-
-  // 3. Center Text (Percentage & Status)
-  dc.setFont(Font.heavySystemFont(32));
-  dc.setTextColor(isOver ? new Color("#fb7185") : Color.white());
-  dc.setTextAlignedCenter();
-  dc.drawTextInRect(\`\${percent}%\`, new Rect(0, center - 28, size, 38));
-
-  dc.setFont(Font.boldSystemFont(12));
-  dc.setTextColor(isOver ? new Color("#fda4af") : new Color("#a1a1aa"));
-  dc.setTextAlignedCenter();
-  dc.drawTextInRect(isOver ? "เกินเป้า" : "พลังงาน", new Rect(0, center + 10, size, 18));
-
-  return dc.getImage();
 }
 
 async function createWidget() {
@@ -3776,15 +3798,17 @@ async function createWidget() {
   mainRow.centerAlignContent();
 
   // LEFT COLUMN: Donut Ring Chart
-  const leftCol = mainRow.addStack();
-  leftCol.layoutVertically();
-  leftCol.centerAlignContent();
+  if (donutImg) {
+    const leftCol = mainRow.addStack();
+    leftCol.layoutVertically();
+    leftCol.centerAlignContent();
 
-  const chartNode = leftCol.addImage(donutImg);
-  chartNode.imageSize = new Size(100, 100);
-  chartNode.centerAlignImage();
+    const chartNode = leftCol.addImage(donutImg);
+    chartNode.imageSize = new Size(100, 100);
+    chartNode.centerAlignImage();
 
-  mainRow.addSpacer(12);
+    mainRow.addSpacer(12);
+  }
 
   // RIGHT COLUMN: Status, Date, Advice
   const rightCol = mainRow.addStack();
@@ -3833,7 +3857,7 @@ async function createWidget() {
 
   adviceBox.addSpacer(1);
 
-  const adviceDesc = adviceBox.addText(data.advice);
+  const adviceDesc = adviceBox.addText(data.advice || "พร้อมบันทึกอาหารมื้อแรกของวัน");
   adviceDesc.textColor = new Color("#d4d4d8");
   adviceDesc.font = Font.systemFont(10);
   adviceDesc.lineLimit = 2;
@@ -3841,7 +3865,16 @@ async function createWidget() {
   return widget;
 }
 
-const widget = await createWidget();
+let widget;
+try {
+  widget = await createWidget();
+} catch (err) {
+  widget = new ListWidget();
+  widget.backgroundColor = new Color("#0b0c10");
+  const errText = widget.addText("⚡ CalSnap AI กำลังเริ่มต้น...");
+  errText.textColor = Color.white();
+}
+
 widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * 5);
 if (config.runsInWidget) {
   Script.setWidget(widget);
