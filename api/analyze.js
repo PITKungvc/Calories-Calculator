@@ -12,9 +12,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { model = 'gemini-3.5-flash' } = req.body;
+    const { model = 'gemini-3.5-flash', text = '', meal_type = 'lunch' } = req.body;
 
-    // รองรับทั้งภาพเดี่ยว (image, mimeType) และหลายภาพต่อสินค้า (images: [{ data, mimeType }]) เช่น ภาพหน้าซอง + ฉลากโภชนาการ
+    // รองรับทั้งภาพเดี่ยว (image, mimeType), หลายภาพต่อสินค้า (images) และโหมดข้อความ (text)
     let inputImages = [];
     if (Array.isArray(req.body.images) && req.body.images.length > 0) {
       inputImages = req.body.images;
@@ -22,11 +22,44 @@ export default async function handler(req, res) {
       inputImages = [{ data: req.body.image, mimeType: req.body.mimeType || 'image/jpeg' }];
     }
 
-    if (inputImages.length === 0) {
-      return res.status(400).json({ error: 'Image data is required' });
+    const trimmedText = text.trim();
+    if (inputImages.length === 0 && !trimmedText) {
+      return res.status(400).json({ error: 'Image data or text description is required' });
     }
 
-    const prompt = `คุณคือ AI ผู้เชี่ยวชาญด้านโภชนาการและฐานข้อมูลสินค้าอาหารไทย/สากล
+    const isTextMode = inputImages.length === 0 && trimmedText.length > 0;
+
+    const prompt = isTextMode 
+      ? `คุณคือ AI ผู้เชี่ยวชาญด้านโภชนาการและฐานข้อมูลสินค้าอาหารไทย/สากล
+ผู้ใช้พิมพ์ระบุรายการอาหารหรือเครื่องดื่มที่ทาน (เนื่องจากทานหมดแล้วหรือไม่ได้ถ่ายรูปไว้):
+"${trimmedText}"
+
+กฎสำคัญในการประมวลผล:
+1. หากตรงกับสินค้าในร้านสะดวกซื้อ / แบรนด์ทางการ (เช่น Cielo, เซียโล่, อกไก่นุ่ม CP, นมเมจิ ไฮโปรตีน, โค้กซีโร่, เลย์, มาม่า ฯลฯ):
+   - ดึงตัวเลขแคลอรี่, โปรตีน, คาร์บ, ไขมัน, น้ำตาล (sugar_g) และโซเดียม (sodium_mg) ตามฐานข้อมูลทางการของผู้ผลิต 100%
+   - กำหนดค่า is_official: true และระบุ source เช่น "ฐานข้อมูลทางการ 7-Eleven / ผู้ผลิต"
+2. ระวังเป็นพิเศษกับกลุ่ม "เครื่องดื่ม 0 แคลอรี / 0% น้ำตาล / ไม่มีน้ำตาล (Zero Sugar / 0 Calorie)" เช่น Cielo (เซียโล่ สปาร์คกลิ้งโซดา 0 แคล), Singha Lemon Soda 0 Cal, Coke Zero, Pepsi No Sugar, Mansome 0% Sugar:
+   - เครื่องดื่มกลุ่มนี้ แคลอรี่ต้องเป็น 0, โปรตีน 0, ไขมัน 0, คาร์บ 0, น้ำตาล (sugar_g) 0 (โซเดียมอิงตามฉลากขวด เช่น Cielo แอปเปิ้ล 600ml = 160 mg)
+   - ห้ามประเมินเป็นเครื่องดื่มหวานหรือน้ำอัดลมปกติเด็ดขาด
+3. หากเป็นอาหารปรุงสด / อาหารตามสั่ง / สตรีทฟู้ด (เช่น ข้าวกะเพราไก่ไข่ดาว, ข้าวมันไก่, ส้มตำไทย, สเต๊ก):
+   - คำนวณปริมาณแคลอรี่ Macro (โปรตีน คาร์บ ไขมัน น้ำตาล โซเดียม) ตามสูตรมาตรฐานอาหารไทย
+   - กำหนดค่า is_official: false และระบุ source: "ประมาณการโดย AI จากข้อความ"
+
+ตอบกลับเป็นรูปแบบ JSON เดียวนี้เท่านั้น:
+{
+  "name": "ชื่ออาหารหรือชื่อสินค้าทางการพร้อมแบรนด์",
+  "meal_type": "${meal_type}",
+  "portion": "1 จาน หรือ 1 ซอง (90g) หรือ 1 ขวด (600ml)",
+  "calories": 450,
+  "protein_g": 20.0,
+  "carbs_g": 55.0,
+  "fat_g": 15.0,
+  "sugar_g": 4.0,
+  "sodium_mg": 780,
+  "is_official": false,
+  "source": "ประมาณการโดย AI จากข้อความ"
+}`
+      : `คุณคือ AI ผู้เชี่ยวชาญด้านโภชนาการและฐานข้อมูลสินค้าอาหารไทย/สากล
 วิเคราะห์ภาพอาหารหรือสินค้าในชุดภาพนี้อย่างละเอียด:
 (ผู้ใช้อาจส่งภาพของสินค้าเดียวกันหลายมุม เช่น ภาพที่ 1 เป็นหน้าซอง/ขวด และภาพที่ 2+ เป็นตารางโภชนาการ Nutrition Facts หรือฉลาก GDA หวานมันเค็ม ด้านหลังหรือด้านข้าง)
 
@@ -43,7 +76,7 @@ export default async function handler(req, res) {
 ตอบกลับเป็นรูปแบบ JSON เดียวนี้เท่านั้น:
 {
   "name": "ชื่ออาหารหรือชื่อสินค้าทางการพร้อมแบรนด์",
-  "meal_type": "lunch",
+  "meal_type": "${meal_type}",
   "portion": "1 ซอง (90g) หรือ 1 จาน หรือ 1 ขวด (600ml)",
   "calories": 0,
   "protein_g": 0.0,

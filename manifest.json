@@ -1,11 +1,21 @@
 {
   "name": "Kalguroo Calorie AI",
   "short_name": "Kalguroo",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0b0c10",
-  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2921/2921822.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2921/2921822.png",
       "sizes": "512x512",

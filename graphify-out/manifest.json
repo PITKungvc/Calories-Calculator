@@ -1,8 +1,8 @@
 {
   "manifest.json": {
-    "mtime": 1792693400.8684626,
-    "seen": 1792695048.369058,
-    "ast_hash": "77f5c013e811583a964da261b7327785",
+    "mtime": 1792743651.7637117,
+    "seen": 1792743957.8339698,
+    "ast_hash": "e7628bac1eacc075f223bd5d0c326f20",
     "semantic_hash": ""
   },
   "vercel.json": {
@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792738883.3134327,
-    "seen": 1792738918.7235565,
-    "ast_hash": "e947c227d5ee8cb1893bce51185bf792",
+    "mtime": 1792743935.5185125,
+    "seen": 1792743957.8339698,
+    "ast_hash": "41c383785cbe2938158dc4cc7d7a75d8",
     "semantic_hash": ""
   },
   "api/analyze.js": {
-    "mtime": 1792738627.390183,
-    "seen": 1792738918.7235565,
-    "ast_hash": "cb5bae154928dd47a22520b655ad4d94",
+    "mtime": 1792743687.2762654,
+    "seen": 1792743957.8339698,
+    "ast_hash": "6cd40839a90fcfa4449df3c3560aa41e",
     "semantic_hash": ""
   },
   "api/products.js": {
@@ -45,6 +45,12 @@
     "mtime": 1792735857.941439,
     "seen": 1792736096.7893891,
     "ast_hash": "9c4c584fbbaee8c42fc6ecadffaf6184",
+    "semantic_hash": ""
+  },
+  "sw.js": {
+    "mtime": 1792743636.506579,
+    "seen": 1792743957.8339698,
+    "ast_hash": "52f58f216ef634ceb0439de06b374e2e",
     "semantic_hash": ""
   }
 }

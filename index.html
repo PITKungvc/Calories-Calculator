@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- iOS PWA Fullscreen Meta Tags -->
+    <!-- PWA & Mobile Fullscreen Meta Tags (ปิดแถบ Chrome และ Safari) -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kalguroo AI">
+    <meta name="theme-color" content="#090a0f">
+    <meta name="msapplication-navbutton-color" content="#090a0f">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921822.png">
     <link rel="manifest" href="/manifest.json">
 
@@ -301,13 +304,43 @@
         <!-- TAB 5: PROFILE & HEALTH GOALS (โปรไฟล์ & สุขภาพ & ตั้งค่า)     -->
         <!-- ============================================================== -->
         <div id="viewProfile" class="tab-view hidden space-y-4">
-            <!-- Health Calculator & BMR / TDEE Card -->
-            <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 space-y-4 glow-card">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">คำนวณ BMR & TDEE (Mifflin-St Jeor)</span>
-                    <span class="text-xs text-brand-400 font-semibold">สูตรมาตรฐาน</span>
+            <!-- PWA Fullscreen App Install Banner (ปิดแถบ Chrome/Safari) -->
+            <div id="pwaInstallCard" class="bg-gradient-to-r from-zinc-900 via-zinc-900 to-brand-950/40 border border-brand-500/30 rounded-3xl p-5 space-y-3 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 text-xl flex-shrink-0">
+                        <i class="ph-bold ph-device-mobile"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                            ใช้งานแบบแอปแท้ (ปิดแถบ Chrome)
+                            <span class="px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 text-[9px] font-black">แนะนำ</span>
+                        </h4>
+                        <p class="text-[10px] text-slate-400">ปิดแถบ URL ด้านบนและปุ่มล่างของเบราว์เซอร์ เพื่อความลื่นไหลเต็มจอ 100%</p>
+                    </div>
                 </div>
 
+                <div class="pt-1">
+                    <button id="btnPwaInstall" onclick="triggerPwaInstall()" class="w-full py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-zinc-950 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition">
+                        <i class="ph-bold ph-download-simple"></i>
+                        <span id="pwaInstallBtnText">ติดตั้งแอปลงบนหน้าจอโฮม</span>
+                    </button>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-[10px] text-slate-400 space-y-1">
+                    <div class="font-bold text-slate-300">วิธีติดตั้งแบบแมนนวล (หากไม่เห็นปุ่ม):</div>
+                    <div>• <b>Google Chrome (Android):</b> กดปุ่ม 3 จุด (⋮) มุมขวาบน ➔ เลือก <b>"ติดตั้งแอป"</b> หรือ <b>"เพิ่มลงในหน้าจอหลัก"</b></div>
+                    <div>• <b>Safari (iOS):</b> กดปุ่มแชร์ <i class="ph-bold ph-export"></i> ➔ เลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b></div>
+                </div>
+            </div>
+
+            <!-- Health Calculator & BMR / TDEE & Weight Goal Card -->
+            <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 space-y-4 glow-card">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">คำนวณเป้าหมายลด/เพิ่มน้ำหนัก & TDEE</span>
+                    <span class="text-xs text-brand-400 font-semibold">Mifflin-St Jeor</span>
+                </div>
+
+                <!-- Personal Metrics -->
                 <div class="grid grid-cols-2 gap-3 text-xs">
                     <div>
                         <label class="text-slate-400">เพศ</label>
@@ -330,13 +363,33 @@
                     </div>
                 </div>
 
+                <!-- Weight Goal & Target Weight -->
+                <div class="grid grid-cols-2 gap-3 text-xs pt-1 border-t border-zinc-800/60">
+                    <div>
+                        <label class="text-slate-400">น้ำหนักเป้าหมาย (kg)</label>
+                        <input id="userTargetWeight" type="number" value="65" oninput="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-brand-400 font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-slate-400">ระดับกิจกรรม</label>
+                        <select id="userActivity" onchange="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs outline-none">
+                            <option value="1.2">นั่งทำงานอยู่กับที่ (ไม่ออกกำลังกาย)</option>
+                            <option value="1.375" selected>ออกกำลังกายเบาๆ 1-3 วัน/สัปดาห์</option>
+                            <option value="1.55">ออกกำลังกายปานกลาง 3-5 วัน/สัปดาห์</option>
+                            <option value="1.725">ออกกำลังกายหนัก 6-7 วัน/สัปดาห์</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Goal Selection -->
                 <div>
-                    <label class="text-xs text-slate-400">ระดับกิจกรรม</label>
-                    <select id="userActivity" onchange="calculateBmrTdee()" class="w-full mt-1 p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs outline-none">
-                        <option value="1.2">นั่งทำงานอยู่กับที่ (ไม่ออกกำลังกาย)</option>
-                        <option value="1.375" selected>ออกกำลังกายเบาๆ 1-3 วัน/สัปดาห์</option>
-                        <option value="1.55">ออกกำลังกายปานกลาง 3-5 วัน/สัปดาห์</option>
-                        <option value="1.725">ออกกำลังกายหนัก 6-7 วัน/สัปดาห์</option>
+                    <label class="text-xs text-slate-400 block mb-1">เป้าหมายการกิน (Deficit / Surplus)</label>
+                    <select id="userWeightGoal" onchange="calculateBmrTdee()" class="w-full p-2.5 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs outline-none font-medium">
+                        <option value="lose_standard" selected>🔥 ลดน้ำหนักมาตรฐาน (-500 kcal/วัน | ลด ~0.5 kg/สัปดาห์) [แนะนำ]</option>
+                        <option value="lose_chill">📉 ลดน้ำหนักแบบสบายๆ (-250 kcal/วัน | ลด ~0.25 kg/สัปดาห์)</option>
+                        <option value="lose_fast">⚡ ลดน้ำหนักเร่งด่วน (-750 kcal/วัน | ลด ~0.75 kg/สัปดาห์)</option>
+                        <option value="maintain">⚖️ รักษาน้ำหนักคงที่ (ทานเท่าค่า TDEE)</option>
+                        <option value="gain_lean">🏋️‍♂️ เพิ่มน้ำหนัก / สร้างกล้ามเนื้อ (+300 kcal/วัน | เพิ่ม ~0.3 kg/สัปดาห์)</option>
+                        <option value="gain_fast">🚀 เพิ่มน้ำหนักรวดเร็ว Bulk (+500 kcal/วัน | เพิ่ม ~0.5 kg/สัปดาห์)</option>
                     </select>
                 </div>
 
@@ -344,17 +397,24 @@
                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800/80 text-center">
                     <div class="bg-zinc-950/70 p-3 rounded-2xl">
                         <span class="text-[10px] text-slate-400 uppercase">BMR (เผาผลาญพื้นฐาน)</span>
-                        <div id="displayBmr" class="text-lg font-black text-white mt-0.5">1,650 kcal</div>
+                        <div id="displayBmr" class="text-base font-black text-white mt-0.5">1,650 kcal</div>
                     </div>
                     <div class="bg-zinc-950/70 p-3 rounded-2xl">
                         <span class="text-[10px] text-slate-400 uppercase">TDEE (ใช้พลังงานจริง)</span>
-                        <div id="displayTdee" class="text-lg font-black text-brand-400 mt-0.5">2,260 kcal</div>
+                        <div id="displayTdee" class="text-base font-black text-slate-300 mt-0.5">2,260 kcal</div>
                     </div>
+                </div>
+
+                <!-- Main Target Calorie Goal Highlight -->
+                <div class="p-3.5 rounded-2xl bg-gradient-to-tr from-brand-950/60 to-amber-950/40 border border-brand-500/40 text-center space-y-1">
+                    <span class="text-[10px] uppercase tracking-wider text-brand-400 font-bold block">แคลอรี่เป้าหมายหลักต่อวัน (Target Daily Calories)</span>
+                    <div id="displayTargetCalories" class="text-2xl font-black text-brand-400">1,760 kcal</div>
+                    <div id="displayGoalProjection" class="text-[11px] text-slate-300 pt-1 font-medium">ต้องการลด 5.0 kg → คาดว่าจะใช้เวลาประมาณ 10 สัปดาห์ (2.5 เดือน)</div>
                 </div>
 
                 <div class="py-2.5 px-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5">
                     <i class="ph-bold ph-check-circle text-base"></i>
-                    <span>ตั้งเป็นแคลอรี่เป้าหมายประจำวันอัตโนมัติ (<span id="autoGoalText">2,260</span> kcal)</span>
+                    <span>ตั้งเป็นแคลอรี่เป้าหมายหลักของระบบเรียบร้อย (<span id="autoGoalText">1,760</span> kcal)</span>
                 </div>
             </div>
 
@@ -463,6 +523,16 @@
                 </button>
             </div>
 
+            <!-- Mode Switcher: Photo Slots vs Text Input -->
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-800/80">
+                <button type="button" onclick="switchBuilderMode('photo')" id="modeBtn-photo" class="py-2 text-xs font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1.5 shadow-md">
+                    <i class="ph-bold ph-camera"></i> สแกนจากรูปภาพ
+                </button>
+                <button type="button" onclick="switchBuilderMode('text')" id="modeBtn-text" class="py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                    <i class="ph-bold ph-pencil-simple-line"></i> พิมพ์บอก AI (กินหมดแล้ว)
+                </button>
+            </div>
+
             <!-- Meal Type Selector -->
             <div>
                 <label class="text-[11px] font-semibold text-slate-400 mb-1.5 block">ประเภทมื้ออาหาร</label>
@@ -474,32 +544,67 @@
                 </div>
             </div>
 
-            <!-- Item Slots List (Scrollable) -->
-            <div id="mealBuilderSlots" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar min-h-[200px]">
-                <!-- Dynamic Slots injected by JS -->
-            </div>
+            <!-- 1. PHOTO SLOTS SECTION -->
+            <div id="builderPhotoSection" class="flex-1 flex flex-col space-y-3 min-h-0">
+                <!-- Item Slots List (Scrollable) -->
+                <div id="mealBuilderSlots" class="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar min-h-[190px]">
+                    <!-- Dynamic Slots injected by JS -->
+                </div>
 
-            <!-- Add Slot & Database Search Shortcuts -->
-            <div class="space-y-2 pt-1 border-t border-zinc-800/80">
-                <button type="button" onclick="addMealBuilderSlot()" class="w-full py-2.5 rounded-2xl border-2 border-dashed border-zinc-800 hover:border-brand-500/50 bg-zinc-950/60 hover:bg-zinc-950 text-xs font-bold text-slate-300 hover:text-brand-400 flex items-center justify-center gap-2 transition active:scale-98">
-                    <i class="ph-bold ph-plus-circle text-base"></i>
-                    <span>+ เพิ่มสินค้า/อาหารอีกรายการ (ช่องที่ <span id="nextSlotNumber">2</span>)</span>
-                </button>
+                <!-- Add Slot & Database Search Shortcuts -->
+                <div class="space-y-2 pt-1 border-t border-zinc-800/80">
+                    <button type="button" onclick="addMealBuilderSlot()" class="w-full py-2.5 rounded-2xl border-2 border-dashed border-zinc-800 hover:border-brand-500/50 bg-zinc-950/60 hover:bg-zinc-950 text-xs font-bold text-slate-300 hover:text-brand-400 flex items-center justify-center gap-2 transition active:scale-98">
+                        <i class="ph-bold ph-plus-circle text-base"></i>
+                        <span>+ เพิ่มสินค้า/อาหารอีกรายการ (ช่องที่ <span id="nextSlotNumber">2</span>)</span>
+                    </button>
 
-                <div class="flex items-center justify-between text-[11px] px-1 text-slate-400">
-                    <span>หรือเลือกจากสินค้าสะดวกซื้อ:</span>
-                    <button type="button" onclick="openOfficialSearchModal()" class="text-emerald-400 hover:underline font-semibold flex items-center gap-1">
-                        <i class="ph-bold ph-magnifying-glass"></i> ค้นหาฐานข้อมูล 7-Eleven
+                    <div class="flex items-center justify-between text-[11px] px-1 text-slate-400">
+                        <span>หรือเลือกจากสินค้าสะดวกซื้อ:</span>
+                        <button type="button" onclick="openOfficialSearchModal()" class="text-emerald-400 hover:underline font-semibold flex items-center gap-1">
+                            <i class="ph-bold ph-magnifying-glass"></i> ค้นหาฐานข้อมูล 7-Eleven
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analyze Photos Action Button -->
+                <div class="pt-1">
+                    <button id="btnAnalyzeAll" type="button" onclick="startMultiItemAnalysis()" disabled class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 disabled:from-zinc-800 disabled:to-zinc-800 text-zinc-950 disabled:text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-lg disabled:shadow-none active:scale-98 transition">
+                        <i class="ph-bold ph-sparkle text-lg"></i>
+                        <span id="analyzeBtnText">กรุณาถ่ายรูปอย่างน้อย 1 รายการ</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Analyze Action Button -->
-            <div class="pt-2">
-                <button id="btnAnalyzeAll" type="button" onclick="startMultiItemAnalysis()" disabled class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 disabled:from-zinc-800 disabled:to-zinc-800 text-zinc-950 disabled:text-zinc-500 font-black text-sm flex items-center justify-center gap-2 shadow-lg disabled:shadow-none active:scale-98 transition">
-                    <i class="ph-bold ph-sparkle text-lg"></i>
-                    <span id="analyzeBtnText">กรุณาถ่ายรูปอย่างน้อย 1 รายการ</span>
-                </button>
+            <!-- 2. TEXT INPUT SECTION (เมื่อลืมถ่าย/กินหมดแล้ว) -->
+            <div id="builderTextSection" class="hidden flex-1 overflow-y-auto space-y-3.5 pr-1 custom-scrollbar min-h-[220px]">
+                <div class="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                            <i class="ph-bold ph-chats-circle text-brand-400"></i> พิมพ์รายการอาหารที่กิน
+                        </label>
+                        <span class="text-[10px] text-slate-500">AI คำนวณให้อัตโนมัติ</span>
+                    </div>
+                    <textarea id="builderTextInput" rows="4" placeholder="พิมพ์อาหารหรือเครื่องดื่มที่ทาน เช่น:&#10;• ข้าวกะเพราไก่ไข่ดาว 1 จาน + น้ำส้ม 1 แก้ว&#10;• Cielo รสแอปเปิ้ล 1 ขวด กับ อกไก่นุ่ม CP 1 ซอง&#10;• ส้มตำไทย + ข้าวเหนียว + ไก่ย่าง 1 น่อง"
+                              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 resize-none transition leading-relaxed"></textarea>
+                </div>
+
+                <!-- Quick Suggestions Chips -->
+                <div class="space-y-1.5">
+                    <span class="text-[10px] font-bold uppercase text-slate-500 block">ตัวอย่างยอดฮิต (แตะเพื่อใส่):</span>
+                    <div class="flex flex-wrap gap-1.5 text-[11px]">
+                        <button type="button" onclick="insertTextSuggestion('ข้าวกะเพราไก่ไข่ดาว 1 จาน')" class="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-slate-300 hover:text-brand-400 hover:border-brand-500/40 transition">ข้าวกะเพราไก่ไข่ดาว</button>
+                        <button type="button" onclick="insertTextSuggestion('Cielo รสแอปเปิ้ล 1 ขวด')" class="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-slate-300 hover:text-brand-400 hover:border-brand-500/40 transition">Cielo แอปเปิ้ล</button>
+                        <button type="button" onclick="insertTextSuggestion('อกไก่นุ่ม CP 1 ซอง')" class="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-slate-300 hover:text-brand-400 hover:border-brand-500/40 transition">อกไก่นุ่ม CP</button>
+                        <button type="button" onclick="insertTextSuggestion('นมเมจิ ไฮโปรตีน ช็อกโกแลต 1 ขวด')" class="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-slate-300 hover:text-brand-400 hover:border-brand-500/40 transition">เมจิ ไฮโปรตีน</button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="button" onclick="startTextFoodAnalysis()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 text-zinc-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-98 transition">
+                        <i class="ph-bold ph-sparkle text-lg"></i>
+                        <span>ให้ AI วิเคราะห์จากข้อความ</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -731,6 +836,11 @@
         let selectedHistoryDate = new Date().toISOString().split('T')[0];
 
         function initApp() {
+            // Register PWA Service Worker เพื่อรองรับโหมดเต็มจอแบบ Native App
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+
             const savedConfig = localStorage.getItem(STORAGE_CONFIG);
             if (savedConfig) config = JSON.parse(savedConfig);
 
@@ -1045,14 +1155,16 @@
         }
 
         // ==========================================
-        // TAB 5: PROFILE & HEALTH TOOLS
+        // TAB 5: PROFILE & HEALTH & WEIGHT GOAL TOOLS
         // ==========================================
         function calculateBmrTdee() {
             const gender = document.getElementById('userGender').value;
             const age = parseFloat(document.getElementById('userAge').value) || 25;
             const height = parseFloat(document.getElementById('userHeight').value) || 170;
             const weight = parseFloat(document.getElementById('userWeight').value) || 65;
+            const targetWeight = parseFloat(document.getElementById('userTargetWeight')?.value) || weight;
             const activity = parseFloat(document.getElementById('userActivity').value) || 1.375;
+            const goalMode = document.getElementById('userWeightGoal')?.value || 'lose_standard';
 
             // Mifflin-St Jeor Equation
             let bmr = (10 * weight) + (6.25 * height) - (5 * age);
@@ -1065,22 +1177,76 @@
             const tdee = Math.round(bmr * activity);
             const bmrRounded = Math.round(bmr);
 
+            // คำนวณ Calorie Deficit / Surplus ตามเป้าหมายที่เลือก
+            let calorieAdjustment = 0;
+            let weeklyWeightChangeKg = 0;
+
+            switch (goalMode) {
+                case 'lose_chill':
+                    calorieAdjustment = -250;
+                    weeklyWeightChangeKg = -0.25;
+                    break;
+                case 'lose_standard':
+                    calorieAdjustment = -500;
+                    weeklyWeightChangeKg = -0.5;
+                    break;
+                case 'lose_fast':
+                    calorieAdjustment = -750;
+                    weeklyWeightChangeKg = -0.75;
+                    break;
+                case 'maintain':
+                    calorieAdjustment = 0;
+                    weeklyWeightChangeKg = 0;
+                    break;
+                case 'gain_lean':
+                    calorieAdjustment = 300;
+                    weeklyWeightChangeKg = 0.3;
+                    break;
+                case 'gain_fast':
+                    calorieAdjustment = 500;
+                    weeklyWeightChangeKg = 0.5;
+                    break;
+                default:
+                    calorieAdjustment = -500;
+                    weeklyWeightChangeKg = -0.5;
+            }
+
+            // คำนวณแคลอรี่เป้าหมายหลักต่อวัน (Target Daily Calories)
+            const targetDailyCalories = Math.max(1100, Math.round(tdee + calorieAdjustment));
+
+            // แสดงผลลัพธ์
             document.getElementById('displayBmr').innerText = `${bmrRounded.toLocaleString()} kcal`;
             document.getElementById('displayTdee').innerText = `${tdee.toLocaleString()} kcal`;
+            const targetCalEl = document.getElementById('displayTargetCalories');
+            if (targetCalEl) targetCalEl.innerText = `${targetDailyCalories.toLocaleString()} kcal`;
 
-            // อัปเดตตั้งเป็นเป้าหมายแคลอรี่ประจำวันอัตโนมัติทันที
-            config.goal = tdee;
+            // คำนวณระยะเวลาคาดการณ์ถึงเป้าหมาย
+            const weightDiff = Math.abs(weight - targetWeight);
+            const projectionEl = document.getElementById('displayGoalProjection');
+            if (projectionEl) {
+                if (weightDiff < 0.1 || weeklyWeightChangeKg === 0) {
+                    projectionEl.innerText = goalMode === 'maintain' ? 'เน้นรักษาน้ำหนักให้คงที่และสุขภาพดี' : 'น้ำหนักปัจจุบันตรงกับเป้าหมายแล้ว';
+                } else {
+                    const weeksNeeded = Math.ceil(weightDiff / Math.abs(weeklyWeightChangeKg));
+                    const monthsNeeded = (weeksNeeded / 4).toFixed(1);
+                    const isLoss = weight > targetWeight;
+                    projectionEl.innerText = `ต้องการ${isLoss ? 'ลด' : 'เพิ่ม'} ${weightDiff.toFixed(1)} kg → คาดว่าจะใช้เวลาประมาณ ${weeksNeeded} สัปดาห์ (~${monthsNeeded} เดือน)`;
+                }
+            }
+
+            // นำแคลอรี่เป้าหมายนี้ไปตั้งเป็นเป้าหมายการกินหลักของระบบอัตโนมัติทันที
+            config.goal = targetDailyCalories;
             const calorieGoalInput = document.getElementById('calorieGoalInput');
-            if (calorieGoalInput) calorieGoalInput.value = tdee;
+            if (calorieGoalInput) calorieGoalInput.value = targetDailyCalories;
             const goalDisplay = document.getElementById('goalDisplay');
-            if (goalDisplay) goalDisplay.innerText = tdee;
+            if (goalDisplay) goalDisplay.innerText = targetDailyCalories.toLocaleString();
             const autoGoalEl = document.getElementById('autoGoalText');
-            if (autoGoalEl) autoGoalEl.innerText = tdee.toLocaleString();
+            if (autoGoalEl) autoGoalEl.innerText = targetDailyCalories.toLocaleString();
 
             localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
 
             // Save Profile
-            const profile = { gender, age, height, weight, activity, bmr: bmrRounded, tdee };
+            const profile = { gender, age, height, weight, targetWeight, activity, goalMode, bmr: bmrRounded, tdee, targetDailyCalories };
             localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile));
 
             renderHomeDashboard();
@@ -1094,7 +1260,9 @@
                 if (p.age) document.getElementById('userAge').value = p.age;
                 if (p.height) document.getElementById('userHeight').value = p.height;
                 if (p.weight) document.getElementById('userWeight').value = p.weight;
+                if (p.targetWeight && document.getElementById('userTargetWeight')) document.getElementById('userTargetWeight').value = p.targetWeight;
                 if (p.activity) document.getElementById('userActivity').value = p.activity;
+                if (p.goalMode && document.getElementById('userWeightGoal')) document.getElementById('userWeightGoal').value = p.goalMode;
             }
         }
 
@@ -1837,6 +2005,129 @@
             mealBuilderItems = [
                 { id: 1, label: 'สินค้า / อาหาร 1', photos: [] }
             ];
+        }
+
+        // ==========================================
+        // BUILDER MODE SWITCHER (PHOTO VS TEXT)
+        // ==========================================
+        function switchBuilderMode(mode) {
+            const photoBtn = document.getElementById('modeBtn-photo');
+            const textBtn = document.getElementById('modeBtn-text');
+            const photoSection = document.getElementById('builderPhotoSection');
+            const textSection = document.getElementById('builderTextSection');
+
+            if (mode === 'photo') {
+                photoBtn.className = 'py-2 text-xs font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1.5 shadow-md';
+                textBtn.className = 'py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+                photoSection.classList.remove('hidden');
+                textSection.classList.add('hidden');
+            } else {
+                textBtn.className = 'py-2 text-xs font-bold rounded-xl transition bg-brand-500 text-zinc-950 flex items-center justify-center gap-1.5 shadow-md';
+                photoBtn.className = 'py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+                photoSection.classList.add('hidden');
+                textSection.classList.remove('hidden');
+                document.getElementById('builderTextInput').focus();
+            }
+        }
+
+        function insertTextSuggestion(text) {
+            const input = document.getElementById('builderTextInput');
+            if (input.value.trim().length > 0) {
+                input.value += ' + ' + text;
+            } else {
+                input.value = text;
+            }
+            input.focus();
+        }
+
+        async function startTextFoodAnalysis() {
+            const text = document.getElementById('builderTextInput').value.trim();
+            if (!text) {
+                alert('กรุณาพิมพ์ชื่ออาหารหรือเครื่องดื่มที่ต้องการวิเคราะห์');
+                return;
+            }
+
+            closeMealBuilderModal();
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.classList.remove('hidden');
+            loadingModal.querySelector('.font-bold').innerText = 'AI กำลังวิเคราะห์อาหารจากข้อความ...';
+
+            try {
+                const res = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        meal_type: builderMealType,
+                        model: 'gemini-3.5-flash'
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Server error');
+                }
+
+                loadingModal.classList.add('hidden');
+                loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
+
+                // นำเข้าสู่หน้าต่าง Review เพื่อตรวจสอบและยืนยัน
+                document.getElementById('editName').value = data.name || text;
+                document.getElementById('editMealType').value = data.meal_type || builderMealType;
+                document.getElementById('editCal').value = Number(data.calories) || 0;
+                document.getElementById('editP').value = Number(data.protein_g) || 0;
+                document.getElementById('editC').value = Number(data.carbs_g) || 0;
+                document.getElementById('editF').value = Number(data.fat_g) || 0;
+                document.getElementById('editSugar').value = Number(data.sugar_g) || 0;
+                document.getElementById('editSodium').value = Number(data.sodium_mg) || 0;
+
+                currentScanMeta = {
+                    is_official: !!data.is_official,
+                    source: data.source || 'ประเมินจากข้อความ'
+                };
+
+                const officialBadge = document.getElementById('officialBadge');
+                const sourceText = document.getElementById('sourceText');
+                if (currentScanMeta.is_official) {
+                    sourceText.innerText = currentScanMeta.source;
+                    officialBadge.classList.remove('hidden');
+                } else {
+                    officialBadge.classList.add('hidden');
+                }
+
+                document.getElementById('reviewModal').classList.remove('hidden');
+                document.getElementById('builderTextInput').value = '';
+            } catch (err) {
+                loadingModal.classList.add('hidden');
+                loadingModal.querySelector('.font-bold').innerText = 'กำลังวิเคราะห์อาหาร...';
+                alert('เกิดข้อผิดพลาดในการวิเคราะห์: ' + err.message);
+            }
+        }
+
+        // ==========================================
+        // PWA INSTALLATION & STANDALONE SUPPORT
+        // ==========================================
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btnText = document.getElementById('pwaInstallBtnText');
+            if (btnText) btnText.innerText = 'ติดตั้งแอปลงบนหน้าจอโฮมทันที (1-Click)';
+        });
+
+        function triggerPwaInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User installed Kalguroo PWA');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert('วิธีติดตั้งแบบแอปเต็มจอ (ปิดแถบ Chrome):\n\n• สำหรับ Android Chrome: แตะไอคอน 3 จุด (⋮) มุมขวาบน ➔ เลือก "ติดตั้งแอป" หรือ "เพิ่มลงในหน้าจอหลัก"\n\n• สำหรับ iOS Safari: แตะปุ่มแชร์ ➔ เลือก "เพิ่มไปยังหน้าจอโฮม"');
+            }
         }
 
         window.onload = initApp;

@@ -2,5 +2,6 @@
   "0": "manifest.json",
   "1": "vercel.json",
   "2": "api/products.js",
-  "3": "scrape_7eleven.js"
+  "3": "scrape_7eleven.js",
+  "4": "sw.js"
 }
