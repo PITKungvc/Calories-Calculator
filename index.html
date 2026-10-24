@@ -1526,8 +1526,8 @@
             </div>
 
             <!-- Canvas Preview Box (Responsive 9:16 aspect ratio preview) -->
-            <div class="relative w-full aspect-[9/16] max-h-[50vh] rounded-2xl overflow-hidden border border-zinc-800 bg-black flex items-center justify-center shadow-inner">
-                <canvas id="shareCanvas" class="w-full h-full object-contain"></canvas>
+            <div class="relative w-full max-h-[50vh] flex items-center justify-center p-2 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shadow-inner">
+                <canvas id="shareCanvas" style="max-height: 46vh; aspect-ratio: 9/16; width: auto; height: auto; max-width: 100%;" class="rounded-xl shadow-2xl block mx-auto"></canvas>
             </div>
 
             <!-- Action Buttons -->
@@ -4917,6 +4917,11 @@ Script.complete();`;
             canvas.width = W;
             canvas.height = H;
 
+            // Ensure letterSpacing does not carry over from previous renders
+            if ('letterSpacing' in ctx) {
+                ctx.letterSpacing = '0px';
+            }
+
             // 1. Deep Aesthetic Background Gradient
             const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
             bgGrad.addColorStop(0, '#090a0f');
@@ -4959,21 +4964,21 @@ Script.complete();`;
             const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
             const formattedDate = `${dateObj.getDate()} ${thMonths[dateObj.getMonth()]} ${dateObj.getFullYear() + 543}`;
 
-            // Brand Pill (Top Left)
+            // Brand Pill (Top Left - Perfectly symmetrical 70px margin)
             drawRoundedRect(ctx, 70, 60, 270, 56, 28, 'rgba(24, 25, 33, 0.9)', 'rgba(249, 115, 22, 0.35)', 2);
             ctx.fillStyle = '#f97316';
-            ctx.font = 'bold 26px "Noto Sans Thai", sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText('⚡ CalSnap AI', 100, 97);
+            ctx.font = 'bold 24px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⚡ CalSnap AI', 70 + 135, 96);
 
-            // Date Pill (Top Right)
-            drawRoundedRect(ctx, 730, 60, 280, 56, 28, 'rgba(24, 25, 33, 0.9)', 'rgba(255, 255, 255, 0.12)', 1.5);
+            // Date Pill (Top Right - Symmetrical 70px right margin: 740 + 270 = 1010)
+            drawRoundedRect(ctx, 740, 60, 270, 56, 28, 'rgba(24, 25, 33, 0.9)', 'rgba(255, 255, 255, 0.12)', 1.5);
             ctx.fillStyle = '#cbd5e1';
             ctx.font = '600 22px "Noto Sans Thai", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(`📅 ${formattedDate}`, 870, 96);
+            ctx.fillText(`📅 ${formattedDate}`, 740 + 135, 96);
 
-            // 3. Main Glass Card Container (Height: 1580px, well-balanced from y = 145 to 1725)
+            // 3. Main Glass Card Container (Height: 1580px, centered from x = 70 to 1010)
             const cardX = 70;
             const cardY = 145;
             const cardW = 940;
@@ -4995,7 +5000,7 @@ Script.complete();`;
                 renderMealStoryCard(ctx, W, H, formattedDate);
             }
 
-            // 5. Outer Footer Watermark (Bottom Story)
+            // 5. Outer Footer Watermark (Bottom Story - Perfectly Centered)
             ctx.textAlign = 'center';
             ctx.fillStyle = '#94a3b8';
             ctx.font = '500 24px "Noto Sans Thai", sans-serif';
@@ -5030,22 +5035,24 @@ Script.complete();`;
             const percent = goal > 0 ? Math.round((totalCal / goal) * 100) : 0;
             const remaining = goal - totalCal;
             const targets = getMacroTargets(goal);
+            const startX = 110;
+            const cardInnerW = 860; // 110 to 970 (1080 - 110)
 
             // A. Header Row inside card
             // Streak Badge (Left)
-            drawRoundedRect(ctx, 110, 190, 260, 50, 25, 'rgba(249, 115, 22, 0.16)', 'rgba(249, 115, 22, 0.45)', 1.5);
+            drawRoundedRect(ctx, startX, 190, 270, 50, 25, 'rgba(249, 115, 22, 0.16)', 'rgba(249, 115, 22, 0.45)', 1.5);
             ctx.fillStyle = '#f97316';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(streakStats.currentStreak > 0 ? `🔥 ${streakStats.currentStreak} วันติด (Streak)` : '🌱 เริ่มมีวินัยวันแรก', 240, 223);
+            ctx.fillText(streakStats.currentStreak > 0 ? `🔥 ${streakStats.currentStreak} วันติด (Streak)` : '🌱 เริ่มมีวินัยวันแรก', startX + 135, 223);
 
-            // User Level (Right)
+            // User Level (Right - Anchored at 970 for perfect symmetry)
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.textAlign = 'right';
-            ctx.fillText(`Lv.${streakStats.level} ${streakStats.levelTitle}`, 970, 223);
+            ctx.fillText(`Lv.${streakStats.level} ${streakStats.levelTitle}`, startX + cardInnerW, 223);
 
-            // B. Hero Circular Calorie Ring Section
+            // B. Hero Circular Calorie Ring Section (Centered at 540)
             const ringX = 540;
             const ringY = 430;
             const ringRadius = 140;
@@ -5068,95 +5075,102 @@ Script.complete();`;
             ctx.lineCap = 'round';
             ctx.stroke();
 
-            // Inner Ring Texts
+            // Inner Ring Texts (Centered at 540)
             ctx.textAlign = 'center';
             ctx.fillStyle = '#94a3b8';
             ctx.font = '600 22px "Noto Sans Thai", sans-serif';
             ctx.fillText('แคลอรี่วันนี้', ringX, ringY - 45);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'black 76px "Noto Sans Thai", sans-serif';
-            ctx.fillText(totalCal.toLocaleString(), ringX, ringY + 30);
+            ctx.font = '900 76px "Noto Sans Thai", sans-serif';
+            ctx.fillText(totalCal.toLocaleString(), ringX, ringY + 28);
 
             ctx.fillStyle = '#a1a1aa';
             ctx.font = '600 24px "Noto Sans Thai", sans-serif';
             ctx.fillText(`/ ${goal.toLocaleString()} kcal`, ringX, ringY + 75);
 
-            // Status Pill below Ring
+            // Status Pill below Ring (Centered at 540)
             const statusY = 620;
+            const statusW = 420;
+            const statusX = ringX - statusW / 2;
             if (remaining >= 0) {
-                drawRoundedRect(ctx, 540 - 200, statusY, 400, 52, 26, 'rgba(16, 185, 129, 0.15)', 'rgba(16, 185, 129, 0.35)', 1.5);
+                drawRoundedRect(ctx, statusX, statusY, statusW, 52, 26, 'rgba(16, 185, 129, 0.15)', 'rgba(16, 185, 129, 0.35)', 1.5);
                 ctx.fillStyle = '#34d399';
                 ctx.font = 'bold 23px "Noto Sans Thai", sans-serif';
-                ctx.fillText(`🎯 เหลืออีก ${remaining.toLocaleString()} kcal (${100 - Math.min(percent, 100)}%)`, 540, statusY + 34);
+                ctx.textAlign = 'center';
+                ctx.fillText(`🎯 เหลืออีก ${remaining.toLocaleString()} kcal (${100 - Math.min(percent, 100)}%)`, ringX, statusY + 34);
             } else {
-                drawRoundedRect(ctx, 540 - 200, statusY, 400, 52, 26, 'rgba(244, 63, 94, 0.15)', 'rgba(244, 63, 94, 0.35)', 1.5);
+                drawRoundedRect(ctx, statusX, statusY, statusW, 52, 26, 'rgba(244, 63, 94, 0.15)', 'rgba(244, 63, 94, 0.35)', 1.5);
                 ctx.fillStyle = '#fb7185';
                 ctx.font = 'bold 23px "Noto Sans Thai", sans-serif';
-                ctx.fillText(`⚠️ เกินเป้าหมาย ${Math.abs(remaining).toLocaleString()} kcal`, 540, statusY + 34);
+                ctx.textAlign = 'center';
+                ctx.fillText(`⚠️ เกินเป้าหมาย ${Math.abs(remaining).toLocaleString()} kcal`, ringX, statusY + 34);
             }
 
-            // C. Macro Trio Progress Cards (P, C, F)
+            // C. Macro Trio Progress Cards (P, C, F) - Symmetrical 3 Columns
             const macroY = 705;
-            const pillW = 265;
+            const pillW = 268;
             const pillH = 165;
-            const pillGap = 32;
-            const startX = 110;
+            const pillGap = 28; // 268 * 3 + 28 * 2 = 860
 
-            // 1. Protein
+            // 1. Protein Card
             const pPct = Math.min(Math.round((totalP / targets.protein) * 100), 100);
-            drawRoundedRect(ctx, startX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(249, 115, 22, 0.35)', 2);
-            ctx.textAlign = 'left';
+            const pX = startX;
+            const pCenter = pX + pillW / 2;
+            drawRoundedRect(ctx, pX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(249, 115, 22, 0.35)', 2);
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#f97316';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
-            ctx.fillText('โปรตีน (P)', startX + 22, macroY + 38);
+            ctx.fillText('โปรตีน (P)', pCenter, macroY + 38);
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${Math.round(totalP)}g`, startX + 22, macroY + 90);
+            ctx.fillText(`${Math.round(totalP)}g`, pCenter, macroY + 88);
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`เป้า ${targets.protein}g (${pPct}%)`, startX + 22, macroY + 122);
-            // Mini progress bar
-            drawRoundedRect(ctx, startX + 22, macroY + 138, pillW - 44, 8, 4, '#2d2f3d');
-            if (pPct > 0) drawRoundedRect(ctx, startX + 22, macroY + 138, (pillW - 44) * (pPct / 100), 8, 4, '#f97316');
+            ctx.font = '500 19px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`เป้า ${targets.protein}g (${pPct}%)`, pCenter, macroY + 120);
+            // Symmetrical Mini progress bar
+            drawRoundedRect(ctx, pX + 22, macroY + 136, pillW - 44, 8, 4, '#2d2f3d');
+            if (pPct > 0) drawRoundedRect(ctx, pX + 22, macroY + 136, (pillW - 44) * (pPct / 100), 8, 4, '#f97316');
 
-            // 2. Carbs
+            // 2. Carbs Card (Centered horizontally at 540)
             const cPct = Math.min(Math.round((totalC / targets.carbs) * 100), 100);
-            const carbsX = startX + pillW + pillGap;
-            drawRoundedRect(ctx, carbsX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(251, 191, 36, 0.35)', 2);
+            const cX = startX + pillW + pillGap;
+            const cCenter = cX + pillW / 2;
+            drawRoundedRect(ctx, cX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(251, 191, 36, 0.35)', 2);
             ctx.fillStyle = '#fbbf24';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
-            ctx.fillText('คาร์บ (C)', carbsX + 22, macroY + 38);
+            ctx.fillText('คาร์บ (C)', cCenter, macroY + 38);
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${Math.round(totalC)}g`, carbsX + 22, macroY + 90);
+            ctx.fillText(`${Math.round(totalC)}g`, cCenter, macroY + 88);
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`เป้า ${targets.carbs}g (${cPct}%)`, carbsX + 22, macroY + 122);
-            drawRoundedRect(ctx, carbsX + 22, macroY + 138, pillW - 44, 8, 4, '#2d2f3d');
-            if (cPct > 0) drawRoundedRect(ctx, carbsX + 22, macroY + 138, (pillW - 44) * (cPct / 100), 8, 4, '#fbbf24');
+            ctx.font = '500 19px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`เป้า ${targets.carbs}g (${cPct}%)`, cCenter, macroY + 120);
+            drawRoundedRect(ctx, cX + 22, macroY + 136, pillW - 44, 8, 4, '#2d2f3d');
+            if (cPct > 0) drawRoundedRect(ctx, cX + 22, macroY + 136, (pillW - 44) * (cPct / 100), 8, 4, '#fbbf24');
 
-            // 3. Fat
+            // 3. Fat Card
             const fPct = Math.min(Math.round((totalF / targets.fat) * 100), 100);
-            const fatX = startX + (pillW + pillGap) * 2;
-            drawRoundedRect(ctx, fatX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(244, 63, 94, 0.35)', 2);
+            const fX = startX + (pillW + pillGap) * 2;
+            const fCenter = fX + pillW / 2;
+            drawRoundedRect(ctx, fX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(244, 63, 94, 0.35)', 2);
             ctx.fillStyle = '#fb7185';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
-            ctx.fillText('ไขมัน (F)', fatX + 22, macroY + 38);
+            ctx.fillText('ไขมัน (F)', fCenter, macroY + 38);
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${Math.round(totalF)}g`, fatX + 22, macroY + 90);
+            ctx.fillText(`${Math.round(totalF)}g`, fCenter, macroY + 88);
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`เป้า ${targets.fat}g (${fPct}%)`, fatX + 22, macroY + 122);
-            drawRoundedRect(ctx, fatX + 22, macroY + 138, pillW - 44, 8, 4, '#2d2f3d');
-            if (fPct > 0) drawRoundedRect(ctx, fatX + 22, macroY + 138, (pillW - 44) * (fPct / 100), 8, 4, '#fb7185');
+            ctx.font = '500 19px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`เป้า ${targets.fat}g (${fPct}%)`, fCenter, macroY + 120);
+            drawRoundedRect(ctx, fX + 22, macroY + 136, pillW - 44, 8, 4, '#2d2f3d');
+            if (fPct > 0) drawRoundedRect(ctx, fX + 22, macroY + 136, (pillW - 44) * (fPct / 100), 8, 4, '#fb7185');
 
-            // D. Meals Breakdown Row (4-Grid)
+            // D. Meals Breakdown Row (4-Grid - Symmetrical 860px width)
             const breakdownY = 900;
-            const bItemW = 195;
+            const bItemW = 197;
             const bItemH = 125;
-            const bGap = 26;
+            const bGap = 24; // 197 * 4 + 24 * 3 = 860
             const mealList = [
                 { emoji: '🍳', label: 'เช้า', cal: breakdown.breakfast },
                 { emoji: '🍛', label: 'กลางวัน', cal: breakdown.lunch },
@@ -5166,24 +5180,26 @@ Script.complete();`;
 
             mealList.forEach((item, idx) => {
                 const itemX = startX + idx * (bItemW + bGap);
+                const itemCenter = itemX + bItemW / 2;
                 drawRoundedRect(ctx, itemX, breakdownY, bItemW, bItemH, 20, '#161720', 'rgba(255, 255, 255, 0.08)', 1.5);
                 ctx.textAlign = 'center';
                 ctx.font = '32px sans-serif';
-                ctx.fillText(item.emoji, itemX + bItemW / 2, breakdownY + 45);
+                ctx.fillText(item.emoji, itemCenter, breakdownY + 45);
 
                 ctx.fillStyle = '#94a3b8';
                 ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-                ctx.fillText(item.label, itemX + bItemW / 2, breakdownY + 76);
+                ctx.fillText(item.label, itemCenter, breakdownY + 76);
 
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 24px "Noto Sans Thai", sans-serif';
-                ctx.fillText(`${item.cal}`, itemX + bItemW / 2, breakdownY + 107);
+                ctx.fillText(`${item.cal}`, itemCenter, breakdownY + 107);
             });
 
-            // E. Health Limits (Sugar & Sodium)
+            // E. Health Limits (Sugar & Sodium - Perfectly Symmetrical Balanced Boxes)
             const healthY = 1055;
             const hBoxW = 415;
             const hBoxH = 135;
+            const hGap = 30; // 415 * 2 + 30 = 860
 
             // Sugar Box
             drawRoundedRect(ctx, startX, healthY, hBoxW, hBoxH, 22, '#161720', 'rgba(192, 132, 252, 0.25)', 1.5);
@@ -5192,41 +5208,58 @@ Script.complete();`;
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.fillText('🟣 น้ำตาล (Sugar)', startX + 24, healthY + 38);
 
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText('เกณฑ์: ไม่เกิน 24g', startX + hBoxW - 24, healthY + 38);
+
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 36px "Noto Sans Thai", sans-serif';
             ctx.fillText(`${Math.round(totalSugar * 10) / 10}g`, startX + 24, healthY + 82);
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
-            ctx.fillText('เกณฑ์ WHO: ไม่เกิน 24g', startX + 24, healthY + 112);
-
             const sugarPct = Math.min((totalSugar / 24) * 100, 100);
-            drawRoundedRect(ctx, startX + 220, healthY + 68, 170, 10, 5, '#2d2f3d');
-            drawRoundedRect(ctx, startX + 220, healthY + 68, 170 * (sugarPct / 100), 10, 5, totalSugar > 24 ? '#f43f5e' : '#c084fc');
+            ctx.textAlign = 'right';
+            ctx.fillStyle = totalSugar > 24 ? '#fb7185' : '#c084fc';
+            ctx.font = 'bold 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(sugarPct)}%`, startX + hBoxW - 24, healthY + 80);
+
+            // Full-width progress bar inside box
+            const hBarW = hBoxW - 48;
+            drawRoundedRect(ctx, startX + 24, healthY + 100, hBarW, 10, 5, '#2d2f3d');
+            drawRoundedRect(ctx, startX + 24, healthY + 100, hBarW * (sugarPct / 100), 10, 5, totalSugar > 24 ? '#f43f5e' : '#c084fc');
 
             // Sodium Box
-            const sodX = startX + hBoxW + 30;
+            const sodX = startX + hBoxW + hGap;
             drawRoundedRect(ctx, sodX, healthY, hBoxW, hBoxH, 22, '#161720', 'rgba(56, 189, 248, 0.25)', 1.5);
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#38bdf8';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.fillText('🔵 โซเดียม (Sodium)', sodX + 24, healthY + 38);
 
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText('เกณฑ์: ไม่เกิน 2,000mg', sodX + hBoxW - 24, healthY + 38);
+
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 36px "Noto Sans Thai", sans-serif';
             ctx.fillText(`${Math.round(totalSodium).toLocaleString()}mg`, sodX + 24, healthY + 82);
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
-            ctx.fillText('เกณฑ์ WHO: ไม่เกิน 2,000mg', sodX + 24, healthY + 112);
-
             const sodPct = Math.min((totalSodium / 2000) * 100, 100);
-            drawRoundedRect(ctx, sodX + 220, healthY + 68, 170, 10, 5, '#2d2f3d');
-            drawRoundedRect(ctx, sodX + 220, healthY + 68, 170 * (sodPct / 100), 10, 5, totalSodium > 2000 ? '#f43f5e' : '#38bdf8');
+            ctx.textAlign = 'right';
+            ctx.fillStyle = totalSodium > 2000 ? '#fb7185' : '#38bdf8';
+            ctx.font = 'bold 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(sodPct)}%`, sodX + hBoxW - 24, healthY + 80);
 
-            // F. Smart AI Coach Verdict
+            drawRoundedRect(ctx, sodX + 24, healthY + 100, hBarW, 10, 5, '#2d2f3d');
+            drawRoundedRect(ctx, sodX + 24, healthY + 100, hBarW * (sodPct / 100), 10, 5, totalSodium > 2000 ? '#f43f5e' : '#38bdf8');
+
+            // F. Smart AI Coach Verdict (Centered at 540)
             const verdictY = 1220;
             const verdictH = 175;
-            drawRoundedRect(ctx, startX, verdictY, 860, verdictH, 28, 'rgba(0, 0, 0, 0.5)', 'rgba(249, 115, 22, 0.3)', 2);
+            drawRoundedRect(ctx, startX, verdictY, cardInnerW, verdictH, 28, 'rgba(0, 0, 0, 0.5)', 'rgba(249, 115, 22, 0.3)', 2);
 
             ctx.textAlign = 'center';
             ctx.fillStyle = '#f97316';
@@ -5254,18 +5287,19 @@ Script.complete();`;
             ctx.font = '500 22px "Noto Sans Thai", sans-serif';
             ctx.fillText(verdictLine2, 540, verdictY + 138);
 
-            // G. Bottom Card Summary Badge
+            // G. Bottom Card Summary Badge (Centered at 540)
             const summaryY = 1430;
             drawRoundedRect(ctx, 540 - 280, summaryY, 560, 54, 27, 'rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.1)', 1);
             ctx.fillStyle = '#cbd5e1';
             ctx.font = '600 20px "Noto Sans Thai", sans-serif';
             ctx.fillText(`✨ บันทึกแล้ว ${todayMeals.length} มื้อ • วินัยที่ดีสร้างสุขภาพที่ยั่งยืน`, 540, summaryY + 34);
 
-            // App Tagline inside Card bottom
+            // App Tagline inside Card bottom (Reset letterSpacing safely)
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 18px "Noto Sans Thai", sans-serif';
-            ctx.letterSpacing = '3px';
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
             ctx.fillText('CALSNAP AI • PERSONAL NUTRITION TRACKER', 540, 1660);
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
         }
 
         function renderMealStoryCard(ctx, W, H, formattedDate) {
@@ -5298,22 +5332,23 @@ Script.complete();`;
             const cPct = totalG > 0 ? Math.round((c / totalG) * 100) : 50;
             const fPct = Math.max(0, 100 - pPct - cPct);
             const startX = 110;
+            const cardInnerW = 860;
 
             // A. Header Row inside card
             // Meal Type & Time Pill (Left)
-            drawRoundedRect(ctx, 110, 190, 280, 50, 25, 'rgba(249, 115, 22, 0.16)', 'rgba(249, 115, 22, 0.45)', 1.5);
+            drawRoundedRect(ctx, startX, 190, 280, 50, 25, 'rgba(249, 115, 22, 0.16)', 'rgba(249, 115, 22, 0.45)', 1.5);
             ctx.fillStyle = '#f97316';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(`${getMealEmoji(meal.meal_type)} ${getMealTypeName(meal.meal_type)} • ${meal.time || 'มื้ออาหาร'}`, 250, 223);
+            ctx.fillText(`${getMealEmoji(meal.meal_type)} ${getMealTypeName(meal.meal_type)} • ${meal.time || 'มื้ออาหาร'}`, startX + 140, 223);
 
-            // Verified Badge (Right)
+            // Verified Badge (Right - Anchored at 970 for perfect symmetry)
             ctx.fillStyle = meal.is_official ? '#34d399' : '#38bdf8';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.textAlign = 'right';
-            ctx.fillText(meal.is_official ? '✓ ฐานข้อมูลทางการ 7-11' : '⚡ CalSnap AI Verified', 970, 223);
+            ctx.fillText(meal.is_official ? '✓ ฐานข้อมูลทางการ 7-11' : '⚡ CalSnap AI Verified', startX + cardInnerW, 223);
 
-            // B. Meal Icon Avatar in Glowing Container
+            // B. Meal Icon Avatar in Glowing Container (Centered at 540)
             const iconBoxX = 540 - 85;
             const iconBoxY = 275;
             drawRoundedRect(ctx, iconBoxX, iconBoxY, 170, 170, 36, '#1a1b24', 'rgba(249, 115, 22, 0.4)', 2.5);
@@ -5321,93 +5356,100 @@ Script.complete();`;
             ctx.font = '96px sans-serif';
             ctx.fillText(getMealEmoji(meal.meal_type), 540, iconBoxY + 120);
 
-            // C. Meal Name (Auto-wrapped for long Thai names)
+            // C. Meal Name (Auto-wrapped for Thai text, centered at 540)
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 46px "Noto Sans Thai", sans-serif';
+            ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
             drawTextWithWrap(ctx, meal.name, 540, 500, 840, 52, 2);
 
             // Portion subtitle
             ctx.fillStyle = '#94a3b8';
             ctx.font = '500 22px "Noto Sans Thai", sans-serif';
+            ctx.textAlign = 'center';
             ctx.fillText(`${meal.portion || '1 หน่วยบริโภค'} • ให้พลังงานมื้อสำคัญ`, 540, 555);
 
-            // D. Big Calorie Hero Box
+            // D. Big Calorie Hero Box (Centered at 540)
             const calBoxY = 595;
             const calBoxH = 200;
-            drawRoundedRect(ctx, startX, calBoxY, 860, calBoxH, 32, 'rgba(249, 115, 22, 0.12)', 'rgba(249, 115, 22, 0.4)', 2);
+            drawRoundedRect(ctx, startX, calBoxY, cardInnerW, calBoxH, 32, 'rgba(249, 115, 22, 0.12)', 'rgba(249, 115, 22, 0.4)', 2);
 
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#f97316';
             ctx.font = 'bold 24px "Noto Sans Thai", sans-serif';
             ctx.fillText('🔥 พลังงานทั้งหมดของมื้อนี้', 540, calBoxY + 45);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'black 92px "Noto Sans Thai", sans-serif';
-            ctx.fillText(cal.toLocaleString(), 540, calBoxY + 135);
+            ctx.font = '900 86px "Noto Sans Thai", sans-serif';
+            ctx.fillText(cal.toLocaleString(), 540, calBoxY + 132);
 
             ctx.fillStyle = '#a1a1aa';
             ctx.font = 'bold 26px "Noto Sans Thai", sans-serif';
             ctx.fillText('kcal', 540, calBoxY + 175);
 
-            // E. Macro Trio Cards (P, C, F)
+            // E. Macro Trio Cards (P, C, F) - Symmetrical 3 Columns
             const macroY = 820;
-            const pillW = 265;
+            const pillW = 268;
             const pillH = 160;
-            const pillGap = 32;
+            const pillGap = 28; // 268 * 3 + 28 * 2 = 860
 
-            // 1. Protein
-            drawRoundedRect(ctx, startX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(249, 115, 22, 0.35)', 2);
-            ctx.textAlign = 'left';
+            // 1. Protein Card
+            const pX = startX;
+            const pCenter = pX + pillW / 2;
+            drawRoundedRect(ctx, pX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(249, 115, 22, 0.35)', 2);
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#f97316';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
-            ctx.fillText('โปรตีน (P)', startX + 22, macroY + 38);
+            ctx.fillText('โปรตีน (P)', pCenter, macroY + 38);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 46px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${p}g`, startX + 22, macroY + 92);
+            ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${p}g`, pCenter, macroY + 88);
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${Math.round(p * 4)} kcal (${pPct}%)`, startX + 22, macroY + 130);
+            ctx.font = '500 19px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(p * 4)} kcal (${pPct}%)`, pCenter, macroY + 125);
 
-            // 2. Carbs
-            const carbsX = startX + pillW + pillGap;
-            drawRoundedRect(ctx, carbsX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(251, 191, 36, 0.35)', 2);
+            // 2. Carbs Card (Centered horizontally at 540)
+            const cX = startX + pillW + pillGap;
+            const cCenter = cX + pillW / 2;
+            drawRoundedRect(ctx, cX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(251, 191, 36, 0.35)', 2);
             ctx.fillStyle = '#fbbf24';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
-            ctx.fillText('คาร์บ (C)', carbsX + 22, macroY + 38);
+            ctx.fillText('คาร์บ (C)', cCenter, macroY + 38);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 46px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${c}g`, carbsX + 22, macroY + 92);
+            ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${c}g`, cCenter, macroY + 88);
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${Math.round(c * 4)} kcal (${cPct}%)`, carbsX + 22, macroY + 130);
+            ctx.font = '500 19px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(c * 4)} kcal (${cPct}%)`, cCenter, macroY + 125);
 
-            // 3. Fat
-            const fatX = startX + (pillW + pillGap) * 2;
-            drawRoundedRect(ctx, fatX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(244, 63, 94, 0.35)', 2);
+            // 3. Fat Card
+            const fX = startX + (pillW + pillGap) * 2;
+            const fCenter = fX + pillW / 2;
+            drawRoundedRect(ctx, fX, macroY, pillW, pillH, 24, '#1a1b24', 'rgba(244, 63, 94, 0.35)', 2);
             ctx.fillStyle = '#fb7185';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
-            ctx.fillText('ไขมัน (F)', fatX + 22, macroY + 38);
+            ctx.fillText('ไขมัน (F)', fCenter, macroY + 38);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 46px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${f}g`, fatX + 22, macroY + 92);
+            ctx.font = 'bold 44px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${f}g`, fCenter, macroY + 88);
             ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`${Math.round(f * 9)} kcal (${fPct}%)`, fatX + 22, macroY + 130);
+            ctx.font = '500 19px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(f * 9)} kcal (${fPct}%)`, fCenter, macroY + 125);
 
-            // F. Segmented Macro Proportion Bar
+            // F. Segmented Macro Proportion Bar (Centered at 540)
             const barBoxY = 1005;
             const barBoxH = 105;
-            drawRoundedRect(ctx, startX, barBoxY, 860, barBoxH, 24, '#161720', 'rgba(255, 255, 255, 0.08)', 1.5);
+            drawRoundedRect(ctx, startX, barBoxY, cardInnerW, barBoxH, 24, '#161720', 'rgba(255, 255, 255, 0.08)', 1.5);
 
-            ctx.textAlign = 'left';
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#cbd5e1';
             ctx.font = 'bold 20px "Noto Sans Thai", sans-serif';
-            ctx.fillText(`สัดส่วนสารอาหาร: โปรตีน ${pPct}% • คาร์บ ${cPct}% • ไขมัน ${fPct}%`, startX + 26, barBoxY + 36);
+            ctx.fillText(`สัดส่วนสารอาหาร: โปรตีน ${pPct}% • คาร์บ ${cPct}% • ไขมัน ${fPct}%`, 540, barBoxY + 36);
 
-            // Multi-segment Bar
+            // Multi-segment Bar (Centered horizontally with 26px padding on both sides)
             const barY = barBoxY + 54;
             const barW = 808;
             const barH = 24;
-            const barX = startX + 26;
+            const barX = startX + (cardInnerW - barW) / 2;
 
             drawRoundedRect(ctx, barX, barY, barW, barH, 12, '#2d2f3d');
             const pBarW = Math.max(0, barW * (pPct / 100));
@@ -5418,44 +5460,70 @@ Script.complete();`;
             if (cBarW > 0) drawRoundedRect(ctx, barX + pBarW, barY, cBarW, barH, 10, '#fbbf24');
             if (fBarW > 0) drawRoundedRect(ctx, barX + pBarW + cBarW, barY, fBarW, barH, 10, '#fb7185');
 
-            // G. Health Limits (Sugar & Sodium)
+            // G. Health Limits (Sugar & Sodium - Symmetrical Boxes)
             const healthY = 1130;
             const hBoxW = 415;
             const hBoxH = 135;
+            const hGap = 30; // 415 * 2 + 30 = 860
 
             // Sugar Box
             drawRoundedRect(ctx, startX, healthY, hBoxW, hBoxH, 22, '#161720', 'rgba(192, 132, 252, 0.25)', 1.5);
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#c084fc';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.fillText('🟣 น้ำตาล (Sugar)', startX + 24, healthY + 38);
 
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText('เป้าหมาย: ไม่เกิน 24g/วัน', startX + hBoxW - 24, healthY + 38);
+
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 36px "Noto Sans Thai", sans-serif';
             ctx.fillText(`${meal.sugar_g || 0}g`, startX + 24, healthY + 82);
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
-            ctx.fillText('เป้าหมายไม่เกิน 24g ต่อวัน', startX + 24, healthY + 112);
+            const mSugarPct = Math.min(((meal.sugar_g || 0) / 24) * 100, 100);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = (meal.sugar_g || 0) > 24 ? '#fb7185' : '#c084fc';
+            ctx.font = 'bold 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(mSugarPct)}%`, startX + hBoxW - 24, healthY + 80);
+
+            const hBarW = hBoxW - 48;
+            drawRoundedRect(ctx, startX + 24, healthY + 100, hBarW, 10, 5, '#2d2f3d');
+            drawRoundedRect(ctx, startX + 24, healthY + 100, hBarW * (mSugarPct / 100), 10, 5, (meal.sugar_g || 0) > 24 ? '#f43f5e' : '#c084fc');
 
             // Sodium Box
-            const sodX = startX + hBoxW + 30;
+            const sodX = startX + hBoxW + hGap;
             drawRoundedRect(ctx, sodX, healthY, hBoxW, hBoxH, 22, '#161720', 'rgba(56, 189, 248, 0.25)', 1.5);
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#38bdf8';
             ctx.font = 'bold 22px "Noto Sans Thai", sans-serif';
             ctx.fillText('🔵 โซเดียม (Sodium)', sodX + 24, healthY + 38);
 
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText('เป้าหมาย: ไม่เกิน 2,000mg/วัน', sodX + hBoxW - 24, healthY + 38);
+
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 36px "Noto Sans Thai", sans-serif';
             ctx.fillText(`${(meal.sodium_mg || 0).toLocaleString()}mg`, sodX + 24, healthY + 82);
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 18px "Noto Sans Thai", sans-serif';
-            ctx.fillText('เป้าหมายไม่เกิน 2,000mg ต่อวัน', sodX + 24, healthY + 112);
+            const mSodPct = Math.min(((meal.sodium_mg || 0) / 2000) * 100, 100);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = (meal.sodium_mg || 0) > 2000 ? '#fb7185' : '#38bdf8';
+            ctx.font = 'bold 18px "Noto Sans Thai", sans-serif';
+            ctx.fillText(`${Math.round(mSodPct)}%`, sodX + hBoxW - 24, healthY + 80);
 
-            // H. Smart AI Meal Verdict Box
+            drawRoundedRect(ctx, sodX + 24, healthY + 100, hBarW, 10, 5, '#2d2f3d');
+            drawRoundedRect(ctx, sodX + 24, healthY + 100, hBarW * (mSodPct / 100), 10, 5, (meal.sodium_mg || 0) > 2000 ? '#f43f5e' : '#38bdf8');
+
+            // H. Smart AI Meal Verdict Box (Centered at 540)
             const verdictY = 1290;
             const verdictH = 175;
-            drawRoundedRect(ctx, startX, verdictY, 860, verdictH, 28, 'rgba(0, 0, 0, 0.5)', 'rgba(249, 115, 22, 0.3)', 2);
+            drawRoundedRect(ctx, startX, verdictY, cardInnerW, verdictH, 28, 'rgba(0, 0, 0, 0.5)', 'rgba(249, 115, 22, 0.3)', 2);
 
             ctx.textAlign = 'center';
             ctx.fillStyle = '#f97316';
@@ -5483,43 +5551,50 @@ Script.complete();`;
             ctx.font = '500 22px "Noto Sans Thai", sans-serif';
             ctx.fillText(mealVerdict2, 540, verdictY + 138);
 
-            // I. Bottom Meal Quality Stamp
+            // I. Bottom Meal Quality Stamp (Centered at 540)
             const summaryY = 1490;
             drawRoundedRect(ctx, 540 - 280, summaryY, 560, 52, 26, 'rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.1)', 1);
             ctx.fillStyle = '#cbd5e1';
             ctx.font = '600 20px "Noto Sans Thai", sans-serif';
             ctx.fillText(`✓ แหล่งข้อมูล: ${meal.source || 'วิเคราะห์ด้วย AI Vision'}`, 540, summaryY + 33);
 
-            // App Tagline inside Card bottom
+            // App Tagline inside Card bottom (Reset letterSpacing safely)
             ctx.fillStyle = '#64748b';
             ctx.font = 'bold 18px "Noto Sans Thai", sans-serif';
-            ctx.letterSpacing = '3px';
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
             ctx.fillText('CALSNAP AI • PERSONAL NUTRITION TRACKER', 540, 1660);
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
         }
 
-        // Helper: Thai & Mixed Text Word Wrapping for Canvas
+        // Helper: Thai & Mixed Text Word Wrapping for Canvas (Centered)
         function drawTextWithWrap(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
             if (!text) return 1;
-            let words = text.split(' ');
-            if (words.length === 1 && text.length > 18) {
-                words = text.match(/.{1,16}/g) || [text];
+            ctx.textAlign = 'center';
+            let words = [];
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
+                words = Array.from(segmenter.segment(text), s => s.segment);
+            } else {
+                words = text.split(/(\s+)/);
             }
             let line = '';
             let lines = [];
             for (let i = 0; i < words.length; i++) {
-                let testLine = line + (line ? ' ' : '') + words[i];
+                let testLine = line + words[i];
                 let testWidth = ctx.measureText(testLine).width;
-                if (testWidth > maxWidth && i > 0) {
-                    lines.push(line);
+                if (testWidth > maxWidth && line.trim().length > 0) {
+                    lines.push(line.trim());
                     line = words[i];
                     if (lines.length >= maxLines) break;
                 } else {
                     line = testLine;
                 }
             }
-            if (lines.length < maxLines && line) {
-                lines.push(line);
+            if (lines.length < maxLines && line.trim()) {
+                lines.push(line.trim());
             }
+            if (lines.length === 0) lines = [text];
+
             const totalH = (lines.length - 1) * lineHeight;
             const startY = y - totalH / 2;
             for (let j = 0; j < lines.length; j++) {
