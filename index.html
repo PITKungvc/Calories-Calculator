@@ -134,15 +134,21 @@
                     </div>
                 </div>
 
-                <!-- Macro Progress Bars -->
+                <!-- Macro Progress Bars (พร้อมขีดบอกเป้าหมายสะสมแต่ละมื้อ: เช้า 25%, เที่ยง 60%, เย็น 90%) -->
                 <div class="grid grid-cols-3 gap-3 pt-4 mt-4 border-t border-zinc-800/80 text-xs">
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px]">
                             <span class="text-slate-400">โปรตีน</span>
                             <span id="proteinDisplay" class="font-bold text-white">0g</span>
                         </div>
-                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="relative w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
                             <div id="pBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                            <!-- Target Notches -->
+                            <div class="absolute inset-0 pointer-events-none">
+                                <div class="absolute left-[25%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อเช้า (25%)"></div>
+                                <div class="absolute left-[60%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อกลางวัน (60%)"></div>
+                                <div class="absolute left-[90%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อเย็น (90%)"></div>
+                            </div>
                         </div>
                         <div id="targetProteinDisplay" class="text-[9px] text-slate-500 text-right">เป้า 150g</div>
                     </div>
@@ -151,8 +157,14 @@
                             <span class="text-slate-400">คาร์บ</span>
                             <span id="carbsDisplay" class="font-bold text-amber-400">0g</span>
                         </div>
-                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="relative w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
                             <div id="cBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                            <!-- Target Notches -->
+                            <div class="absolute inset-0 pointer-events-none">
+                                <div class="absolute left-[25%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อเช้า (25%)"></div>
+                                <div class="absolute left-[60%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อกลางวัน (60%)"></div>
+                                <div class="absolute left-[90%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อเย็น (90%)"></div>
+                            </div>
                         </div>
                         <div id="targetCarbsDisplay" class="text-[9px] text-slate-500 text-right">เป้า 225g</div>
                     </div>
@@ -161,11 +173,26 @@
                             <span class="text-slate-400">ไขมัน</span>
                             <span id="fatDisplay" class="font-bold text-rose-400">0g</span>
                         </div>
-                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="relative w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
                             <div id="fBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                            <!-- Target Notches -->
+                            <div class="absolute inset-0 pointer-events-none">
+                                <div class="absolute left-[25%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อเช้า (25%)"></div>
+                                <div class="absolute left-[60%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อกลางวัน (60%)"></div>
+                                <div class="absolute left-[90%] top-0 bottom-0 w-[1.5px] bg-zinc-950/85 z-10" title="เป้าจบมื้อเย็น (90%)"></div>
+                            </div>
                         </div>
                         <div id="targetFatDisplay" class="text-[9px] text-slate-500 text-right">เป้า 56g</div>
                     </div>
+                </div>
+                <!-- Notches Indicator Legend -->
+                <div class="flex items-center justify-between text-[9px] text-slate-400 pt-1.5 px-0.5">
+                    <span class="text-slate-500 font-medium flex items-center gap-1">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand-400"></span> ขีดเป้าหมายบน Bar:
+                    </span>
+                    <span class="text-slate-400">🍳 เช้า 25%</span>
+                    <span class="text-slate-400">🍛 เที่ยง 60%</span>
+                    <span class="text-slate-400">🥗 เย็น 90%</span>
                 </div>
 
                 <!-- Sugar & Sodium Limits (เป้าหมายควบคุมสุขภาพ) -->
@@ -248,27 +275,75 @@
                 <i class="ph-bold ph-caret-right text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition text-base"></i>
             </div>
 
-            <!-- Quick Meals Summary Row -->
-            <div class="grid grid-cols-4 gap-2">
-                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                    <span class="text-base">🍳</span>
-                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">เช้า</div>
-                    <div id="breakfastCal" class="text-xs font-bold text-white mt-0.5">0</div>
+            <!-- Quick Meals Summary Row (โควต้า & เป้าหมายสารอาหารรายมื้อ) -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <i class="ph-bold ph-chart-pie-slice text-brand-400"></i> โควต้า & เป้าหมายรายมื้อ
+                    </span>
+                    <span class="text-[10px] text-slate-500 font-medium">แตะการ์ดเพื่อดูสารอาหาร</span>
                 </div>
-                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                    <span class="text-base">🍛</span>
-                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">กลางวัน</div>
-                    <div id="lunchCal" class="text-xs font-bold text-white mt-0.5">0</div>
-                </div>
-                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                    <span class="text-base">🥗</span>
-                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">เย็น</div>
-                    <div id="dinnerCal" class="text-xs font-bold text-white mt-0.5">0</div>
-                </div>
-                <div class="bg-zinc-900/60 border border-zinc-800/80 p-2.5 rounded-2xl text-center">
-                    <span class="text-base">☕</span>
-                    <div class="text-[10px] text-slate-400 font-medium mt-0.5">ของว่าง</div>
-                    <div id="snackCal" class="text-xs font-bold text-white mt-0.5">0</div>
+                <div class="grid grid-cols-4 gap-2">
+                    <!-- Breakfast -->
+                    <div onclick="openMealTargetModal('breakfast')" class="cursor-pointer bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-brand-500/40 p-2 rounded-2xl text-center active:scale-95 transition shadow-sm group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="text-base group-hover:scale-110 transition">🍳</span>
+                            <span class="text-[10px] text-slate-400 font-medium">เช้า</span>
+                        </div>
+                        <div class="text-xs font-bold text-white mt-1">
+                            <span id="breakfastCal">0</span>
+                            <span id="breakfastTargetCal" class="text-[9px] text-slate-500 font-normal">/ 500</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1 rounded-full overflow-hidden mt-1.5">
+                            <div id="breakfastBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div id="breakfastMacroHint" class="text-[8px] text-slate-400 mt-1 font-medium truncate">P38 C62 F14</div>
+                    </div>
+                    <!-- Lunch -->
+                    <div onclick="openMealTargetModal('lunch')" class="cursor-pointer bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-brand-500/40 p-2 rounded-2xl text-center active:scale-95 transition shadow-sm group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="text-base group-hover:scale-110 transition">🍛</span>
+                            <span class="text-[10px] text-slate-400 font-medium">กลางวัน</span>
+                        </div>
+                        <div class="text-xs font-bold text-white mt-1">
+                            <span id="lunchCal">0</span>
+                            <span id="lunchTargetCal" class="text-[9px] text-slate-500 font-normal">/ 700</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1 rounded-full overflow-hidden mt-1.5">
+                            <div id="lunchBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div id="lunchMacroHint" class="text-[8px] text-slate-400 mt-1 font-medium truncate">P53 C88 F19</div>
+                    </div>
+                    <!-- Dinner -->
+                    <div onclick="openMealTargetModal('dinner')" class="cursor-pointer bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-brand-500/40 p-2 rounded-2xl text-center active:scale-95 transition shadow-sm group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="text-base group-hover:scale-110 transition">🥗</span>
+                            <span class="text-[10px] text-slate-400 font-medium">เย็น</span>
+                        </div>
+                        <div class="text-xs font-bold text-white mt-1">
+                            <span id="dinnerCal">0</span>
+                            <span id="dinnerTargetCal" class="text-[9px] text-slate-500 font-normal">/ 600</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1 rounded-full overflow-hidden mt-1.5">
+                            <div id="dinnerBar" class="bg-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div id="dinnerMacroHint" class="text-[8px] text-slate-400 mt-1 font-medium truncate">P45 C75 F17</div>
+                    </div>
+                    <!-- Snack -->
+                    <div onclick="openMealTargetModal('snack')" class="cursor-pointer bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-brand-500/40 p-2 rounded-2xl text-center active:scale-95 transition shadow-sm group">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="text-base group-hover:scale-110 transition">☕</span>
+                            <span class="text-[10px] text-slate-400 font-medium">ของว่าง</span>
+                        </div>
+                        <div class="text-xs font-bold text-white mt-1">
+                            <span id="snackCal">0</span>
+                            <span id="snackTargetCal" class="text-[9px] text-slate-500 font-normal">/ 200</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1 rounded-full overflow-hidden mt-1.5">
+                            <div id="snackBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div id="snackMacroHint" class="text-[8px] text-slate-400 mt-1 font-medium truncate">P15 C25 F6</div>
+                    </div>
                 </div>
             </div>
 
@@ -287,6 +362,9 @@
                     <span id="nextMealBudgetBadge" class="px-2.5 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 font-bold text-[10px]">
                         โควต้า ~550 kcal
                     </span>
+                </div>
+                <div id="nextMealMacroBudget" class="text-[10px] text-slate-400 font-medium flex items-center gap-1.5 pt-0.5">
+                    <!-- Dynamic Recommendation Nutrients -->
                 </div>
                 <p id="nextMealAdviceText" class="text-xs text-slate-300 leading-relaxed font-medium">
                     กำลังคำนวณคำแนะนำโภชนาการ...
@@ -882,6 +960,11 @@
                     <button type="button" onclick="setBuilderMealType('dinner')" id="builderMeal-dinner" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white">🥗 เย็น</button>
                     <button type="button" onclick="setBuilderMealType('snack')" id="builderMeal-snack" class="py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white">☕ ของว่าง</button>
                 </div>
+                <!-- Dynamic Target Hint for Chosen Meal -->
+                <div id="builderMealTargetHint" class="text-[10px] text-slate-400 mt-1.5 px-1 flex items-center justify-between">
+                    <span>🎯 เป้าหมายแนะนำ: <strong class="text-white">~700 kcal</strong></span>
+                    <span class="text-slate-400">(P ~53g • C ~79g • F ~20g)</span>
+                </div>
             </div>
 
             <!-- 1. NORMAL MODE SECTION (ถ่ายรูปอาหารทั่วไปแบบปกติ) -->
@@ -1253,12 +1336,15 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-slate-400">มื้ออาหาร</label>
-                        <select id="editMealType" class="w-full mt-1 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs font-semibold">
+                        <select id="editMealType" onchange="updateReviewMealTargetHint()" class="w-full mt-1 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-white text-xs font-semibold">
                             <option value="breakfast">🍳 มื้อเช้า</option>
                             <option value="lunch" selected>🍛 มื้อกลางวัน</option>
                             <option value="dinner">🥗 มื้อเย็น</option>
                             <option value="snack">☕ ของว่าง</option>
                         </select>
+                        <div id="reviewMealTargetHint" class="text-[9px] text-slate-400 mt-1 px-0.5 truncate">
+                            แนะนำ: ~700 kcal (P ~53g • C ~79g • F ~20g)
+                        </div>
                     </div>
                     <div>
                         <label class="text-xs text-slate-400">แคลอรี่ (kcal)</label>
@@ -1489,6 +1575,97 @@
                     ปิด
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Meal Target & Nutrient Breakdown Details (รายละเอียดเป้าหมายสารอาหารรายมื้อ) -->
+    <div id="mealTargetModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+                <div class="flex items-center gap-2.5">
+                    <span id="mealTargetModalEmoji" class="text-2xl">🍳</span>
+                    <div>
+                        <h3 id="mealTargetModalTitle" class="text-sm font-bold text-white">เป้าหมายมื้อเช้า</h3>
+                        <p id="mealTargetModalSubtitle" class="text-[10px] text-slate-400">สัดส่วน 25% ของเป้าหมายประจำวัน</p>
+                    </div>
+                </div>
+                <button onclick="closeMealTargetModal()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-slate-400 hover:text-white transition">
+                    <i class="ph-bold ph-x text-base"></i>
+                </button>
+            </div>
+
+            <!-- Calorie Status Hero Card -->
+            <div class="p-3.5 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 space-y-2 text-center">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">พลังงานในมื้อนี้</span>
+                <div class="flex items-baseline justify-center gap-1.5">
+                    <span id="mealTargetModalCalConsumed" class="text-3xl font-black text-white">0</span>
+                    <span class="text-sm font-bold text-slate-400">/ <span id="mealTargetModalCalGoal">500</span> kcal</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                    <div id="mealTargetModalCalBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div id="mealTargetModalCalStatus" class="text-[11px] font-semibold text-brand-400">
+                    🎯 ยังทานได้อีก 500 kcal
+                </div>
+            </div>
+
+            <!-- 3 Macro Nutrient Targets Breakdown -->
+            <div class="space-y-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-1">เป้าหมายสารอาหารที่แนะนำ</span>
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Protein -->
+                    <div class="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-center space-y-1">
+                        <span class="text-[10px] text-slate-400 font-medium">โปรตีน</span>
+                        <div class="text-xs font-bold text-white">
+                            <span id="mealTargetModalPVal">0</span><span class="text-[9px] text-slate-500 font-normal"> / <span id="mealTargetModalPGoal">38</span>g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="mealTargetModalPBar" class="bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <span id="mealTargetModalPPct" class="text-[9px] text-brand-400 font-bold block">0%</span>
+                    </div>
+                    <!-- Carbs -->
+                    <div class="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-center space-y-1">
+                        <span class="text-[10px] text-slate-400 font-medium">คาร์บ</span>
+                        <div class="text-xs font-bold text-amber-400">
+                            <span id="mealTargetModalCVal">0</span><span class="text-[9px] text-slate-500 font-normal"> / <span id="mealTargetModalCGoal">62</span>g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="mealTargetModalCBar" class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <span id="mealTargetModalCPct" class="text-[9px] text-amber-400 font-bold block">0%</span>
+                    </div>
+                    <!-- Fat -->
+                    <div class="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-center space-y-1">
+                        <span class="text-[10px] text-slate-400 font-medium">ไขมัน</span>
+                        <div class="text-xs font-bold text-rose-400">
+                            <span id="mealTargetModalFVal">0</span><span class="text-[9px] text-slate-500 font-normal"> / <span id="mealTargetModalFGoal">14</span>g</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="mealTargetModalFBar" class="bg-rose-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <span id="mealTargetModalFPct" class="text-[9px] text-rose-400 font-bold block">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meals Consumed in this period -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">อาหารที่บันทึกในมื้อนี้</span>
+                    <span id="mealTargetModalItemCount" class="text-[10px] text-slate-500 font-medium">0 รายการ</span>
+                </div>
+                <div id="mealTargetModalItemList" class="space-y-1.5 max-h-36 overflow-y-auto">
+                    <!-- dynamic item chips -->
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button id="mealTargetModalAddBtn" class="w-full py-3 rounded-2xl bg-brand-500 hover:bg-brand-400 text-zinc-950 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition shadow-lg">
+                <i class="ph-bold ph-plus-circle text-base"></i>
+                <span>บันทึกอาหารสำหรับมื้อนี้</span>
+            </button>
         </div>
     </div>
 
@@ -1996,6 +2173,29 @@
             };
         }
 
+        // คำนวณโควต้าและเป้าหมายสารอาหารที่แนะนำสำหรับแต่ละมื้ออาหาร (เช้า 25%, เที่ยง 35%, เย็น 30%, ของว่าง 10%)
+        function getMealTargets(mealType, calorieGoal) {
+            const daily = getMacroTargets(calorieGoal);
+            const ratios = {
+                breakfast: { ratio: 0.25, label: 'มื้อเช้า', emoji: '🍳' },
+                lunch:     { ratio: 0.35, label: 'มื้อกลางวัน', emoji: '🍛' },
+                dinner:    { ratio: 0.30, label: 'มื้อเย็น', emoji: '🥗' },
+                snack:     { ratio: 0.10, label: 'ของว่าง', emoji: '☕' }
+            };
+            const cfg = ratios[mealType] || ratios.lunch;
+            return {
+                mealType,
+                label: cfg.label,
+                emoji: cfg.emoji,
+                ratio: cfg.ratio,
+                percent: Math.round(cfg.ratio * 100),
+                cal: Math.round(daily.goal * cfg.ratio),
+                protein: Math.round(daily.protein * cfg.ratio),
+                carbs: Math.round(daily.carbs * cfg.ratio),
+                fat: Math.round(daily.fat * cfg.ratio)
+            };
+        }
+
         // ==========================================
         // HOME DASHBOARD RENDER & MEAL CARD BUILDER
         // ==========================================
@@ -2112,6 +2312,12 @@
 
             let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSodium = 0;
             let mealBreakdown = { breakfast: 0, lunch: 0, dinner: 0, snack: 0 };
+            let mealMacroBreakdown = {
+                breakfast: { cal: 0, p: 0, c: 0, f: 0 },
+                lunch:     { cal: 0, p: 0, c: 0, f: 0 },
+                dinner:    { cal: 0, p: 0, c: 0, f: 0 },
+                snack:     { cal: 0, p: 0, c: 0, f: 0 }
+            };
 
             const listEl = document.getElementById('mealList');
             listEl.innerHTML = '';
@@ -2129,8 +2335,13 @@
                 totalSugar += Number(m.sugar_g) || 0;
                 totalSodium += Number(m.sodium_mg) || 0;
 
-                if (mealBreakdown[m.meal_type] !== undefined) {
-                    mealBreakdown[m.meal_type] += cal;
+                const mType = m.meal_type || 'lunch';
+                if (mealBreakdown[mType] !== undefined) {
+                    mealBreakdown[mType] += cal;
+                    mealMacroBreakdown[mType].cal += cal;
+                    mealMacroBreakdown[mType].p += (Number(m.protein_g) || 0);
+                    mealMacroBreakdown[mType].c += (Number(m.carbs_g) || 0);
+                    mealMacroBreakdown[mType].f += (Number(m.fat_g) || 0);
                 }
 
                 listEl.appendChild(createMealCardElement(m));
@@ -2146,10 +2357,31 @@
             if (sodiumEl) sodiumEl.innerText = `${Math.round(totalSodium).toLocaleString()}mg`;
             document.getElementById('itemCountDisplay').innerText = `${todayMeals.length} รายการ`;
 
-            document.getElementById('breakfastCal').innerText = mealBreakdown.breakfast;
-            document.getElementById('lunchCal').innerText = mealBreakdown.lunch;
-            document.getElementById('dinnerCal').innerText = mealBreakdown.dinner;
-            document.getElementById('snackCal').innerText = mealBreakdown.snack;
+            // อัปเดตข้อมูลและหลอดเป้าหมายของแต่ละมื้อ (4 Quick Meals)
+            ['breakfast', 'lunch', 'dinner', 'snack'].forEach(t => {
+                const mTarget = getMealTargets(t, config.goal);
+                const consumed = mealBreakdown[t] || 0;
+
+                const calEl = document.getElementById(`${t}Cal`);
+                if (calEl) calEl.innerText = consumed;
+
+                const targetCalEl = document.getElementById(`${t}TargetCal`);
+                if (targetCalEl) targetCalEl.innerText = `/ ${mTarget.cal}`;
+
+                const barEl = document.getElementById(`${t}Bar`);
+                if (barEl) {
+                    const pct = mTarget.cal > 0 ? Math.min((consumed / mTarget.cal) * 100, 100) : 0;
+                    barEl.style.width = `${pct}%`;
+                    barEl.className = consumed > mTarget.cal
+                        ? 'bg-rose-500 h-full rounded-full transition-all duration-500'
+                        : (t === 'breakfast' ? 'bg-brand-500' : t === 'lunch' ? 'bg-amber-400' : t === 'dinner' ? 'bg-emerald-400' : 'bg-rose-400') + ' h-full rounded-full transition-all duration-500';
+                }
+
+                const hintEl = document.getElementById(`${t}MacroHint`);
+                if (hintEl) {
+                    hintEl.innerText = `P${mTarget.protein} C${mTarget.carbs} F${mTarget.fat}`;
+                }
+            });
 
             const remaining = config.goal - totalCal;
             const remainingBadge = document.getElementById('remainingBadge');
@@ -2312,6 +2544,8 @@
                 textEl.innerText = `วันนี้ได้รับพลังงานครบตามเป้าหมาย ${config.goal} kcal แล้ว แนะนำงดอาหารมื้อหนัก หากยังหิวแนะนำดื่มน้ำเปล่า, ชาอุ่นไม่ใส่น้ำตาล หรือเครื่องดื่ม 0 แคลอรี`;
                 tags = ['💧 ดื่มน้ำเปล่า 1 แก้ว', '🍵 ชาเขียวอุ่น 0 Cal', '🫧 เครื่องดื่ม 0 Cal'];
                 tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
+                const nextMacroEl = document.getElementById('nextMealMacroBudget');
+                if (nextMacroEl) nextMacroEl.innerHTML = '';
                 
                 syncWidgetData({
                     nextMeal: 'พักย่อยอาหาร',
@@ -2382,6 +2616,12 @@
             iconBox.className = 'w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-sm';
             textEl.innerText = adviceMsg;
             tagsEl.innerHTML = tags.map(t => `<span class="px-2 py-0.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] text-slate-300 font-medium">${t}</span>`).join('');
+
+            const nextMacroEl = document.getElementById('nextMealMacroBudget');
+            if (nextMacroEl) {
+                const nextTargets = getMealTargets(nextMealKey, config.goal);
+                nextMacroEl.innerHTML = `<span>🎯 สารอาหารแนะนำมื้อนี้:</span> <strong class="text-white">P ~${nextTargets.protein}g</strong> • <strong class="text-amber-400">C ~${nextTargets.carbs}g</strong> • <strong class="text-rose-400">F ~${nextTargets.fat}g</strong>`;
+            }
 
             // Background sync widget data for iOS Scriptable / WidgetKit
             syncWidgetData({
@@ -2936,6 +3176,14 @@
 
         let currentEditingMealId = null;
 
+        function updateReviewMealTargetHint() {
+            const el = document.getElementById('editMealType');
+            const hint = document.getElementById('reviewMealTargetHint');
+            if (!el || !hint) return;
+            const target = getMealTargets(el.value, config.goal);
+            hint.innerHTML = `แนะนำ: <strong class="text-white">~${target.cal} kcal</strong> (P ~${target.protein}g • C ~${target.carbs}g • F ~${target.fat}g)`;
+        }
+
         function openEditMealModal(mealId) {
             const meal = meals.find(m => m.id === mealId);
             if (!meal) return;
@@ -2948,6 +3196,7 @@
 
             document.getElementById('editName').value = meal.name || '';
             document.getElementById('editMealType').value = meal.meal_type || 'lunch';
+            updateReviewMealTargetHint();
             document.getElementById('editCal').value = Number(meal.calories) || 0;
             document.getElementById('editP').value = Number(meal.protein_g) || 0;
             document.getElementById('editC').value = Number(meal.carbs_g) || 0;
@@ -3273,15 +3522,15 @@
             }
         }
 
-        function openMealBuilderModal() {
+        function openMealBuilderModal(preselectedMealType) {
             if (mealBuilderItems.length === 0) {
                 mealBuilderItems = [
                     { id: 1, label: 'สินค้า / อาหาร 1', photos: [] }
                 ];
             }
 
-            // ตรวจสอบเวลาปัจจุบันและเลือกช่วงเวลามื้ออาหารอัตโนมัติ
-            const autoMeal = getAutoMealTypeByCurrentTime();
+            // ตรวจสอบเวลาปัจจุบันและเลือกช่วงเวลามื้ออาหารอัตโนมัติ หรือใช้มื้อที่ระบุ
+            const autoMeal = (typeof preselectedMealType === 'string' && preselectedMealType) ? preselectedMealType : getAutoMealTypeByCurrentTime();
             setBuilderMealType(autoMeal);
 
             document.getElementById('mealBuilderModal').classList.remove('hidden');
@@ -3462,6 +3711,12 @@
                     btn.className = 'py-2 text-[11px] font-bold rounded-xl transition text-slate-400 hover:text-white';
                 }
             });
+
+            const mTarget = getMealTargets(type, config.goal);
+            const hint = document.getElementById('builderMealTargetHint');
+            if (hint) {
+                hint.innerHTML = `<span>🎯 เป้าหมายแนะนำ: <strong class="text-white">~${mTarget.cal} kcal</strong></span> <span class="text-slate-400">(P ~${mTarget.protein}g • C ~${mTarget.carbs}g • F ~${mTarget.fat}g)</span>`;
+            }
         }
 
         function addMealBuilderSlot() {
@@ -4182,6 +4437,99 @@
 
         function closeStreakModal() {
             document.getElementById('streakModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // MEAL TARGET & NUTRIENT DETAILS MODAL
+        // ==========================================
+        function openMealTargetModal(mealType) {
+            const today = getLocalDateString();
+            const todayMeals = meals.filter(m => m.date === today && m.meal_type === mealType);
+            const target = getMealTargets(mealType, config.goal);
+
+            let consumedCal = 0, consumedP = 0, consumedC = 0, consumedF = 0;
+            todayMeals.forEach(m => {
+                consumedCal += (Number(m.calories) || 0);
+                consumedP += (Number(m.protein_g) || 0);
+                consumedC += (Number(m.carbs_g) || 0);
+                consumedF += (Number(m.fat_g) || 0);
+            });
+
+            document.getElementById('mealTargetModalEmoji').innerText = target.emoji;
+            document.getElementById('mealTargetModalTitle').innerText = `เป้าหมาย${target.label}`;
+            document.getElementById('mealTargetModalSubtitle').innerText = `สัดส่วนที่แนะนำ ${target.percent}% ของเป้าหมายประจำวัน (${config.goal} kcal)`;
+
+            document.getElementById('mealTargetModalCalConsumed').innerText = consumedCal.toLocaleString();
+            document.getElementById('mealTargetModalCalGoal').innerText = target.cal.toLocaleString();
+
+            const calPct = target.cal > 0 ? Math.min((consumedCal / target.cal) * 100, 100) : 0;
+            const calBar = document.getElementById('mealTargetModalCalBar');
+            if (calBar) {
+                calBar.style.width = `${calPct}%`;
+                calBar.className = consumedCal > target.cal ? 'bg-rose-500 h-full rounded-full transition-all' : 'bg-brand-500 h-full rounded-full transition-all';
+            }
+
+            const statusEl = document.getElementById('mealTargetModalCalStatus');
+            if (statusEl) {
+                if (consumedCal === 0) {
+                    statusEl.innerHTML = `🌱 ยังไม่ได้บันทึกอาหารมื้อนี้ (แนะนำทาน ~${target.cal} kcal)`;
+                    statusEl.className = 'text-[11px] font-semibold text-slate-400';
+                } else if (consumedCal <= target.cal) {
+                    statusEl.innerHTML = `🎯 ทานไปแล้ว ${consumedCal} kcal (ยังทานได้อีก ${target.cal - consumedCal} kcal)`;
+                    statusEl.className = 'text-[11px] font-semibold text-emerald-400';
+                } else {
+                    statusEl.innerHTML = `⚠️ เกินเป้าหมายมื้อนี้ไป ${consumedCal - target.cal} kcal`;
+                    statusEl.className = 'text-[11px] font-semibold text-rose-400';
+                }
+            }
+
+            // Macro P, C, F
+            document.getElementById('mealTargetModalPVal').innerText = Math.round(consumedP);
+            document.getElementById('mealTargetModalPGoal').innerText = target.protein;
+            const pPct = target.protein > 0 ? Math.min(Math.round((consumedP / target.protein) * 100), 100) : 0;
+            document.getElementById('mealTargetModalPBar').style.width = `${pPct}%`;
+            document.getElementById('mealTargetModalPPct').innerText = `${pPct}%`;
+
+            document.getElementById('mealTargetModalCVal').innerText = Math.round(consumedC);
+            document.getElementById('mealTargetModalCGoal').innerText = target.carbs;
+            const cPct = target.carbs > 0 ? Math.min(Math.round((consumedC / target.carbs) * 100), 100) : 0;
+            document.getElementById('mealTargetModalCBar').style.width = `${cPct}%`;
+            document.getElementById('mealTargetModalCPct').innerText = `${cPct}%`;
+
+            document.getElementById('mealTargetModalFVal').innerText = Math.round(consumedF);
+            document.getElementById('mealTargetModalFGoal').innerText = target.fat;
+            const fPct = target.fat > 0 ? Math.min(Math.round((consumedF / target.fat) * 100), 100) : 0;
+            document.getElementById('mealTargetModalFBar').style.width = `${fPct}%`;
+            document.getElementById('mealTargetModalFPct').innerText = `${fPct}%`;
+
+            // Items list
+            const listEl = document.getElementById('mealTargetModalItemList');
+            document.getElementById('mealTargetModalItemCount').innerText = `${todayMeals.length} รายการ`;
+            if (todayMeals.length === 0) {
+                listEl.innerHTML = `<div class="p-3 bg-zinc-950/40 rounded-xl text-center text-xs text-slate-500">ยังไม่มีรายการอาหารในมื้อนี้</div>`;
+            } else {
+                listEl.innerHTML = todayMeals.map(m => `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-950/70 border border-zinc-800 text-xs">
+                        <span class="font-medium text-white truncate max-w-[180px]">${m.name}</span>
+                        <span class="font-bold text-brand-400">${m.calories} kcal</span>
+                    </div>
+                `).join('');
+            }
+
+            // Action Add Button
+            const addBtn = document.getElementById('mealTargetModalAddBtn');
+            if (addBtn) {
+                addBtn.onclick = () => {
+                    closeMealTargetModal();
+                    openMealBuilderModal(mealType);
+                };
+            }
+
+            document.getElementById('mealTargetModal').classList.remove('hidden');
+        }
+
+        function closeMealTargetModal() {
+            document.getElementById('mealTargetModal').classList.add('hidden');
         }
 
         // ==========================================
