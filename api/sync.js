@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const r = await fetch(`${table}?id=eq.${ROW_ID}&select=data,updated_at`, { headers });
-      if (!r.ok) return res.status(502).json({ error: 'Supabase read failed', status: r.status });
+      if (!r.ok) return res.status(502).json({ error: 'Supabase read failed', status: r.status, detail: (await r.text()).slice(0, 300) });
       const rows = await r.json();
       if (!rows.length) return res.status(200).json({ exists: false });
       return res.status(200).json({ exists: true, data: rows[0].data, updatedAt: rows[0].updated_at });
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
         headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
         body: JSON.stringify({ id: ROW_ID, data, updated_at: updatedAt })
       });
-      if (!r.ok) return res.status(502).json({ error: 'Supabase write failed', status: r.status });
+      if (!r.ok) return res.status(502).json({ error: 'Supabase write failed', status: r.status, detail: (await r.text()).slice(0, 300) });
       return res.status(200).json({ ok: true, updatedAt });
     }
 
