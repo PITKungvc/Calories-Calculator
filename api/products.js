@@ -1,11 +1,12 @@
 // API endpoint สำหรับจัดการฐานข้อมูลสินค้าทางการและระบบ Auto-Save (Crowdsourcing Cache)
 import { OFFICIAL_PRODUCTS, matchOfficialProduct } from '../data/products.js';
+import { denyAccess } from './_guard.js';
 
 export default async function handler(req, res) {
   // รองรับ CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-calsnap-token');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -56,6 +57,7 @@ export default async function handler(req, res) {
   // POST: Auto-Save / บันทึกข้อมูลสินค้าใหม่ที่ยืนยันจากฉลากจริง (Crowdsourcing)
   // ==========================================
   if (req.method === 'POST') {
+    if (denyAccess(req, res)) return;
     try {
       const { name, calories, protein_g = 0, carbs_g = 0, fat_g = 0, sugar_g = 0, sodium_mg = 0, portion = '1 ชิ้น', source = 'ผู้ใช้ยืนยันจากฉลากจริง' } = req.body;
 

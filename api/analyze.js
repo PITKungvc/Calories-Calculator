@@ -1,5 +1,6 @@
 // ฐานข้อมูลสินค้าทางการร้านสะดวกซื้อ (7-Eleven, Lawson, Supermarket ในประเทศไทย)
 import { matchOfficialProduct } from '../data/products.js';
+import { isRateLimited, denyAccess } from './_guard.js';
 
 export const config = {
   maxDuration: 30
@@ -8,6 +9,12 @@ export const config = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  if (denyAccess(req, res)) return;
+
+  if (isRateLimited(req)) {
+    return res.status(429).json({ error: 'ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่' });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -27,6 +34,13 @@ export default async function handler(req, res) {
     }
 
     // ทำความสะอาดและตรวจสอบข้อมูล base64 ของรูปภาพป้องกัน undefined
+    // จำกัดจำนวนภาพและขนาดรวม เพื่อกันการใช้โควตาเกินจำเป็น
+    inputImages = inputImages.slice(0, 4);
+    const totalChars = inputImages.reduce((n, img) => n + String(img.data || img.base64 || '').length, 0);
+    if (totalChars > 6 * 1024 * 1024) {
+      return res.status(413).json({ error: 'รูปภาพมีขนาดใหญ่เกินไป' });
+    }
+
     inputImages = inputImages.map(img => ({
       data: img.data || img.base64 || '',
       mimeType: img.mimeType || 'image/jpeg'
