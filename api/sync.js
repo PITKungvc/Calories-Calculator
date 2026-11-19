@@ -20,7 +20,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY is not configured' });
   }
 
-  const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+  // key แบบใหม่ (sb_secret_...) ไม่ใช่ JWT จึงส่งผ่าน apikey อย่างเดียว; key แบบ legacy (JWT) ส่ง Bearer ด้วย
+  const headers = { apikey: key, 'Content-Type': 'application/json' };
+  if (!key.startsWith('sb_')) headers.Authorization = `Bearer ${key}`;
   const table = `${url.replace(/\/$/, '')}/rest/v1/calsnap_backup`;
 
   try {
