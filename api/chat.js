@@ -1,3 +1,5 @@
+import { isRateLimited, denyAccess } from './_guard.js';
+
 export const config = {
   maxDuration: 30
 };
@@ -5,6 +7,13 @@ export const config = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  if (denyAccess(req, res)) return;
+
+  // จำกัดอัตราเฉพาะเมื่อใช้ key ของเซิร์ฟเวอร์ (ผู้ใช้ที่ใส่ key ของตัวเองไม่ถูกจำกัด)
+  if (!req.body.apiKey && isRateLimited(req)) {
+    return res.status(429).json({ error: 'ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่' });
   }
 
   const apiKey = req.body.apiKey || process.env.GEMINI_API_KEY;

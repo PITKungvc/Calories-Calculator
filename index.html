@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-title" content="CalSnap">
     <meta name="theme-color" content="#090a0f">
     <meta name="msapplication-navbutton-color" content="#090a0f">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921822.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/manifest.json">
 
     <title>CalSnap - AI Nutrition & Calorie Tracker</title>
@@ -839,6 +839,10 @@
                 <div>
                     <label class="text-xs text-slate-400 font-medium">เป้าหมายแคลอรี่ประจำวัน (kcal)</label>
                     <input id="calorieGoalInput" type="number" value="2000" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs focus:border-brand-500 outline-none text-white">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">Access Token (ต้องตรงกับ ACCESS_TOKEN บน Vercel)</label>
+                    <input id="accessTokenInput" type="password" autocomplete="off" placeholder="ปล่อยว่างถ้ายังไม่ได้ตั้งค่า" class="w-full mt-1.5 p-3 bg-zinc-950 rounded-xl border border-zinc-800 text-xs">
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1">
@@ -1747,7 +1751,14 @@
             return `${hours}:${minutes}`;
         }
 
-        let config = { apiKey: '', model: 'gemini-3-flash-preview', goal: 2000 };
+        let config = { apiKey: '', accessToken: '', model: 'gemini-3-flash-preview', goal: 2000 };
+
+        // เรียก API ของแอปพร้อม access token ส่วนตัว (ตรงกับ ACCESS_TOKEN บน Vercel)
+        function apiFetch(url, opts = {}) {
+            const headers = Object.assign({}, opts.headers || {});
+            if (config.accessToken) headers['x-calsnap-token'] = config.accessToken;
+            return fetch(url, Object.assign({}, opts, { headers }));
+        }
         let meals = [];
         let currentScanMeta = { is_official: false, source: '' };
         let selectedHistoryDate = getLocalDateString();
@@ -1760,6 +1771,8 @@
 
             const savedConfig = localStorage.getItem(STORAGE_CONFIG) || localStorage.getItem('kalguroo_v3_config');
             if (savedConfig) config = JSON.parse(savedConfig);
+            const tokenEl = document.getElementById('accessTokenInput');
+            if (tokenEl) tokenEl.value = config.accessToken || '';
 
             // Auto-migrate from deprecated gemini-2.5 or non-existent 3.0 to gemini-3-flash-preview
             if (!config.model || config.model.includes('2.5') || config.model.includes('3.0')) {
@@ -2080,7 +2093,7 @@
 
             try {
                 const recentMsgs = chatMessages.slice(-10);
-                const res = await fetch('/api/chat', {
+                const res = await apiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2501,7 +2514,7 @@
                     ...overrides
                 };
 
-                fetch('/api/widget', {
+                apiFetch('/api/widget', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -3045,6 +3058,7 @@
             }
 
             config.model = chosenModel;
+            config.accessToken = (document.getElementById('accessTokenInput')?.value || '').trim();
             config.goal = parseInt(document.getElementById('calorieGoalInput').value) || 2000;
             localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
             document.getElementById('goalDisplay').innerText = config.goal;
@@ -3082,12 +3096,35 @@
             XLSX.writeFile(wb, "calsnap_nutrition_log.xlsx");
         }
 
-        function backupJsonData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(meals, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `calsnap_backup_${getLocalDateString()}.json`);
-            dlAnchor.click();
+        // สำรองข้อมูลทั้งหมด (มื้ออาหาร, โปรไฟล์, ตั้งค่า, ธนาคารแคลอรี่, แชต AI)
+        const BACKUP_KEYS = [STORAGE_MEALS, STORAGE_PROFILE, STORAGE_CONFIG, 'calsnap_calorie_bank', 'calsnap_v1_ai_chat'];
+
+        async function backupJsonData() {
+            const data = {};
+            BACKUP_KEYS.forEach(k => {
+                const v = localStorage.getItem(k);
+                if (v !== null) data[k] = v;
+            });
+            const payload = JSON.stringify({ app: 'calsnap', version: 2, exportedAt: new Date().toISOString(), data }, null, 2);
+            const fileName = `calsnap_backup_${getLocalDateString()}.json`;
+            const file = new File([payload], fileName, { type: 'application/json' });
+            // iPhone: เปิดหน้าแชร์ให้บันทึกลง Files / iCloud ได้ (การดาวน์โหลดตรง ๆ ใน PWA มักไม่ทำงาน)
+            try {
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: 'CalSnap backup' });
+                    return;
+                }
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+            }
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function restoreJsonData(event) {
@@ -3098,19 +3135,114 @@
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
-                        meals = imported;
-                        localStorage.setItem(STORAGE_MEALS, JSON.stringify(meals));
-                        alert(`กู้คืนข้อมูลสำเร็จทั้งหมด ${meals.length} รายการ!`);
-                        renderHomeDashboard();
+                        // ไฟล์สำรองรูปแบบเก่า (เฉพาะมื้ออาหาร)
+                        if (!confirm(`กู้คืน ${imported.length} รายการ? ข้อมูลมื้ออาหารปัจจุบันจะถูกแทนที่`)) return;
+                        localStorage.setItem(STORAGE_MEALS, JSON.stringify(imported));
+                    } else if (imported && imported.app === 'calsnap' && imported.data && typeof imported.data === 'object') {
+                        const keys = Object.keys(imported.data).filter(k => BACKUP_KEYS.includes(k));
+                        if (keys.length === 0) throw new Error('ไม่พบข้อมูลที่กู้คืนได้');
+                        if (!confirm('กู้คืนข้อมูลทั้งหมดจากไฟล์สำรอง? ข้อมูลปัจจุบันจะถูกแทนที่')) return;
+                        keys.forEach(k => localStorage.setItem(k, imported.data[k]));
                     } else {
                         alert('โครงสร้างไฟล์ JSON ไม่ถูกต้อง');
+                        return;
                     }
+                    alert('กู้คืนข้อมูลสำเร็จ แอปจะโหลดใหม่');
+                    location.reload();
                 } catch (err) {
                     alert('เกิดข้อผิดพลาดในการอ่านไฟล์: ' + err.message);
                 }
             };
             reader.readAsText(file);
+            event.target.value = '';
         }
+
+        // ==========================================
+        // CLOUD SYNC (Supabase ผ่าน /api/sync) - localStorage ยังเป็นแหล่งข้อมูลหลัก
+        // ==========================================
+        const SYNC_TS_KEY = 'calsnap_sync_ts';
+        const SYNC_DIRTY_KEY = 'calsnap_sync_dirty';
+        const rawSetItem = Storage.prototype.setItem;
+        let syncTimer = null;
+
+        function syncEnabled() { return !!(config && config.accessToken); }
+
+        function collectBackupData() {
+            const data = {};
+            BACKUP_KEYS.forEach(k => {
+                const v = localStorage.getItem(k);
+                if (v !== null) data[k] = v;
+            });
+            return data;
+        }
+
+        async function pushSync() {
+            if (!syncEnabled()) return;
+            try {
+                const res = await apiFetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: collectBackupData() })
+                });
+                const out = await res.json();
+                if (res.ok && out.updatedAt) {
+                    rawSetItem.call(localStorage, SYNC_TS_KEY, out.updatedAt);
+                    rawSetItem.call(localStorage, SYNC_DIRTY_KEY, '0');
+                }
+            } catch (e) { /* ออฟไลน์: dirty ยังค้างไว้ ลองใหม่รอบถัดไป */ }
+        }
+
+        // เขียนค่าที่เกี่ยวกับข้อมูลผู้ใช้เมื่อไร ให้ตั้ง dirty แล้ว push หลังหยุดแก้ 3 วินาที
+        Storage.prototype.setItem = function (k, v) {
+            rawSetItem.call(this, k, v);
+            if (this === localStorage && BACKUP_KEYS.includes(k)) {
+                rawSetItem.call(localStorage, SYNC_DIRTY_KEY, '1');
+                clearTimeout(syncTimer);
+                syncTimer = setTimeout(pushSync, 3000);
+            }
+        };
+
+        async function pullSync() {
+            if (!syncEnabled()) return;
+            try {
+                const res = await apiFetch('/api/sync');
+                if (!res.ok) return;
+                const out = await res.json();
+                const localDirty = localStorage.getItem(SYNC_DIRTY_KEY) === '1';
+                if (!out.exists) { await pushSync(); return; }
+                if (localDirty) { await pushSync(); return; } // เครื่องนี้มีของใหม่ที่ยังไม่ขึ้น cloud
+                const lastTs = localStorage.getItem(SYNC_TS_KEY);
+                if (lastTs && new Date(out.updatedAt) <= new Date(lastTs)) return;
+                const hasLocal = localStorage.getItem(STORAGE_MEALS) !== null;
+                if (!lastTs && hasLocal) {
+                    // เครื่องนี้มีข้อมูลเดิมแต่ไม่เคย sync: ให้เลือกอย่างระวัง
+                    if (!confirm('พบข้อมูลบน cloud และข้อมูลในเครื่องนี้ด้วย\nOK = ใช้ข้อมูลจาก cloud (ทับเครื่องนี้)\nCancel = ใช้ข้อมูลเครื่องนี้ (ทับ cloud)')) {
+                        await pushSync();
+                        return;
+                    }
+                }
+                Object.keys(out.data || {}).filter(k => BACKUP_KEYS.includes(k)).forEach(k => {
+                    if (k === STORAGE_CONFIG) {
+                        // คง token ของเครื่องนี้ไว้ ไม่ให้ถูกทับ
+                        try {
+                            const incoming = JSON.parse(out.data[k]);
+                            incoming.accessToken = config.accessToken;
+                            rawSetItem.call(localStorage, k, JSON.stringify(incoming));
+                            return;
+                        } catch (e) { /* ใช้ค่าเดิมต่อ */ }
+                    }
+                    rawSetItem.call(localStorage, k, out.data[k]);
+                });
+                rawSetItem.call(localStorage, SYNC_TS_KEY, out.updatedAt);
+                rawSetItem.call(localStorage, SYNC_DIRTY_KEY, '0');
+                location.reload();
+            } catch (e) { /* ออฟไลน์: ข้าม */ }
+        }
+
+        window.addEventListener('load', () => setTimeout(pullSync, 800));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && localStorage.getItem(SYNC_DIRTY_KEY) === '1') pushSync();
+        });
 
         // ==========================================
         // AI SCAN FOOD WITH 1600px & FALLBACK
@@ -3126,7 +3258,7 @@
                 const { data: base64Data, mimeType } = await compressImage(file, 1280, 0.80);
                 const activeModel = config.model || 'gemini-3-flash-preview';
                 
-                const res = await fetch('/api/analyze', {
+                const res = await apiFetch('/api/analyze', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -3279,7 +3411,7 @@
 
                 // Auto-Save Crowdsource Database (ถ้าเป็นสินค้าทางการ หรือตรวจจากฉลาก จะซิงค์ไปยังฐานข้อมูลกลาง)
                 if (newMeal.is_official) {
-                    fetch('/api/products', {
+                    apiFetch('/api/products', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newMeal)
@@ -3642,7 +3774,7 @@
                     meal_type: builderMealType
                 };
 
-                const res = await fetch('/api/analyze', {
+                const res = await apiFetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -3894,7 +4026,7 @@
                         meal_type: builderMealType
                     };
 
-                    const res = await fetch('/api/analyze', {
+                    const res = await apiFetch('/api/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -4062,7 +4194,7 @@
 
                 // Auto-Save Crowdsource Database ในพื้นหลัง
                 if (newMeal.is_official) {
-                    fetch('/api/products', {
+                    apiFetch('/api/products', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newMeal)
@@ -4155,7 +4287,7 @@
             loadingModal.querySelector('.font-bold').innerText = 'AI กำลังวิเคราะห์อาหารจากข้อความ...';
 
             try {
-                const res = await fetch('/api/analyze', {
+                const res = await apiFetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
