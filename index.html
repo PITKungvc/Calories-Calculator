@@ -559,6 +559,26 @@
                 </div>
             </div>
 
+            <!-- Trend Chart (กราฟแนวโน้มรายวัน) -->
+            <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-3">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">กราฟแนวโน้มรายวัน</span>
+                    <div id="trendMetricTabs" class="flex gap-1">
+                        <button data-m="calories" onclick="setTrendMetric('calories')" class="trend-tab px-2.5 py-1 rounded-lg text-[10px] font-bold border">kcal</button>
+                        <button data-m="protein_g" onclick="setTrendMetric('protein_g')" class="trend-tab px-2.5 py-1 rounded-lg text-[10px] font-bold border">โปรตีน</button>
+                        <button data-m="carbs_g" onclick="setTrendMetric('carbs_g')" class="trend-tab px-2.5 py-1 rounded-lg text-[10px] font-bold border">คาร์บ</button>
+                        <button data-m="fat_g" onclick="setTrendMetric('fat_g')" class="trend-tab px-2.5 py-1 rounded-lg text-[10px] font-bold border">ไขมัน</button>
+                    </div>
+                </div>
+                <div id="trendChartBox" class="w-full"></div>
+                <div id="trendChartInfo" class="text-[11px] text-slate-400 min-h-[1.25rem]">แตะแท่งกราฟเพื่อดูรายละเอียด</div>
+                <div class="flex items-center gap-4 text-[10px] text-slate-500">
+                    <span class="flex items-center gap-1"><i class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500"></i> ในเป้า</span>
+                    <span class="flex items-center gap-1"><i class="inline-block w-2.5 h-2.5 rounded-sm bg-amber-400"></i> เกินเป้า</span>
+                    <span class="flex items-center gap-1"><i class="inline-block w-4 h-0 border-t-2 border-sky-400"></i> เฉลี่ย 7 วัน</span>
+                </div>
+            </div>
+
             <!-- Macro Distribution & Nutrition Ratio -->
             <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-5 space-y-4">
                 <div class="flex justify-between items-start">
@@ -2698,6 +2718,127 @@
         }
 
         // ==========================================
+        // TREND CHART (SVG ล้วน ไม่ใช้ไลบรารี)
+        // ==========================================
+        let trendMetric = 'calories';
+        const TREND_LABELS = { calories: 'kcal', protein_g: 'โปรตีน (g)', carbs_g: 'คาร์บ (g)', fat_g: 'ไขมัน (g)' };
+
+        function setTrendMetric(m) {
+            trendMetric = m;
+            renderTrendChart();
+        }
+
+        function trendTarget(metric) {
+            const goal = Number(config.goal) || 2000;
+            if (metric === 'calories') return goal;
+            // สัดส่วนมาตรฐาน P30 / C45 / F25 ของแคลอรี่เป้าหมาย
+            if (metric === 'protein_g') return Math.round((goal * 0.30) / 4);
+            if (metric === 'carbs_g') return Math.round((goal * 0.45) / 4);
+            return Math.round((goal * 0.25) / 9);
+        }
+
+        function trendDateRange() {
+            const period = document.getElementById('insightPeriodSelect')?.value || '7';
+            const today = new Date();
+            const todayStr = getLocalDateString(today);
+            const back = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return getLocalDateString(d); };
+            let start = back(6), end = todayStr;
+            if (period === '14') start = back(13);
+            else if (period === '30') start = back(29);
+            else if (period === 'this_month') start = `${todayStr.slice(0, 7)}-01`;
+            else if (period === 'all') {
+                const dates = meals.map(m => m.date).filter(Boolean).sort();
+                start = dates.length ? dates[0] : todayStr;
+                if (start < back(89)) start = back(89); // จำกัด 90 วันล่าสุดให้กราฟอ่านง่าย
+            } else if (period === 'custom') {
+                start = document.getElementById('insightStartDate')?.value || todayStr;
+                end = document.getElementById('insightEndDate')?.value || todayStr;
+            }
+            return { start, end };
+        }
+
+        function renderTrendChart() {
+            const box = document.getElementById('trendChartBox');
+            if (!box) return;
+            document.querySelectorAll('#trendMetricTabs .trend-tab').forEach(b => {
+                const on = b.dataset.m === trendMetric;
+                b.className = 'trend-tab px-2.5 py-1 rounded-lg text-[10px] font-bold border ' +
+                    (on ? 'bg-brand-500/20 border-brand-500/40 text-brand-400' : 'bg-zinc-950 border-zinc-800 text-slate-400');
+            });
+
+            const { start, end } = trendDateRange();
+            const days = [];
+            const cur = new Date(start + 'T00:00:00');
+            const last = new Date(end + 'T00:00:00');
+            if (isNaN(cur) || isNaN(last) || cur > last) { box.innerHTML = '<div class="text-xs text-slate-500 py-8 text-center">ช่วงวันที่ไม่ถูกต้อง</div>'; return; }
+            while (cur <= last && days.length < 120) { days.push(getLocalDateString(cur)); cur.setDate(cur.getDate() + 1); }
+
+            const sums = Object.fromEntries(days.map(d => [d, 0]));
+            const logged = new Set();
+            meals.forEach(m => {
+                if (m.date in sums) { sums[m.date] += Number(m[trendMetric]) || 0; logged.add(m.date); }
+            });
+            if (logged.size === 0) {
+                box.innerHTML = '<div class="text-xs text-slate-500 py-8 text-center">ยังไม่มีบันทึกในช่วงนี้</div>';
+                return;
+            }
+
+            const values = days.map(d => Math.round(sums[d]));
+            // ค่าเฉลี่ยเคลื่อนที่ 7 วัน นับเฉพาะวันที่มีบันทึก
+            const avg = days.map((d, i) => {
+                const win = days.slice(Math.max(0, i - 6), i + 1).filter(x => logged.has(x));
+                return win.length ? win.reduce((s, x) => s + sums[x], 0) / win.length : null;
+            });
+
+            const target = trendTarget(trendMetric);
+            const W = 340, H = 170, padL = 34, padR = 6, padT = 10, padB = 22;
+            const maxV = Math.max(target * 1.15, ...values, 10);
+            const niceMax = Math.ceil(maxV / 100) * 100 || 100;
+            const innerW = W - padL - padR, innerH = H - padT - padB;
+            const slot = innerW / days.length;
+            const barW = Math.max(2, Math.min(22, slot * 0.7));
+            const y = v => padT + innerH - (v / niceMax) * innerH;
+            const x = i => padL + slot * i + slot / 2;
+
+            let svg = `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto" role="img" aria-label="กราฟ${TREND_LABELS[trendMetric]}รายวัน">`;
+            [0, 0.5, 1].forEach(f => {
+                const gy = y(niceMax * f);
+                svg += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="#27272a" stroke-width="1"/>`;
+                svg += `<text x="${padL - 4}" y="${gy + 3}" text-anchor="end" font-size="8" fill="#71717a">${Math.round(niceMax * f)}</text>`;
+            });
+            values.forEach((v, i) => {
+                const has = logged.has(days[i]);
+                const over = v > target;
+                const h = has ? Math.max(1.5, innerH - (y(v) - padT)) : 0;
+                const color = over ? '#fbbf24' : '#10b981';
+                svg += `<rect x="${x(i) - barW / 2}" y="${padT + innerH - h}" width="${barW}" height="${h}" rx="2" fill="${color}" opacity="${has ? 0.9 : 0}"/>`;
+                svg += `<rect data-i="${i}" x="${x(i) - slot / 2}" y="${padT}" width="${slot}" height="${innerH}" fill="transparent" style="cursor:pointer"/>`;
+            });
+            const pts = avg.map((a, i) => a == null ? null : `${x(i).toFixed(1)},${y(a).toFixed(1)}`).filter(Boolean);
+            if (pts.length > 1) svg += `<polyline points="${pts.join(' ')}" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+            const ty = y(target);
+            svg += `<line x1="${padL}" y1="${ty}" x2="${W - padR}" y2="${ty}" stroke="#f43f5e" stroke-width="1" stroke-dasharray="4 3"/>`;
+            svg += `<text x="${W - padR}" y="${ty - 3}" text-anchor="end" font-size="8" fill="#f43f5e">เป้า ${target}</text>`;
+            const step = Math.max(1, Math.ceil(days.length / 6));
+            days.forEach((d, i) => {
+                if (i % step === 0 || i === days.length - 1) {
+                    svg += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" font-size="8" fill="#71717a">${d.slice(8)}/${d.slice(5, 7)}</text>`;
+                }
+            });
+            svg += '</svg>';
+            box.innerHTML = svg;
+
+            const info = document.getElementById('trendChartInfo');
+            const show = (i) => {
+                const a = avg[i] == null ? '-' : Math.round(avg[i]);
+                if (info) info.textContent = `${days[i]}: ${values[i].toLocaleString()} ${TREND_LABELS[trendMetric]} (เฉลี่ย 7 วัน ${a}, เป้า ${target})`;
+            };
+            box.querySelectorAll('rect[data-i]').forEach(r => r.addEventListener('click', () => show(Number(r.dataset.i))));
+            const total = values.reduce((s, v) => s + v, 0);
+            if (info) info.textContent = `เฉลี่ยวันที่มีบันทึก ${Math.round(total / logged.size).toLocaleString()} ${TREND_LABELS[trendMetric]} จาก ${logged.size}/${days.length} วัน`;
+        }
+
+        // ==========================================
         // TAB 4: INSIGHTS LOGIC (วิเคราะห์ตามช่วงเวลาที่กำหนด)
         // ==========================================
         function onInsightPeriodChange() {
@@ -2724,6 +2865,11 @@
         }
 
         function renderInsightsView() {
+            renderInsightsViewBase();
+            try { renderTrendChart(); } catch (e) { console.warn('trend chart', e); }
+        }
+
+        function renderInsightsViewBase() {
             const periodSelect = document.getElementById('insightPeriodSelect');
             const period = periodSelect ? periodSelect.value : '7';
 
@@ -3176,20 +3322,36 @@
             return data;
         }
 
-        async function pushSync() {
-            if (!syncEnabled()) return;
+        async function pushSync(consumedInboxIds) {
+            if (!syncEnabled()) return false;
             try {
                 const res = await apiFetch('/api/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: collectBackupData() })
+                    body: JSON.stringify({
+                        data: collectBackupData(),
+                        consumedInboxIds: Array.isArray(consumedInboxIds) ? consumedInboxIds : []
+                    })
                 });
                 const out = await res.json();
                 if (res.ok && out.updatedAt) {
                     rawSetItem.call(localStorage, SYNC_TS_KEY, out.updatedAt);
                     rawSetItem.call(localStorage, SYNC_DIRTY_KEY, '0');
+                    return true;
                 }
             } catch (e) { /* ออฟไลน์: dirty ยังค้างไว้ ลองใหม่รอบถัดไป */ }
+            return false;
+        }
+
+        // รวมมื้อที่บันทึกจาก Shortcut (inbox) เข้าประวัติในเครื่อง แล้ว push พร้อมแจ้งให้ลบออกจาก inbox
+        async function mergeInbox(inbox) {
+            let local = [];
+            try { local = JSON.parse(localStorage.getItem(STORAGE_MEALS) || '[]'); } catch (e) { local = []; }
+            const have = new Set(local.map(m => m.id));
+            const add = inbox.filter(m => m && m.id && !have.has(m.id));
+            if (add.length) localStorage.setItem(STORAGE_MEALS, JSON.stringify([...add, ...local]));
+            const ok = await pushSync(inbox.map(m => m.id));
+            if (ok && add.length) location.reload();
         }
 
         // เขียนค่าที่เกี่ยวกับข้อมูลผู้ใช้เมื่อไร ให้ตั้ง dirty แล้ว push หลังหยุดแก้ 3 วินาที
@@ -3209,10 +3371,14 @@
                 if (!res.ok) return;
                 const out = await res.json();
                 const localDirty = localStorage.getItem(SYNC_DIRTY_KEY) === '1';
+                const inbox = Array.isArray(out.inbox) ? out.inbox : [];
                 if (!out.exists) { await pushSync(); return; }
-                if (localDirty) { await pushSync(); return; } // เครื่องนี้มีของใหม่ที่ยังไม่ขึ้น cloud
+                if (localDirty) { await (inbox.length ? mergeInbox(inbox) : pushSync()); return; } // เครื่องนี้มีของใหม่ที่ยังไม่ขึ้น cloud
                 const lastTs = localStorage.getItem(SYNC_TS_KEY);
-                if (lastTs && new Date(out.updatedAt) <= new Date(lastTs)) return;
+                if (lastTs && new Date(out.updatedAt) <= new Date(lastTs)) {
+                    if (inbox.length) await mergeInbox(inbox); // เครื่องนี้ตรงกับ cloud แล้ว รวมมื้อจาก Shortcut ได้เลย
+                    return;
+                }
                 const hasLocal = localStorage.getItem(STORAGE_MEALS) !== null;
                 if (!lastTs && hasLocal) {
                     // เครื่องนี้มีข้อมูลเดิมแต่ไม่เคย sync: ให้เลือกอย่างระวัง
@@ -3242,6 +3408,11 @@
         window.addEventListener('load', () => setTimeout(pullSync, 800));
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden' && localStorage.getItem(SYNC_DIRTY_KEY) === '1') pushSync();
+            // กลับมาเปิดแอปจากพื้นหลัง: ดึงมื้อจาก Shortcut (ไม่เกิน 1 ครั้งต่อ 10 วินาที)
+            if (document.visibilityState === 'visible' && Date.now() - (window.__lastPull || 0) > 10000) {
+                window.__lastPull = Date.now();
+                pullSync();
+            }
         });
 
         // ==========================================
